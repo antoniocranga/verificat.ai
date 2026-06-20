@@ -1,0 +1,56 @@
+services:
+  web:
+    image: verificat-web:${VERSION}
+    container_name: verificat-web
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    networks:
+      - traefik_default
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-prod.rule=Host(`verificat.xyz`)"
+      - "traefik.http.routers.web-prod.entrypoints=websecure"
+      - "traefik.http.routers.web-prod.tls=true"
+      - "traefik.http.routers.web-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.web-prod.middlewares=security-headers@file"
+      - "traefik.http.services.web-prod.loadbalancer.server.port=3000"
+
+  api:
+    image: verificat-api:${VERSION}
+    container_name: verificat-api
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    networks:
+      - traefik_default
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-prod.rule=Host(`verificat.xyz`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-prod.entrypoints=websecure"
+      - "traefik.http.routers.api-prod.tls=true"
+      - "traefik.http.routers.api-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.api-prod.middlewares=security-headers@file"
+      - "traefik.http.services.api-prod.loadbalancer.server.port=3000"
+
+networks:
+  traefik_default:
+    external: true
