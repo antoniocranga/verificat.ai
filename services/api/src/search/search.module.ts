@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
 import { SearchController } from './search.controller';
-import { SearchService } from './search.service';
+import { SearchService, SEARCH_PROVIDER } from './search.service';
+import { PgVectorSearchProvider } from './providers/pgvector-search.provider';
 import { SupabaseModule } from '../supabase/supabase.module';
 
 @Module({
   imports: [SupabaseModule],
   controllers: [SearchController],
-  providers: [SearchService],
+  providers: [
+    SearchService,
+    {
+      provide: SEARCH_PROVIDER,
+      useClass: PgVectorSearchProvider,
+    },
+  ],
   exports: [SearchService],
 })
 export class SearchModule {}
