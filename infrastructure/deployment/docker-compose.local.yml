@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: verificat-db-local
+    environment:
+      POSTGRES_USER: verificat
+      POSTGRES_PASSWORD: verificat_dev_password
+      POSTGRES_DB: verificat
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: verificat-redis-local
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: verificat-opensearch-local
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+
+volumes:
+  db_data:
+  redis_data:
+  opensearch_data:

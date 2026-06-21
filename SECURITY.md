@@ -10,16 +10,16 @@ If this file and `CONSTITUTION.md` conflict, the Constitution wins. If this file
 
 These cannot be weakened by any agent, PR, or task description without explicit human sign-off:
 
-| Control | Where it lives | How it's enforced |
-|---|---|---|
-| No secret outside secrets manager | Infisical | Gitleaks in pre-commit + CI (T1.3.3) |
-| RLS default-deny on every table | Supabase Postgres | CI check: tables without policies fail |
-| `service_role` key never in a client bundle | Supabase | Trivy + bundle-size/source scan in CI |
-| Short-lived tokens, rotating refresh, server-side revocation | Supabase Auth | F2.4 task set |
-| Non-root Docker final stage | All Dockerfiles | Trivy misconfiguration scan |
-| Dependency + container + secret scanning as required CI | CI pipeline | Gitleaks, Trivy — both gate merge |
-| Per-endpoint rate limiting by default | Traefik + NestJS guards | Exception requires reviewed comment explaining why |
-| CSP, HSTS, secure cookies at reverse-proxy layer | Traefik | Not duplicated per-route |
+| Control                                                      | Where it lives          | How it's enforced                                  |
+| ------------------------------------------------------------ | ----------------------- | -------------------------------------------------- |
+| No secret outside secrets manager                            | Infisical               | Gitleaks in pre-commit + CI (T1.3.3)               |
+| RLS default-deny on every table                              | Supabase Postgres       | CI check: tables without policies fail             |
+| `service_role` key never in a client bundle                  | Supabase                | Trivy + bundle-size/source scan in CI              |
+| Short-lived tokens, rotating refresh, server-side revocation | Supabase Auth           | F2.4 task set                                      |
+| Non-root Docker final stage                                  | All Dockerfiles         | Trivy misconfiguration scan                        |
+| Dependency + container + secret scanning as required CI      | CI pipeline             | Gitleaks, Trivy — both gate merge                  |
+| Per-endpoint rate limiting by default                        | Traefik + NestJS guards | Exception requires reviewed comment explaining why |
+| CSP, HSTS, secure cookies at reverse-proxy layer             | Traefik                 | Not duplicated per-route                           |
 
 ---
 
@@ -27,14 +27,14 @@ These cannot be weakened by any agent, PR, or task description without explicit 
 
 Full detail is in Notion → Security Architecture & Review. This table is a quick reference:
 
-| Threat | Primary mitigation |
-|---|---|
-| **Spoofing** | Supabase Auth + OAuth 2.1/OIDC with PKCE; JWT signature validation on every API request |
-| **Tampering** | RLS default-deny on every table; signed/short-lived Storage URLs; `audit_log` table for sensitive writes |
-| **Repudiation** | `audit_log` with actor, action, timestamp, IP — immutable (service_role-only writes, no deletes) |
-| **Information Disclosure** | RLS, least-privilege service accounts, secrets via Infisical only, PII scrubbed from logs and Sentry |
-| **Denial of Service** | Rate limiting + IP throttling at Traefik and NestJS layers; WAF; BullMQ backpressure on STT/verification pipeline |
-| **Elevation of Privilege** | RBAC on Admin Dashboard; `service_role` key isolated to server-only contexts; mobile root/jailbreak detection |
+| Threat                     | Primary mitigation                                                                                                |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Spoofing**               | Supabase Auth + OAuth 2.1/OIDC with PKCE; JWT signature validation on every API request                           |
+| **Tampering**              | RLS default-deny on every table; signed/short-lived Storage URLs; `audit_log` table for sensitive writes          |
+| **Repudiation**            | `audit_log` with actor, action, timestamp, IP — immutable (service_role-only writes, no deletes)                  |
+| **Information Disclosure** | RLS, least-privilege service accounts, secrets via Infisical only, PII scrubbed from logs and Sentry              |
+| **Denial of Service**      | Rate limiting + IP throttling at Traefik and NestJS layers; WAF; BullMQ backpressure on STT/verification pipeline |
+| **Elevation of Privilege** | RBAC on Admin Dashboard; `service_role` key isolated to server-only contexts; mobile root/jailbreak detection     |
 
 ---
 
@@ -119,10 +119,12 @@ Each item below corresponds to a Phase 8 sign-off checklist item in Notion:
 ## 7. Incident response quick reference
 
 1. **Identify** — which credential/data/control is affected.
-2. **Contain** — rotate the secret or disable the endpoint immediately, before investigation.
+2. **Contain** — rotate the secret or disable the endpoint immediately, before investigation:
+   - For **Supabase Service-Role / Anon Keys**: Go to Supabase Dashboard → Settings → API → Click "Rotate Key".
+   - For **Database Credentials / Secrets**: Change the master database password in Supabase Dashboard → Settings → Database, then immediately update the password in the **Infisical Staging/Production environments**.
 3. **Log** — create a Notion incident entry in Security Architecture & Review with: timestamp, what was exposed, how it was discovered, and who was notified.
 4. **Audit** — check Supabase auth logs and API access logs for any use of the compromised credential between issuance and rotation.
-5. **Fix** — address root cause (not just symptom) in a tracked Notion task.
+5. **Fix** — address root cause (not just symptom) in a tracked Notion task. Restart services so they pull the updated keys from Infisical at startup.
 6. **Prevent** — add or tighten a CI check so the same class of issue cannot recur silently.
 
 > **Known incident (planning phase):** A Supabase `service_role` key was shared in plaintext in the planning chat. It has been noted in Notion → Security Architecture & Review. If rotation has not been confirmed, do it now before proceeding with any work.
@@ -145,11 +147,11 @@ PRs touching any of the following require the Notion task's Security Considerati
 
 ## 9. Open security decisions (as of Phase 1)
 
-| Decision | Required by | Notes |
-|---|---|---|
-| WAF product (Traefik+CrowdSec vs. managed WAF) | Phase 8 | Needs ADR before Phase 8 planning |
+| Decision                                                         | Required by      | Notes                                                                   |
+| ---------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| WAF product (Traefik+CrowdSec vs. managed WAF)                   | Phase 8          | Needs ADR before Phase 8 planning                                       |
 | Mobile SSL pinning strategy (cert vs. public-key, rotation plan) | Phase 6 planning | Must be decided before mobile architecture is finalised, not at Phase 8 |
-| Alertmanager vs. Grafana-native alerting channel | Phase 8 | Slack vs. email vs. PagerDuty-class tool |
-| OpenSearch auth/TLS configuration for self-hosted instance | Phase 3 | Flag when Phase 3 backlog items are specced |
+| Alertmanager vs. Grafana-native alerting channel                 | Phase 8          | Slack vs. email vs. PagerDuty-class tool                                |
+| OpenSearch auth/TLS configuration for self-hosted instance       | Phase 3          | Flag when Phase 3 backlog items are specced                             |
 
 These items are not optional deferred work — each has a deadline phase. An agent must not proceed past that phase boundary without the decision being recorded as an ADR in Notion.
