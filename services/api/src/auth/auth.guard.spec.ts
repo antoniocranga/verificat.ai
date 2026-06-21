@@ -1,19 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { RedisService } from './redis.service';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
   let redisService: jest.Mocked<RedisService>;
+  let reflector: jest.Mocked<Reflector>;
 
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     redisService = {
       isSessionBlacklisted: jest.fn(),
-    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    guard = new AuthGuard(redisService);
+    } as unknown as jest.Mocked<RedisService>;
+
+    reflector = {
+      getAllAndOverride: jest.fn(),
+    } as unknown as jest.Mocked<Reflector>;
+
+    guard = new AuthGuard(redisService, reflector);
     process.env.SUPABASE_JWT_SECRET = 'test-secret';
   });
 
@@ -26,6 +32,8 @@ describe('AuthGuard', () => {
           },
         }),
       }),
+      getHandler: () => jest.fn(),
+      getClass: () => jest.fn(),
     } as unknown as ExecutionContext;
   };
 

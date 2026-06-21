@@ -53,6 +53,24 @@ services:
       - "traefik.http.middlewares.api-ratelimit.ratelimit.average=150"
       - "traefik.http.middlewares.api-ratelimit.ratelimit.burst=30"
 
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: verificat-whisper
+    restart: always
+    environment:
+      - ASR_MODEL=large-v3
+      - ASR_ENGINE=faster-whisper
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4096M
+        reservations:
+          cpus: '1.0'
+          memory: 2048M
+    networks:
+      - traefik_default
+
 networks:
   traefik_default:
     external: true

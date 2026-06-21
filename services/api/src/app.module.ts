@@ -18,10 +18,14 @@ import { AdminModule } from './admin/admin.module';
 import { JobsModule } from './jobs/jobs.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { SearchModule } from './search/search.module';
+import { SpeechModule } from './speech/speech.module';
+import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
 
 @Module({
   imports: [
     AuthModule,
+    SpeechModule,
+    SafeFetcherModule,
     ThrottlerModule.forRootAsync({
       imports: [AuthModule],
       inject: [RedisService],
