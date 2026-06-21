@@ -6,6 +6,15 @@ RUN apk add --no-cache libc6-compat
 
 FROM base AS installer
 WORKDIR /app
+
+# Build-time public env vars (baked into Next.js bundle)
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SITE_URL=https://staging.verificat.xyz
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter=web build
