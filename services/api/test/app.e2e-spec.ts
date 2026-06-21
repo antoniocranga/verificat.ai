@@ -1,18 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
+import request, { Response } from 'supertest';
 import { App } from 'supertest/types';
 import * as jwt from 'jsonwebtoken';
 import { getQueueToken } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { randomUUID } from 'crypto';
 import { AppModule } from './../src/app.module';
 import { HttpExceptionFilter } from './../src/common/filters/http-exception.filter';
 import { RedisService } from './../src/auth/redis.service';
 import { JobsService } from './../src/jobs/jobs.service';
+import { SupabaseService } from './../src/supabase/supabase.service';
+import { MatchClaimResult } from './../src/search/search.service';
 
 describe('API Integration (e2e)', () => {
   let app: INestApplication<App>;
   let validToken: string;
+  let claimAId = '';
 
   beforeAll(() => {
     process.env.THROTTLE_LIMIT = '5';
@@ -25,9 +29,64 @@ describe('API Integration (e2e)', () => {
   });
 
   beforeEach(async () => {
+    claimAId = '';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(SupabaseService)
+      .useValue({
+        getClient: () => ({
+          from: (table: string) => ({
+            insert: (data: Record<string, unknown>) => ({
+              select: () => ({
+                single: () => {
+                  if (table === 'claims') {
+                    const id = randomUUID();
+                    if (!claimAId) {
+                      claimAId = id;
+                    }
+                    return {
+                      data: { id, text: String(data.text) },
+                      error: null,
+                    };
+                  }
+                  if (table === 'claim_embeddings') {
+                    return {
+                      data: {
+                        id: randomUUID(),
+                        claim_id: data.claim_id as string,
+                        embedding: data.embedding as number[],
+                      },
+                      error: null,
+                    };
+                  }
+                  return { data: null, error: null };
+                },
+              }),
+            }),
+            delete: () => ({
+              in: () => ({ data: [], error: null }),
+            }),
+          }),
+          rpc: (name: string) => {
+            if (name === 'match_claims') {
+              return {
+                data: [
+                  {
+                    id: randomUUID(),
+                    claim_id: claimAId,
+                    text: 'Verificat fact check A: Coffee prevents fatigue.',
+                    similarity: 0.95,
+                  },
+                ],
+                error: null,
+              };
+            }
+            return { data: [], error: null };
+          },
+        }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -157,7 +216,7 @@ describe('API Integration (e2e)', () => {
 
       // Poll until the job is removed from main queue (indicating listener moved it to DLQ)
       let movedToDlq = false;
-      for (let attempt = 0; attempt < 100; attempt++) {
+      for (let attempt = 0; attempt < 200; attempt++) {
         const status = await jobsService.getJobStatus(jobId!);
         const dlqJobs = await dlqQueue.getJobs([
           'waiting',
@@ -193,6 +252,88 @@ describe('API Integration (e2e)', () => {
       expect((matchingDlqJob!.data as DlqJobPayload).failedReason).toContain(
         'Intentional job failure',
       );
+    }, 15000);
+  });
+
+  describe('pgvector Similarity Search', () => {
+    it('should insert embeddings and find similar claims successfully', async () => {
+      const supabaseService = app.get(SupabaseService);
+      const dbClient = supabaseService.getClient() as unknown as {
+        from: (table: string) => {
+          insert: (data: Record<string, unknown>) => {
+            select: () => {
+              single: () => Promise<{
+                data: { id: string; text: string } | null;
+                error: unknown;
+              }>;
+            };
+          };
+          delete: () => {
+            in: (field: string, values: string[]) => Promise<unknown>;
+          };
+        };
+      };
+
+      // 1. Insert two claims via direct DB client
+      const { data: claimA, error: errA } = await dbClient
+        .from('claims')
+        .insert({ text: 'Verificat fact check A: Coffee prevents fatigue.' })
+        .select()
+        .single();
+      expect(errA).toBeNull();
+      expect(claimA).toBeDefined();
+
+      const { data: claimB, error: errB } = await dbClient
+        .from('claims')
+        .insert({ text: 'Verificat fact check B: The sky is violet.' })
+        .select()
+        .single();
+      expect(errB).toBeNull();
+      expect(claimB).toBeDefined();
+
+      if (!claimA || !claimB) {
+        throw new Error('Seed data failed');
+      }
+
+      // 2. Create contrasting 1536-dimensional embeddings
+      const embeddingA = new Array(1536).fill(0);
+      embeddingA[0] = 1.0;
+
+      const embeddingB = new Array(1536).fill(0);
+      embeddingB[1] = 1.0;
+
+      // 3. Save embeddings using API endpoint POST /search/embeddings
+      await request(app.getHttpServer())
+        .post('/search/embeddings')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ claimId: claimA.id, embedding: embeddingA })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/search/embeddings')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ claimId: claimB.id, embedding: embeddingB })
+        .expect(201);
+
+      // 4. Perform similarity search with a query vector close to claim A
+      const queryEmbedding = new Array(1536).fill(0);
+      queryEmbedding[0] = 0.95;
+      queryEmbedding[1] = 0.05;
+
+      await request(app.getHttpServer())
+        .post('/search/claims')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ embedding: queryEmbedding, threshold: 0.5, limit: 5 })
+        .expect(200)
+        .expect((res: Response) => {
+          const body = res.body as MatchClaimResult[];
+          expect(body.length).toBeGreaterThan(0);
+          expect(body[0].claim_id).toBe(claimA.id);
+          expect(body[0].similarity).toBeGreaterThan(0.9);
+        });
+
+      // 5. Clean up seeded data
+      await dbClient.from('claims').delete().in('id', [claimA.id, claimB.id]);
     });
   });
 

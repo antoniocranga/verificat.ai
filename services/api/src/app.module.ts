@@ -16,6 +16,8 @@ import { FactChecksModule } from './fact-checks/fact-checks.module';
 import { SourcesModule } from './sources/sources.module';
 import { AdminModule } from './admin/admin.module';
 import { JobsModule } from './jobs/jobs.module';
+import { SupabaseModule } from './supabase/supabase.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { JobsModule } from './jobs/jobs.module';
     SourcesModule,
     AdminModule,
     JobsModule,
+    SupabaseModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
