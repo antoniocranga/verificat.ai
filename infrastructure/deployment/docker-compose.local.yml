@@ -42,6 +42,16 @@ services:
     volumes:
       - opensearch_data:/usr/share/opensearch/data
 
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: verificat-jaeger-local
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "127.0.0.1:16686:16686"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+
 volumes:
   db_data:
   redis_data:
