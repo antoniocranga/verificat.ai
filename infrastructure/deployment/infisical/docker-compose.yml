@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: infisical-db
+    restart: always
+    environment:
+      - POSTGRES_USER=infisical
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=infisical
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infisical"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infisical-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: infisical-redis
+    restart: always
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infisical-net
+
+  backend:
+    image: infisical/infisical:latest
+    container_name: infisical-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DB_CONNECTION_URI=postgres://infisical:${DB_PASSWORD}@db:5432/infisical
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - infisical-net
+      - traefik_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.infisical.rule=Host(`infisical-staging.verificat.xyz`)"
+      - "traefik.http.routers.infisical.entrypoints=websecure"
+      - "traefik.http.routers.infisical.tls=true"
+      - "traefik.http.routers.infisical.tls.certresolver=myresolver"
+      - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+
+volumes:
+  db-data:
+  redis-data:
+
+networks:
+  infisical-net:
+  traefik_default:
+    external: true
