@@ -65,3 +65,34 @@ jobs:
           push: true
           tags: ${{ steps.meta-api.outputs.tags }}
           labels: ${{ steps.meta-api.outputs.labels }}
+
+  deploy-staging:
+    name: Deploy to Staging VPS
+    needs: build-push
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            # Log in to GHCR on the VPS
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull new images
+            docker pull ghcr.io/antoniocranga/verificat.ai/web:latest
+            docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
+
+            # Restart staging stack
+            cd ${{ secrets.VPS_STAGING_DIR }}
+            docker compose -f docker-compose.staging.yml up -d --remove-orphans
+            docker image prune -f
