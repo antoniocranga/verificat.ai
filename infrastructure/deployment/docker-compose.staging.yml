@@ -35,8 +35,10 @@ services:
       - "traefik.http.routers.api-staging.entrypoints=websecure"
       - "traefik.http.routers.api-staging.tls=true"
       - "traefik.http.routers.api-staging.tls.certresolver=myresolver"
-      - "traefik.http.routers.api-staging.middlewares=security-headers@file"
+      - "traefik.http.routers.api-staging.middlewares=security-headers@file,api-ratelimit"
       - "traefik.http.services.api-staging.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.average=150"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.burst=30"
 
   redis:
     image: redis:7-alpine

@@ -48,8 +48,10 @@ services:
       - "traefik.http.routers.api-prod.entrypoints=websecure"
       - "traefik.http.routers.api-prod.tls=true"
       - "traefik.http.routers.api-prod.tls.certresolver=myresolver"
-      - "traefik.http.routers.api-prod.middlewares=security-headers@file"
+      - "traefik.http.routers.api-prod.middlewares=security-headers@file,api-ratelimit"
       - "traefik.http.services.api-prod.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.average=150"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.burst=30"
 
 networks:
   traefik_default:

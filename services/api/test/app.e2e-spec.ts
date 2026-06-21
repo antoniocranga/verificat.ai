@@ -5,12 +5,15 @@ import { App } from 'supertest/types';
 import * as jwt from 'jsonwebtoken';
 import { AppModule } from './../src/app.module';
 import { HttpExceptionFilter } from './../src/common/filters/http-exception.filter';
+import { RedisService } from './../src/auth/redis.service';
 
 describe('API Integration (e2e)', () => {
   let app: INestApplication<App>;
   let validToken: string;
 
   beforeAll(() => {
+    process.env.THROTTLE_LIMIT = '5';
+    process.env.THROTTLE_TTL = '5000';
     const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev';
     validToken = jwt.sign(
       { sub: 'test-user-id', email: 'test@verificat.xyz' },
@@ -32,6 +35,10 @@ describe('API Integration (e2e)', () => {
     );
     app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
+
+    // Flush Redis database before each test to start with a clean rate limiter state
+    const redisService = app.get(RedisService);
+    await redisService.getClient().flushall();
   });
 
   it('/ (GET) - public endpoint', () => {
@@ -39,6 +46,13 @@ describe('API Integration (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+
+  it('should rate limit requests and return 429 when threshold exceeded', async () => {
+    for (let i = 0; i < 5; i++) {
+      await request(app.getHttpServer()).get('/').expect(200);
+    }
+    await request(app.getHttpServer()).get('/').expect(429);
   });
 
   it('/users/profile (GET) - protected endpoint without token returns 401', () => {

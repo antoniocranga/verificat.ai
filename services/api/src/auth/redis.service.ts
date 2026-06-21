@@ -13,6 +13,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.disconnect();
   }
 
+  getClient(): Redis {
+    return this.client;
+  }
+
   async blacklistSession(sessionId: string, ttlSeconds: number): Promise<void> {
     await this.client.set(
       `revoked_sessions:${sessionId}`,
