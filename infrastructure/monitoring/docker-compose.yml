@@ -5,6 +5,7 @@ services:
     restart: always
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.rules.yml:/etc/prometheus/alerts.rules.yml:ro
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -13,6 +14,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
     networks:
       - monitoring-net
+
 
   loki:
     image: grafana/loki:2.9.8
@@ -90,12 +92,27 @@ services:
     networks:
       - monitoring-net
 
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: monitoring-alertmanager
+    restart: always
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - monitoring-net
+
 volumes:
   prometheus-data:
   loki-data:
   grafana-data:
+  alertmanager-data:
 
 networks:
   monitoring-net:
   traefik_default:
     external: true
+
