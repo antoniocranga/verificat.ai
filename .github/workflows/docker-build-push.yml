@@ -61,6 +61,23 @@ jobs:
             type=raw,value=latest
             type=sha,format=short
 
+      - name: Build API Image locally for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/api/Dockerfile
+          load: true
+          tags: api-local:latest
+
+      - name: Run Trivy vulnerability scanner on API image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'api-local:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL'
+
       - name: Build and push API Image
         uses: docker/build-push-action@v6
         with:

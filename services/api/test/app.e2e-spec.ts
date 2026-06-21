@@ -337,6 +337,41 @@ describe('API Integration (e2e)', () => {
     });
   });
 
+  describe('Additional Phase 3 Endpoint Security', () => {
+    it('/sources (GET) - unauthenticated returns 401', () => {
+      return request(app.getHttpServer()).get('/sources').expect(401);
+    });
+
+    it('/sources (GET) - authenticated returns 200', () => {
+      return request(app.getHttpServer())
+        .get('/sources')
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect(200);
+    });
+
+    it('/fact-checks (GET) - unauthenticated returns 401', () => {
+      return request(app.getHttpServer()).get('/fact-checks').expect(401);
+    });
+
+    it('/fact-checks (GET) - authenticated returns 200', () => {
+      return request(app.getHttpServer())
+        .get('/fact-checks')
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect(200);
+    });
+
+    it('/admin/stats (GET) - unauthenticated returns 401', () => {
+      return request(app.getHttpServer()).get('/admin/stats').expect(401);
+    });
+
+    it('/admin/stats (GET) - authenticated returns 200', () => {
+      return request(app.getHttpServer())
+        .get('/admin/stats')
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect(200);
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   });
