@@ -7,8 +7,25 @@
   </head>
   <body>
     <div id="app">
-      <h1>Verificat Side Panel</h1>
-      <p>Continuous audio capture verification panel.</p>
+      <h1>Verificat Panel</h1>
+      <p>Panou pentru verificarea continuă a sunetului.</p>
+      
+      <div class="consent-box" style="margin: 16px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
+        <h3>Acorduri Captură (Per-Sesiune)</h3>
+        <label style="display: block; margin: 8px 0;">
+          <input type="checkbox" id="consent-tab" /> Permite capturarea sunetului din tab
+        </label>
+        <label style="display: block; margin: 8px 0;">
+          <input type="checkbox" id="consent-mic" /> Permite utilizarea microfonului
+        </label>
+      </div>
+
+      <div class="control-box" style="margin: 16px 0;">
+        <button id="btn-tab-record" style="padding: 8px 12px; margin-right: 8px;">Înregistrează Tab</button>
+        <button id="btn-mic-record" style="padding: 8px 12px;">Înregistrează Mic</button>
+      </div>
+
+      <div id="status" style="margin-top: 12px; font-weight: bold; color: #555;">Stare: Pregătit</div>
     </div>
     <script type="module" src="./main.ts"></script>
   </body>
