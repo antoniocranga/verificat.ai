@@ -4,16 +4,13 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 RUN apk add --no-cache libc6-compat
 
-FROM base AS installer
+FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter=api build
-
-FROM base AS production-deps
-WORKDIR /app
-COPY . .
-RUN pnpm install --frozen-lockfile --prod
+# Prune to production-only files for the api package
+RUN pnpm --filter=api --prod deploy /app/pruned
 
 FROM base AS runner
 WORKDIR /app
@@ -21,10 +18,8 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nestjs
 RUN adduser --system --uid 1001 nestapi
 
-COPY --from=installer /app/services/api/dist ./services/api/dist
-COPY --from=production-deps /app/node_modules ./node_modules
-COPY --from=production-deps /app/services/api/node_modules ./services/api/node_modules
-COPY --from=installer /app/services/api/package.json ./services/api/package.json
+# Copy the self-contained pruned workspace from the builder stage
+COPY --from=builder /app/pruned ./
 
 USER nestapi
 EXPOSE 3000

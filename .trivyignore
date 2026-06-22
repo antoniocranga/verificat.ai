@@ -2,6 +2,7 @@
 # Since we do not expose Prometheus metric endpoints publicly, this is not a threat vector.
 # Upgrading it breaks type compatibility across OpenTelemetry packages.
 GHSA-q7rr-3cgh-j5r3
+CVE-2026-44902
 
 # Ignore OpenTelemetry Core moderate memory allocation vulnerability
 # Resolved in v2 line, but we must use v1 for compatibility with current tracing.
