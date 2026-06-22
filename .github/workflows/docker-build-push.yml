@@ -134,5 +134,6 @@ jobs:
 
             # Restart staging stack
             cd ${{ secrets.VPS_STAGING_DIR }}
+            docker rm -f verificat-web verificat-api || true
             docker compose -f docker-compose.staging.yml up -d --remove-orphans
             docker image prune -f
