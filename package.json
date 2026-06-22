@@ -28,10 +28,7 @@
       "shell-quote": "^1.8.4",
       "tar": "^7.5.16",
       "multer": "^2.2.0",
-      "@opentelemetry/auto-instrumentations-node": "^0.75.0",
-      "@opentelemetry/sdk-node": "^0.217.0",
-      "tmp": "^0.2.6",
-      "protobufjs": "^8.4.1"
+      "tmp": "^0.2.6"
     }
   }
 }
