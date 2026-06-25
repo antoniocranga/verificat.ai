@@ -25,6 +25,15 @@ function setStatus(text: string) {
   statusDiv.textContent = `Stare: ${text}`;
 }
 
+const verdictTranslations: Record<string, string> = {
+  True: "Adevărat",
+  "Mostly True": "În mare parte adevărat",
+  "Partially True": "Parțial adevărat",
+  Misleading: "Înșelător",
+  False: "Fals",
+  Unverified: "Neverificat",
+};
+
 function showVerdict(
   verdict: string,
   explanation: string,
@@ -47,7 +56,7 @@ function showVerdict(
 
   verdictSection.style.display = "block";
   verdictSection.innerHTML = `
-    <div class="verdict-label">${verdict}</div>
+    <div class="verdict-label">${verdictTranslations[verdict] || verdict}</div>
     <div class="verdict-confidence">${confidence} / 100</div>
     <div class="verdict-explanation">${explanation}</div>
     ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}

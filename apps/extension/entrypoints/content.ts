@@ -106,6 +106,15 @@ export default defineContentScript({
       card.innerHTML = `<div class="status-text">${labels[stage] || "Procesare..."}</div>`;
     }
 
+    const verdictTranslations: Record<string, string> = {
+      True: "Adevărat",
+      "Mostly True": "În mare parte adevărat",
+      "Partially True": "Parțial adevărat",
+      Misleading: "Înșelător",
+      False: "Fals",
+      Unverified: "Neverificat",
+    };
+
     function showVerdict(
       verdict: string,
       explanation: string,
@@ -118,7 +127,7 @@ export default defineContentScript({
       const card = shadow.getElementById("card");
       if (!card) return;
       card.innerHTML = `
-        <div class="verdict-label">${verdict}</div>
+        <div class="verdict-label">${verdictTranslations[verdict] || verdict}</div>
         <div style="font-size:12px;color:#8f8f8f;margin:2px 0;">${confidence} / 100</div>
         <div style="margin:4px 0;color:#4d4d4d;">${explanation}</div>
         <div class="confidence-bar">

@@ -7,6 +7,15 @@ import { verdictColors } from "@verificat/ui";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+const verdictTranslations: Record<string, string> = {
+  True: "Adevărat",
+  "Mostly True": "În mare parte adevărat",
+  "Partially True": "Parțial adevărat",
+  Misleading: "Înșelător",
+  False: "Fals",
+  Unverified: "Neverificat",
+};
+
 export default function CheckPage() {
   const params = useParams();
   const id = params.id as string;
@@ -132,7 +141,7 @@ export default function CheckPage() {
             letterSpacing: "-0.4px",
           }}
         >
-          {verdict.label}
+          {verdictTranslations[verdict.label] || verdict.label}
         </div>
         <div
           data-testid="verdict-confidence"
