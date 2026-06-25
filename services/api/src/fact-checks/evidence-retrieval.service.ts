@@ -183,12 +183,56 @@ export class EvidenceRetrievalService {
     }));
   }
 
+  private async translateToEnglish(text: string): Promise<string> {
+    if (process.env.NODE_ENV === 'test') return text;
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return text;
+
+    const payload = JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'Tradu textul din română în engleză. Păstrează sensul exact. Nu adăuga explicații.' },
+        { role: 'user', content: text },
+      ],
+      temperature: 0,
+    });
+
+    const options = {
+      hostname: 'api.openai.com',
+      port: 443,
+      path: '/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    };
+
+    return new Promise<string>((resolve) => {
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', (chunk: Buffer | string) => { body += chunk.toString(); });
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(body) as { choices?: Array<{ message?: { content?: string } }> };
+            resolve(parsed.choices?.[0]?.message?.content?.trim() || text);
+          } catch { resolve(text); }
+        });
+      });
+      req.on('error', () => resolve(text));
+      req.write(payload);
+      req.end();
+    });
+  }
+
   async retrieveEvidence(claim: NormalizedClaim): Promise<EvidenceResult[]> {
     const results: EvidenceResult[] = [];
 
     // 1. Semantic search via match_source_articles
     try {
-      const embedding = await this.getEmbedding(claim.assertion);
+      const claimEn = await this.translateToEnglish(claim.assertion);
+      const embedding = await this.getEmbedding(claimEn);
       const categories = this.determineCategories(claim.assertion);
       const semanticResults = await this.matchSourceArticles(
         embedding,
