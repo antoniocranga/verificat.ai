@@ -59,7 +59,7 @@ export async function resumePendingJob(): Promise<void> {
   void chrome.runtime.sendMessage({ type: "VERIFICATION_RESUMING", jobId });
   await consumeVerdictStream(
     jobId,
-    () => {},
+    (_p: ProgressPayload) => {},
     (result) => {
       void chrome.runtime.sendMessage({
         type: "VERIFICATION_COMPLETED",
@@ -73,9 +73,15 @@ export async function resumePendingJob(): Promise<void> {
   );
 }
 
+interface ProgressPayload {
+  stage: string;
+  progress: number;
+  claim?: string;
+}
+
 export async function consumeVerdictStream(
   jobId: string,
-  onProgress: (stage: string, pct: number) => void,
+  onProgress: (payload: ProgressPayload) => void,
   onCompleted: (result: unknown) => void,
   onFailed: (reason: string) => void,
 ): Promise<void> {
@@ -104,6 +110,7 @@ export async function consumeVerdictStream(
     }
     const decoder = new TextDecoder();
     let buffer = "";
+    let lastEventType = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -115,28 +122,31 @@ export async function consumeVerdictStream(
 
       for (const line of lines) {
         if (line.startsWith("event: ")) {
+          lastEventType = line.slice(7);
           continue;
         }
         if (line.startsWith("data: ")) {
-          try {
-            const parsed = JSON.parse(line.slice(6)) as {
-              data?: { success?: boolean; claims?: unknown[] };
-              type?: string;
-            };
-            if (parsed.type === "completed" && parsed.data) {
-              onCompleted(parsed.data);
-              return;
+          const data = line.slice(6);
+          if (lastEventType === "progress") {
+            try {
+              const parsed = JSON.parse(data) as ProgressPayload;
+              onProgress(parsed);
+            } catch {
+              // non-JSON progress data — skip
             }
-            if (parsed.type === "failed") {
-              onFailed(
-                typeof parsed.data === "string"
-                  ? parsed.data
-                  : "Procesul a eșuat",
-              );
-              return;
+            continue;
+          }
+          if (lastEventType === "completed") {
+            try {
+              onCompleted(JSON.parse(data));
+            } catch {
+              onCompleted(data);
             }
-          } catch {
-            // non-JSON SSE data — skip
+            return;
+          }
+          if (lastEventType === "failed") {
+            onFailed(data);
+            return;
           }
         }
       }
@@ -178,11 +188,12 @@ export function captureAndVerifyMic(): Promise<void> {
 
             await consumeVerdictStream(
               jobId,
-              (stage, pct) => {
+              (p) => {
                 void chrome.runtime.sendMessage({
                   type: "VERIFICATION_PROGRESS",
-                  stage,
-                  progress: pct,
+                  stage: p.stage,
+                  progress: p.progress,
+                  claim: p.claim,
                 });
               },
               (result) => {

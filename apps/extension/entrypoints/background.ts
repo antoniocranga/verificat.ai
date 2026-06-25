@@ -30,15 +30,17 @@ export default defineBackground(() => {
         void chrome.runtime.sendMessage({
           type: "VERIFICATION_STARTED",
           jobId,
+          source: "text",
         });
 
         await consumeVerdictStream(
           jobId,
-          (stage, pct) => {
+          (p) => {
             void chrome.runtime.sendMessage({
               type: "VERIFICATION_PROGRESS",
-              stage,
-              progress: pct,
+              stage: p.stage,
+              progress: p.progress,
+              claim: p.claim,
             });
           },
           (result) => {
@@ -116,11 +118,12 @@ export default defineBackground(() => {
 
                   await consumeVerdictStream(
                     jobId,
-                    (stage, pct) => {
+                    (p) => {
                       void chrome.runtime.sendMessage({
                         type: "VERIFICATION_PROGRESS",
-                        stage,
-                        progress: pct,
+                        stage: p.stage,
+                        progress: p.progress,
+                        claim: p.claim,
                       });
                     },
                     (result) => {

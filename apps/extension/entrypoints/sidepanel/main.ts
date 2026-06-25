@@ -54,17 +54,21 @@ function showVerdict(
   `;
 }
 
-function showProgress(stage: string) {
+function showProgress(stage: string, pct: number, claim?: string) {
   const labels: Record<string, string> = {
     speech: "Transcriere audio...",
     claim_detection: "Detectare afirmații...",
     evidence_retrieval: "Căutare dovezi...",
     verdict_generation: "Generare verdict...",
   };
+  const clampedPct = Math.max(0, Math.min(100, pct));
+  let html = `<div class="stage-text">${labels[stage] || "Procesare..."} ${clampedPct}%</div>`;
+  html += `<div class="progress-bar-track"><div class="progress-bar-fill" style="width:${clampedPct}%"></div></div>`;
+  if (claim) {
+    html += `<div class="progress-claim">"${claim.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>`;
+  }
   verdictSection.style.display = "block";
-  verdictSection.innerHTML = `
-    <div class="stage-text">${labels[stage] || "Procesare..."}</div>
-  `;
+  verdictSection.innerHTML = html;
 }
 
 function showStatus(text: string) {
@@ -196,8 +200,8 @@ btnMic.addEventListener("click", () => {
 
 type SidepanelMessage =
   | { type: "CAPTURE_STARTED" }
-  | { type: "VERIFICATION_STARTED" }
-  | { type: "VERIFICATION_PROGRESS"; stage: string }
+  | { type: "VERIFICATION_STARTED"; source?: string }
+  | { type: "VERIFICATION_PROGRESS"; stage: string; progress: number; claim?: string }
   | {
       type: "VERIFICATION_COMPLETED";
       result: {
@@ -217,10 +221,10 @@ chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
     showStatus("Se ascultă...");
   }
   if (msg.type === "VERIFICATION_STARTED") {
-    showStatus("Se încarcă audio...");
+    showStatus(msg.source === "text" ? "Se analizează textul..." : "Se încarcă audio...");
   }
   if (msg.type === "VERIFICATION_PROGRESS") {
-    showProgress(msg.stage);
+    showProgress(msg.stage, msg.progress, msg.claim);
   }
   if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims?.[0]) {
     const c = msg.result.claims[0];
