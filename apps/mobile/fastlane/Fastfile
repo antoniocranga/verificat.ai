@@ -1,0 +1,108 @@
+default_platform(:ios)
+
+import 'helpers/dart_defines'
+import 'helpers/android_keystore'
+
+before_all do
+  InfisicalHelper.assert_cli_available!
+  `which flutter 2>&1`
+  FastlaneCore::UI.user_error!('Flutter is not on PATH') unless $?.success?
+end
+
+after_all do |lane|
+  DartDefinesHelper.cleanup_dart_defines!
+  AndroidKeystoreHelper.cleanup_keystore!(ENV['ANDROID_KEYSTORE_PATH'])
+end
+
+error do |lane, exception|
+  DartDefinesHelper.cleanup_dart_defines!
+  AndroidKeystoreHelper.cleanup_keystore!(ENV['ANDROID_KEYSTORE_PATH'])
+end
+
+lane :validate do |options|
+  env = options[:env] || 'staging'
+  FastlaneCore::UI.message("Validating dart-defines for #{env}...")
+  DartDefinesHelper.fetch_dart_defines(env: env)
+  DartDefinesHelper.cleanup_dart_defines!
+  FastlaneCore::UI.success("All #{DartDefinesHelper::REQUIRED_KEYS.size} dart-defines present in Infisical (#{env})")
+end
+
+lane :match_setup do
+  setup_for_development(
+    type: 'development',
+    git_url: ENV['MATCH_GIT_URL'],
+    shallow_clone: true
+  )
+end
+
+lane :beta_ios do |options|
+  env = options[:env] || 'staging'
+  dart_defines_path = DartDefinesHelper.fetch_dart_defines(env: env)
+
+  sync_code_signing(
+    type: 'appstore',
+    readonly: is_ci,
+    git_url: ENV['MATCH_GIT_URL']
+  )
+
+  build_app(
+    workspace: 'ios/Runner.xcworkspace',
+    scheme: 'Runner',
+    export_method: 'app-store',
+    xcargs: "DART_DEFINES_FLAG=--dart-define-from-file=#{dart_defines_path}",
+    build_path: './build/ios',
+    output_directory: './build/ios'
+  )
+
+  upload_to_testflight(
+    skip_waiting_for_build_processing: true,
+    changelog: changelog_from_git_commits(
+      merge_commit_filtering: 'exclude_merges'
+    )
+  )
+end
+
+lane :release_ios do
+  pilot(
+    distribute_type: 'release',
+    skip_waiting_for_build_processing: false
+  )
+end
+
+lane :beta_android do |options|
+  env = options[:env] || 'staging'
+  dart_defines_path = DartDefinesHelper.fetch_dart_defines(env: env)
+  keystore_path = AndroidKeystoreHelper.load_keystore(env: env)
+
+  gradle_project_dir = 'android'
+
+  sh("cd #{File.dirname(__FILE__)}/.. && flutter build appbundle " \
+     "--dart-define-from-file=#{dart_defines_path} " \
+     "--release")
+
+  upload_to_play_store(
+    track: 'internal',
+    aab: '../build/app/outputs/bundle/release/app-release.aab',
+    json_key: ENV['PLAY_STORE_JSON_KEY_PATH']
+  )
+
+  AndroidKeystoreHelper.cleanup_keystore!(keystore_path)
+end
+
+lane :release_android do
+  upload_to_play_store(
+    track: 'production',
+    aab: '../build/app/outputs/bundle/release/app-release.aab',
+    json_key: ENV['PLAY_STORE_JSON_KEY_PATH']
+  )
+end
+
+lane :beta do |options|
+  beta_ios(options)
+  beta_android(options)
+end
+
+lane :release do
+  release_ios
+  release_android
+end

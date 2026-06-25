@@ -12,6 +12,11 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+def keystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+def keystoreAlias = System.getenv('ANDROID_KEY_ALIAS')
+def keystorePassword = System.getenv('ANDROID_KEYSTORE_PASSWORD')
+def keyPassword = System.getenv('ANDROID_KEY_PASSWORD')
+
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
@@ -51,11 +56,20 @@ android {
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            if (keystorePath != null && keystoreAlias != null) {
+                storeFile file(keystorePath)
+                storePassword keystorePassword
+                keyAlias keystoreAlias
+                keyPassword keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig keystorePath != null ? signingConfigs.release : signingConfigs.debug
         }
     }
 }

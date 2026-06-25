@@ -37,6 +37,14 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Fastlane
+.dart_defines.json
+.fastlane/
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
