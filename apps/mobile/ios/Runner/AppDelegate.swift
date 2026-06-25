@@ -20,6 +20,18 @@ import AVFoundation
       binaryMessenger: controller.binaryMessenger
     )
 
+    let securityChannel = FlutterMethodChannel(
+      name: "com.verificat.mobile/security",
+      binaryMessenger: controller.binaryMessenger
+    )
+    securityChannel.setMethodCallHandler { call, result in
+      if call.method == "isDeviceSecure" {
+        result(!self.isDeviceJailbroken())
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+
     configureAudioSession()
     observeInterruptions()
 
@@ -80,6 +92,29 @@ import AVFoundation
         self?.audioSessionChannel?.invokeMethod("onRouteLost", arguments: nil)
       }
     }
+  }
+
+  private func isDeviceJailbroken() -> Bool {
+    let paths = [
+      "/Applications/Cydia.app",
+      "/Library/MobileSubstrate/MobileSubstrate.dylib",
+      "/bin/bash",
+      "/usr/sbin/sshd",
+      "/etc/apt",
+      "/private/var/lib/apt"
+    ]
+    for path in paths {
+      if FileManager.default.fileExists(atPath: path) { return true }
+    }
+
+    if canOpen("/private/jailbreak.txt") { return true }
+
+    return false
+  }
+
+  private func canOpen(_ path: String) -> Bool {
+    let file = FileManager.default
+    return file.fileExists(atPath: path) || file.isWritableFile(atPath: path)
   }
 
   deinit {
