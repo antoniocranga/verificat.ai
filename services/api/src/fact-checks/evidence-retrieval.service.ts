@@ -183,6 +183,58 @@ export class EvidenceRetrievalService {
     }));
   }
 
+  private async searchSourceArticles(
+    query: string,
+    categories: string[],
+    language: string[],
+  ): Promise<EvidenceResult[]> {
+    if (!query || query.trim().length < 3) return [];
+    const { data, error } = await (
+      this.supabaseService.getClient() as unknown as {
+        rpc: (
+          name: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }
+    ).rpc('search_source_articles', {
+      search_query: query,
+      match_count: 6,
+      filter_categories: categories,
+      filter_languages: language,
+    });
+
+    if (error) {
+      this.logger.warn(`search_source_articles RPC failed: ${error.message}`);
+      return [];
+    }
+
+    if (!data || !Array.isArray(data)) return [];
+
+    return (
+      data as Array<{
+        id: string;
+        source_id: string;
+        source_name: string;
+        source_category: string;
+        article_url: string;
+        title: string;
+        content: string;
+        published_at: string | null;
+        rank: number;
+      }>
+    ).map((row) => ({
+      title: row.title,
+      url: row.article_url,
+      snippet: (row.content || '').substring(0, 300),
+      source: row.source_name,
+      similarityScore: Math.round(row.rank * 100),
+      sourceId: row.id,
+      sourceName: row.source_name,
+      articleUrl: row.article_url,
+      publishedAt: row.published_at || undefined,
+    }));
+  }
+
   private async translateToEnglish(text: string): Promise<string> {
     if (process.env.NODE_ENV === 'test') return text;
     const apiKey = process.env.OPENAI_API_KEY;
@@ -245,7 +297,23 @@ export class EvidenceRetrievalService {
       this.logger.warn(`Semantic evidence retrieval failed: ${String(err)}`);
     }
 
-    // 2. Outbound URL Fetching (SSRF safe) — only if no semantic results
+    // 2. Full-text search fallback — if semantic search found nothing
+    if (results.length === 0) {
+      try {
+        const claimEn = await this.translateToEnglish(claim.assertion);
+        const categories = this.determineCategories(claim.assertion);
+        const searchResults = await this.searchSourceArticles(
+          claimEn,
+          categories,
+          ['ro', 'en'],
+        );
+        results.push(...searchResults);
+      } catch (err) {
+        this.logger.warn(`Full-text search failed: ${String(err)}`);
+      }
+    }
+
+    // 3. Outbound URL Fetching (SSRF safe) — only if no results yet
     if (results.length === 0) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       const urls: string[] = [];
