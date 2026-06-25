@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import '../env/env.dart';
 
 class VerdictApiService {
   final String _baseUrl;
@@ -8,7 +9,7 @@ class VerdictApiService {
   VerdictApiService({
     String? baseUrl,
     HttpClient? client,
-  }) : _baseUrl = baseUrl ?? 'http://localhost:3000',
+  }) : _baseUrl = baseUrl ?? AppEnv.apiUrl,
        _client = client ?? HttpClient();
 
   Future<Map<String, dynamic>> searchVerdicts({

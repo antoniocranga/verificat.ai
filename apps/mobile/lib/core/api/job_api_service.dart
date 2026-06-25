@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import '../env/env.dart';
 
 class JobApiService {
   final String _baseUrl;
   final HttpClient _client;
 
   JobApiService({String? baseUrl, HttpClient? client})
-    : _baseUrl = baseUrl ?? 'http://localhost:3000',
+    : _baseUrl = baseUrl ?? AppEnv.apiUrl,
       _client = client ?? HttpClient();
 
   Future<Map<String, dynamic>> uploadAudio(File audioFile) async {
