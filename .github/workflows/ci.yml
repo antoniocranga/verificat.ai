@@ -57,6 +57,11 @@ jobs:
           pnpm audit --audit-level=high
           echo "::endgroup::"
 
+      - name: Debug env secrets presence
+        run: |
+          if [ -n "$INFISICAL_TOKEN" ]; then echo "INFISICAL_TOKEN is set"; else echo "INFISICAL_TOKEN is NOT set"; fi
+          if [ -n "$SENTRY_DSN" ]; then echo "SENTRY_DSN is set"; else echo "SENTRY_DSN is NOT set"; fi
+
       - name: OpenAPI spec drift check
         run: |
           echo "::group::OpenAPI Spec Diff Check"
