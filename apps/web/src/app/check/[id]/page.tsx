@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import type { Verdict } from '@verificat/types';
+import { verdictColors } from '@verificat/ui';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://staging.verificat.xyz/api';
 
@@ -56,8 +57,8 @@ export default function CheckPage() {
 
       <div style={{ background: '#ffffff', border: '1px solid #ebebeb', borderRadius: 12, padding: 24, marginBottom: 24 }}>
         <div data-testid="verdict-label" style={{
-          display: 'inline-block', border: '1px solid #ebebeb', borderRadius: 6,
-          padding: '4px 10px', fontSize: 20, fontWeight: 600, color: '#171717',
+          display: 'inline-block', border: `1px solid ${verdictColors[verdict.label]}40`, borderRadius: 6,
+          padding: '4px 10px', fontSize: 20, fontWeight: 600, color: verdict.label === 'Unverified' ? '#6b7280' : verdictColors[verdict.label],
           marginBottom: 8, letterSpacing: '-0.4px',
         }}>
           {verdict.label}
@@ -69,7 +70,7 @@ export default function CheckPage() {
           {verdict.explanation}
         </div>
         <div style={{ height: 4, borderRadius: 2, background: '#ebebeb', marginBottom: 16 }}>
-          <div style={{ height: '100%', borderRadius: 2, background: '#171717', width: `${verdict.confidence}%` }} />
+          <div style={{ height: '100%', borderRadius: 2, background: verdict.label === 'Unverified' ? '#6b7280' : verdictColors[verdict.label], width: `${verdict.confidence}%` }} />
         </div>
       </div>
 

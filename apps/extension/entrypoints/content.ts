@@ -107,6 +107,15 @@ export default defineContentScript({
       card.innerHTML = `<div class="status-text">${labels[stage] || 'Procesare...'}</div>`;
     }
 
+    const VERDICT_COLORS: Record<string, string> = {
+      True: '#22c55e',
+      'Mostly True': '#84cc16',
+      'Partially True': '#d97706',
+      Misleading: '#ea580c',
+      False: '#ef4444',
+      Unverified: '#6b7280',
+    };
+
     function showVerdict(verdict: string, explanation: string, confidence: number) {
       const host = document.getElementById(OVERLAY_ID);
       if (!host) return;
@@ -114,12 +123,13 @@ export default defineContentScript({
       if (!shadow) return;
       const card = shadow.getElementById('card');
       if (!card) return;
+      const color = VERDICT_COLORS[verdict] || '#171717';
       card.innerHTML = `
-        <div class="verdict-label">${verdict}</div>
+        <div class="verdict-label" style="color:${verdict === 'Unverified' ? '#6b7280' : color};">${verdict}</div>
         <div class="status-text" style="margin:2px 0;">${confidence} / 100</div>
         <div style="margin:4px 0;">${explanation}</div>
         <div class="confidence-bar">
-          <div class="confidence-fill" style="width: ${confidence}%;"></div>
+          <div class="confidence-fill" style="width: ${confidence}%; background:${verdict === 'Unverified' ? '#6b7280' : color};"></div>
         </div>
       `;
     }

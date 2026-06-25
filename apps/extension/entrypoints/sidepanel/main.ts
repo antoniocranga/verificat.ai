@@ -39,6 +39,15 @@ function setStatus(text: string) {
   statusDiv.textContent = `Stare: ${text}`;
 }
 
+const VERDICT_COLORS: Record<string, string> = {
+  True: "#22c55e",
+  "Mostly True": "#84cc16",
+  "Partially True": "#d97706",
+  Misleading: "#ea580c",
+  False: "#ef4444",
+  Unverified: "#6b7280",
+};
+
 function showVerdict(
   verdict: string,
   explanation: string,
@@ -59,13 +68,18 @@ function showVerdict(
       .join("");
   }
 
+  const color = VERDICT_COLORS[verdict] || "var(--color-ink)";
+  const unverifiedColor = "#6b7280";
+  const badgeColor = verdict === "Unverified" ? unverifiedColor : color;
+  const fillColor = verdict === "Unverified" ? unverifiedColor : color;
+
   verdictSection.style.display = "block";
   verdictSection.innerHTML = `
-    <div class="verdict-badge">${verdict}</div>
+    <div class="verdict-badge" style="color:${badgeColor};">${verdict}</div>
     <div class="verdict-confidence">${confidence} / 100</div>
     <div class="verdict-explanation">${explanation}</div>
     <div class="confidence-bar">
-      <div class="confidence-fill" style="width:${confidence}%;"></div>
+      <div class="confidence-fill" style="width:${confidence}%;background:${fillColor};"></div>
     </div>
     ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}
   `;
