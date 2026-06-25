@@ -7,6 +7,10 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/handoff/presentation/screens/handoff_screen.dart';
 import '../features/listening/presentation/bloc/listening_bloc.dart';
 import '../features/listening/presentation/screens/listening_screen.dart';
+import '../features/search/presentation/bloc/search_bloc.dart';
+import '../features/search/presentation/screens/search_screen.dart';
+import '../features/history/presentation/bloc/saved_checks_bloc.dart';
+import '../features/history/presentation/screens/history_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -64,6 +68,22 @@ final router = GoRouter(
       builder: (context, state) => BlocProvider<ListeningBloc>(
         create: (_) => ListeningBloc(),
         child: const ListeningScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/search',
+      name: 'search',
+      builder: (context, state) => BlocProvider<SearchBloc>(
+        create: (_) => SearchBloc(),
+        child: const SearchScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/saved',
+      name: 'saved',
+      builder: (context, state) => BlocProvider<SavedChecksBloc>(
+        create: (_) => SavedChecksBloc()..add(const SavedChecksLoaded()),
+        child: const HistoryScreen(),
       ),
     ),
   ],
