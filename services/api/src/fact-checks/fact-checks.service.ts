@@ -67,7 +67,16 @@ export class FactChecksService {
         explanation,
         created_at,
         fact_checks!inner(
-          claims!inner(text)
+          claim_id,
+          claims!inner(id, text)
+        ),
+        verdict_sources(
+          sources(
+            id,
+            url,
+            name,
+            trust_score
+          )
         )
       `,
       )
@@ -78,13 +87,29 @@ export class FactChecksService {
 
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     const d = data as any;
+
+    const rawSources: any[] = d.verdict_sources ?? [];
+    const sources = rawSources.map((vs: any) => {
+      const s = vs.sources;
+      return {
+        id: s.id,
+        url: s.url,
+        title: s.name,
+        trustScore: s.trust_score,
+        trustScoreExplanation: '',
+        retrievedAt: '',
+      };
+    });
+
     return {
       id: d.id,
-      verdict: d.verdict,
-      confidenceScore: d.confidence_score,
+      label: d.verdict,
+      confidence: d.confidence_score,
       explanation: d.explanation,
       createdAt: d.created_at,
-      claim: d.fact_checks?.claims ?? {},
+      claimId: d.fact_checks?.claim_id ?? '',
+      sources,
+      sessionId: '',
     };
     /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
   }
