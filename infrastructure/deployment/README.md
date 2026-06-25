@@ -19,10 +19,10 @@ Staging is deployed to `staging.verificat.xyz` via a CI pipeline triggered on me
 | `VPS_HOST` | Staging VPS IP/hostname |
 | `VPS_USER` | SSH user |
 | `VPS_SSH_KEY` | SSH private key |
-| `VPS_STAGING_DIR` | Deploy directory on VPS |
+| `VPS_DIR` | Deploy directory on VPS |
 | `GHCR_TOKEN` | GitHub Container Registry token with `packages:write` |
-| `STAGING_SUPABASE_PROJECT_REF` | Staging Supabase project reference |
-| `STAGING_SUPABASE_DB_PASSWORD` | Staging Supabase DB password |
+| `SUPABASE_PROJECT_REF` | Supabase project reference |
+| `SUPABASE_DB_PASSWORD` | Supabase DB password |
 | `SUPABASE_URL` | Staging Supabase project URL |
 | `SUPABASE_ANON_KEY` | Staging Supabase anon key |
 

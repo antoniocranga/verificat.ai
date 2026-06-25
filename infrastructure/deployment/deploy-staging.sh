@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-STAGING_DIR="${VPS_STAGING_DIR:-/home/deploy/verificat-staging}"
+STAGING_DIR="${VPS_DIR:-/home/deploy/verificat-staging}"
 
 # Login to GHCR
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -20,8 +20,8 @@ docker image prune -f
 if command -v supabase &> /dev/null; then
   echo "Running Supabase migrations on staging project..."
   cd /home/deploy/verificat.ai
-  supabase link --project-ref "$STAGING_SUPABASE_PROJECT_REF" \
-    --password "$STAGING_SUPABASE_DB_PASSWORD"
+  supabase link --project-ref "$SUPABASE_PROJECT_REF" \
+    --password "$SUPABASE_DB_PASSWORD"
   supabase db push --include-all
 else
   echo "Supabase CLI not found — skipping migrations."
