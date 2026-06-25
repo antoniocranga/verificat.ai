@@ -2,7 +2,8 @@ import { createClient } from "@/utils/supabase/server";
 import { signOut } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FeatureCard, ButtonPrimarySmall } from '@verificat/ui';
+import { FeatureCard, ButtonPrimarySmall, verdictColors } from '@verificat/ui';
+import type { VerdictLabel } from '@verificat/ui';
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -43,7 +44,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     .limit(10);
 
   return (
-    <main style={{
+    <main data-testid="dashboard-content" style={{
       minHeight: '100vh',
       background: '#fafafa',
       padding: '32px 16px',
@@ -96,8 +97,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                         <span style={{
-                          display: 'inline-block', border: '1px solid #ebebeb', borderRadius: 6,
-                          padding: '2px 8px', fontSize: 12, fontWeight: 600, color: '#171717',
+                          display: 'inline-block', border: `1px solid ${(verdictColors[check.verdict as VerdictLabel] || '#171717')}40`, borderRadius: 6,
+                          padding: '2px 8px', fontSize: 12, fontWeight: 600,
+                          color: check.verdict === 'Unverified' ? '#6b7280' : (verdictColors[check.verdict as VerdictLabel] || '#171717'),
                         }}>
                           {check.verdict}
                         </span>
