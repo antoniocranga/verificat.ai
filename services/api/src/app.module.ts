@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { BullModule } from '@nestjs/bullmq';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
@@ -26,19 +25,14 @@ import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
     AuthModule,
     SpeechModule,
     SafeFetcherModule,
-    ThrottlerModule.forRootAsync({
-      imports: [AuthModule],
-      inject: [RedisService],
-      useFactory: (redisService: RedisService) => ({
-        throttlers: [
-          {
-            name: 'default',
-            ttl: Number(process.env.THROTTLE_TTL) || 60000,
-            limit: Number(process.env.THROTTLE_LIMIT) || 100,
-          },
-        ],
-        storage: new ThrottlerStorageRedisService(redisService.getClient()),
-      }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'default',
+          ttl: Number(process.env.THROTTLE_TTL) || 60000,
+          limit: Number(process.env.THROTTLE_LIMIT) || 100,
+        },
+      ],
     }),
     BullModule.forRootAsync({
       imports: [AuthModule],
