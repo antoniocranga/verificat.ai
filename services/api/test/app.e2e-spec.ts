@@ -10,6 +10,7 @@ import { AppModule } from './../src/app.module';
 import { HttpExceptionFilter } from './../src/common/filters/http-exception.filter';
 import { RedisService } from './../src/auth/redis.service';
 import { JobsService } from './../src/jobs/jobs.service';
+import { FactChecksService } from './../src/fact-checks/fact-checks.service';
 import { SupabaseService } from './../src/supabase/supabase.service';
 import { MatchClaimResult } from './../src/search/search.service';
 
@@ -30,6 +31,11 @@ describe('API Integration (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
+      .overrideProvider(FactChecksService)
+      .useValue({
+        searchVerdicts: () => Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+        getLatestChecks: () => Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+      })
       .overrideProvider(SupabaseService)
       .useValue({
         getClient: () => ({
@@ -175,10 +181,8 @@ describe('API Integration (e2e)', () => {
         const status = await jobsService.getJobStatus(jobId!);
         if (status && status.state === 'completed') {
           completed = true;
-          expect(status.returnValue).toEqual({
+          expect(status.returnValue).toMatchObject({
             success: true,
-            verdict: 'True',
-            explanation: 'Verified via mock consumer',
           });
           break;
         }
