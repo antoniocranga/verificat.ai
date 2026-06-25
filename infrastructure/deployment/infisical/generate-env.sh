@@ -7,6 +7,6 @@ cat <<EOF > .env
 ENCRYPTION_KEY=$ENC_KEY
 AUTH_SECRET=$AUTH_SEC
 DB_PASSWORD=$DB_PASS
-SITE_URL=http://infisical-staging.verificat.xyz
+SITE_URL=https://eu.infisical.com
 EOF
 chmod 600 .env

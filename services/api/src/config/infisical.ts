@@ -10,7 +10,7 @@ export async function initConfig() {
   }
 
   const siteUrl =
-    process.env.INFISICAL_URL || 'https://infisical-staging.verificat.xyz';
+    process.env.INFISICAL_URL || 'https://eu.infisical.com';
   const environment = process.env.NODE_ENV || 'development';
 
   console.log(
@@ -21,12 +21,11 @@ export async function initConfig() {
       siteUrl,
     });
 
-    await client.auth().universalAuth.login({
-      clientId: process.env.INFISICAL_CLIENT_ID || '',
-      clientSecret: process.env.INFISICAL_CLIENT_SECRET || '',
+    await client.auth().serviceToken.login({
+      accessToken: token,
     });
 
-    console.log('[Config] Universal Auth successful. Loading secrets...');
+    console.log('[Config] Service Token auth successful. Loading secrets...');
     const response = await client.secrets().listSecrets({
       environment,
       projectId: process.env.INFISICAL_PROJECT_ID || '',

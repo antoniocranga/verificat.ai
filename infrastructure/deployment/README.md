@@ -10,7 +10,6 @@ Staging is deployed to `staging.verificat.xyz` via a CI pipeline triggered on me
 |---------|-----|
 | Web App | https://staging.verificat.xyz |
 | API | https://staging.verificat.xyz/api |
-| Infisical (secrets) | https://infisical-staging.verificat.xyz |
 
 ## Required GitHub Secrets
 
@@ -34,7 +33,6 @@ Staging is deployed to `staging.verificat.xyz` via a CI pipeline triggered on me
 4. Pulls latest images and restarts containers
 5. Runs Supabase migrations against staging project
 
-## Infisical
+## Secrets
 
-Self-hosted Infisical runs on the same VPS at `infisical-staging.verificat.xyz`.
-Secret injection into containers requires `infisical run` wrapper in the deploy script.
+Secrets are managed via Infisical Cloud (eu.infisical.com). The API loads them at startup using the `INFISICAL_TOKEN` service token. If the token is not available, it falls back to local environment variables.
