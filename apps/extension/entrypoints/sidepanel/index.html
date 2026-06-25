@@ -1,32 +1,140 @@
 <!doctype html>
-<html lang="en">
+<html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verificat Side Panel</title>
+    <title>Verificat — Verdict</title>
+    <style>
+      :root {
+        --color-canvas: #fafafa;
+        --color-ink: #171717;
+        --color-hairline: #ebebeb;
+        --color-body: #4d4d4d;
+        --color-mute: #8f8f8f;
+        --color-elevated: #ffffff;
+        --color-primary: #0070f3;
+        --spacing-xs: 8px;
+        --spacing-sm: 12px;
+        --spacing-md: 16px;
+        --spacing-lg: 24px;
+        --rounded-sm: 6px;
+        --rounded-md: 12px;
+        font-family: 'Geist Sans', Inter, Arial, sans-serif;
+        font-size: 14px;
+        color: var(--color-body);
+        background: var(--color-canvas);
+      }
+      body { margin: 0; padding: var(--spacing-sm); }
+      h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 var(--spacing-sm) 0;
+        color: var(--color-ink);
+        letter-spacing: -0.4px;
+      }
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 var(--spacing-xs) 0;
+        color: var(--color-ink);
+        letter-spacing: -0.4px;
+      }
+      .card {
+        background: var(--color-elevated);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--rounded-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+      }
+      .section { margin-bottom: var(--spacing-md); }
+      .consent-box label { display: block; margin: 6px 0; font-size: 13px; color: var(--color-body); }
+      .controls { display: flex; gap: var(--spacing-xs); flex-wrap: wrap; margin-top: var(--spacing-xs); }
+      button {
+        padding: 6px;
+        border-radius: var(--rounded-sm);
+        font-size: 13px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        line-height: 20px;
+        box-sizing: border-box;
+      }
+      .btn-primary-small {
+        background: var(--color-ink);
+        color: var(--color-elevated);
+        border: none;
+      }
+      .btn-ghost-small {
+        background: var(--color-elevated);
+        color: var(--color-body);
+        border: 1px solid var(--color-hairline);
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: #fff;
+        border: none;
+      }
+      #status { font-size: 13px; color: var(--color-mute); padding: var(--spacing-xs) 0; }
+      .verdict-badge {
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink);
+        letter-spacing: -0.28px;
+      }
+      .verdict-confidence {
+        font-size: 14px;
+        color: var(--color-body);
+        margin: 4px 0;
+      }
+      .verdict-explanation {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--color-body);
+        margin: var(--spacing-xs) 0;
+      }
+      .evidence-item {
+        font-size: 13px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--color-hairline);
+      }
+      .evidence-item:last-child { border-bottom: none; }
+      .evidence-item a { color: var(--color-primary); text-decoration: none; }
+      .evidence-item a:hover { text-decoration: underline; }
+      .evidence-source-name { font-weight: 500; color: var(--color-ink); font-size: 13px; }
+      .evidence-url { font-size: 12px; color: var(--color-mute); word-break: break-all; }
+      .confidence-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--color-hairline);
+        margin-top: var(--spacing-xs);
+      }
+      .confidence-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        background: var(--color-ink);
+      }
+      .stage-text { font-size: 13px; color: var(--color-mute); }
+    </style>
   </head>
   <body>
-    <div id="app">
-      <h1>Verificat Panel</h1>
-      <p>Panou pentru verificarea continuă a sunetului.</p>
-      
-      <div class="consent-box" style="margin: 16px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
-        <h3>Acorduri Captură (Per-Sesiune)</h3>
-        <label style="display: block; margin: 8px 0;">
-          <input type="checkbox" id="consent-tab" /> Permite capturarea sunetului din tab
-        </label>
-        <label style="display: block; margin: 8px 0;">
-          <input type="checkbox" id="consent-mic" /> Permite utilizarea microfonului
-        </label>
-      </div>
+    <h2>Verificat</h2>
 
-      <div class="control-box" style="margin: 16px 0;">
-        <button id="btn-tab-record" style="padding: 8px 12px; margin-right: 8px;">Înregistrează Tab</button>
-        <button id="btn-mic-record" style="padding: 8px 12px;">Înregistrează Mic</button>
+    <div class="section card consent-box">
+      <h3>Acorduri</h3>
+      <label><input type="checkbox" id="consent-tab" /> Permite capturarea audio din filă</label>
+      <label><input type="checkbox" id="consent-mic" /> Permite utilizarea microfonului</label>
+      <div class="controls">
+        <button id="btn-tab-record" class="btn-primary-small">Captură Filă</button>
+        <button id="btn-mic-record" class="btn-primary-small">Captură Microfon</button>
       </div>
-
-      <div id="status" style="margin-top: 12px; font-weight: bold; color: #555;">Stare: Pregătit</div>
     </div>
+
+    <div id="status" class="section">Stare: Pregătit</div>
+
+    <div id="verdict-section" class="section card" style="display:none;"></div>
+
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

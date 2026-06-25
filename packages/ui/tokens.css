@@ -1,0 +1,118 @@
+:root {
+  /* ==============================
+     COLOR TOKENS
+     ============================== */
+  --color-canvas: #fafafa;
+  --color-canvas-elevated: #ffffff;
+  --color-ink: #171717;
+  --color-hairline: #ebebeb;
+  --color-hairline-soft: #ebebeb;
+  --color-body: #4d4d4d;
+  --color-mute: #8f8f8f;
+  --color-faint: #a1a1a1;
+  --color-link: #0070f3;
+  --color-primary: #0070f3;
+  --color-on-primary: #ffffff;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  --color-success: #16a34a;
+
+  /* Verdict colours (supplementary — text label is primary) */
+  --verdict-true: #22c55e;
+  --verdict-mostly-true: #84cc16;
+  --verdict-partial: #d97706;
+  --verdict-misleading: #ea580c;
+  --verdict-false: #ef4444;
+  --verdict-unverified: #6b7280;
+
+  /* Hero mesh gradient stops */
+  --mesh-cyan: #50e3c2;
+  --mesh-blue: #007cf0;
+  --mesh-violet: #7928ca;
+  --mesh-magenta: #eb367f;
+  --mesh-amber: #f9cb28;
+
+  /* ==============================
+     SPACING (8-point grid)
+     ============================== */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+  --spacing-section: 128px;
+
+  /* ==============================
+     BORDER RADIUS
+     ============================== */
+  --rounded-none: 0px;
+  --rounded-sm: 6px;
+  --rounded-md: 12px;
+  --rounded-lg: 16px;
+  --rounded-full: 100px;
+
+  /* ==============================
+     SHADOWS
+     ============================== */
+  --shadow-whisper: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-floating: 0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* ==============================
+     TYPOGRAPHY — Font families
+     ============================== */
+  --font-sans: 'Geist Sans', Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+  /* Display */
+  --font-size-display-xl: 72px;
+  --font-weight-display-xl: 600;
+  --line-height-display-xl: 1.1;
+  --letter-spacing-display-xl: -2.4px;
+
+  /* Heading Lg */
+  --font-size-heading-lg: 48px;
+  --font-weight-heading-lg: 600;
+  --line-height-heading-lg: 1.2;
+  --letter-spacing-heading-lg: -1.28px;
+
+  /* Heading Md */
+  --font-size-heading-md: 32px;
+  --font-weight-heading-md: 600;
+  --line-height-heading-md: 1.3;
+  --letter-spacing-heading-md: -0.4px;
+
+  /* Label Sm */
+  --font-size-label-sm: 14px;
+  --font-weight-label-sm: 500;
+  --line-height-label-sm: 1.4;
+  --letter-spacing-label-sm: -0.28px;
+
+  /* Body Lg */
+  --font-size-body-lg: 18px;
+  --font-weight-body-lg: 400;
+  --line-height-body-lg: 1.6;
+  --letter-spacing-body-lg: 0px;
+
+  /* Body Md */
+  --font-size-body-md: 16px;
+  --font-weight-body-md: 400;
+  --line-height-body-md: 1.6;
+  --letter-spacing-body-md: 0px;
+
+  /* Body Sm */
+  --font-size-body-sm: 14px;
+  --font-weight-body-sm: 400;
+  --line-height-body-sm: 1.5;
+  --letter-spacing-body-sm: 0px;
+
+  /* Mono Eyebrow */
+  --font-size-mono-eyebrow: 12px;
+  --font-weight-mono-eyebrow: 500;
+  --line-height-mono-eyebrow: 1.4;
+  --letter-spacing-mono-eyebrow: 0.08em;
+  --text-transform-mono-eyebrow: uppercase;
+}

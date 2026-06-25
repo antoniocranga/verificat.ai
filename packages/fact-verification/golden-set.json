@@ -12,7 +12,11 @@
       "PIB",
       "Ministerului Finanțelor",
       "2023"
-    ]
+    ],
+    "expectedVerdictRange": {
+      "minIndex": 0,
+      "maxIndex": 2
+    }
   },
   {
     "input": "Conform Institutului Național de Statistică, rata inflației a scăzut la 6,7% în luna noiembrie 2023.",
@@ -22,6 +26,10 @@
       "6,7%",
       "noiembrie 2023",
       "Statistică"
-    ]
+    ],
+    "expectedVerdictRange": {
+      "minIndex": 0,
+      "maxIndex": 2
+    }
   }
 ]

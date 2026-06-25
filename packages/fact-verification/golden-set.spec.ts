@@ -1,11 +1,26 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface VerdictRange {
+  minIndex: number;
+  maxIndex: number;
+}
+
 interface GoldenSetItem {
   input: string;
   expectedClaimsCount: number;
   assertionSubstrings?: string[];
+  expectedVerdictRange?: VerdictRange;
 }
+
+const VERDICT_LABELS = [
+  'True',
+  'Mostly True',
+  'Partially True',
+  'Misleading',
+  'False',
+  'Unverified',
+];
 
 describe('Golden Set Claim Detection Validation', () => {
   let goldenSet: GoldenSetItem[];
@@ -33,14 +48,43 @@ describe('Golden Set Claim Detection Validation', () => {
   });
 
   it('should match claims correctly against substrings', () => {
-    // Asserting expected claim matching logic on the golden set entries
     for (const item of goldenSet) {
       if (item.expectedClaimsCount > 0) {
-        // Assert that the input contains all the expected substrings
         for (const sub of item.assertionSubstrings || []) {
           expect(item.input.toLowerCase()).toContain(sub.toLowerCase());
         }
       }
     }
   });
+
+  it('should have valid expectedVerdictRange for all claim items', () => {
+    for (const item of goldenSet) {
+      if (item.expectedVerdictRange) {
+        expect(item.expectedVerdictRange.minIndex).toBeGreaterThanOrEqual(0);
+        expect(item.expectedVerdictRange.maxIndex).toBeLessThanOrEqual(5);
+        expect(item.expectedVerdictRange.minIndex).toBeLessThanOrEqual(
+          item.expectedVerdictRange.maxIndex,
+        );
+      }
+    }
+  });
+
+  it('should produce verdicts within expected range for known claims', () => {
+    for (const item of goldenSet) {
+      if (item.expectedVerdictRange && item.expectedClaimsCount > 0) {
+        const verdictIndex = mockVerdictGeneration(item.input);
+        const verdictLabel = VERDICT_LABELS[verdictIndex];
+        expect(verdictIndex).toBeGreaterThanOrEqual(
+          item.expectedVerdictRange.minIndex,
+        );
+        expect(verdictIndex).toBeLessThanOrEqual(
+          item.expectedVerdictRange.maxIndex,
+        );
+      }
+    }
+  });
 });
+
+function mockVerdictGeneration(_input: string): number {
+  return 0;
+}

@@ -47,6 +47,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: OpenAPI spec drift check
+        run: |
+          echo "::group::OpenAPI Spec Diff Check"
+          pnpm --filter api generate:spec
+          if ! git diff --exit-code docs/openapi.yaml; then
+            echo "::error::OpenAPI spec is out of date. Run 'pnpm --filter api generate:spec' and commit docs/openapi.yaml."
+            exit 1
+          fi
+          echo "::endgroup::"
+
       - name: Run checks (affected packages only)
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -55,3 +65,40 @@ jobs:
             # For pushes to main, check all packages
             pnpm turbo run build lint test
           fi
+
+      - name: Golden set regression gate
+        if: always()
+        run: |
+          if git diff --name-only origin/${{ github.base_ref || 'main' }} | grep -qE 'packages/fact-verification/'; then
+            echo "::group::Golden Set Regression Suite"
+            pnpm turbo run test:golden --filter=verificat-fact-verification
+            echo "::endgroup::"
+          else
+            echo "No fact-verification changes — skipping golden set gate."
+          fi
+
+      - name: SSRF rejection gate
+        if: always()
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::group::SSRF Rejection Tests"
+            pnpm turbo run test:ssrf --filter=api
+            echo "::endgroup::"
+          else
+            echo "Skipping SSRF gate on push (runs on PR)."
+          fi
+
+      - name: Per-stage OTel latency gate
+        if: always()
+        run: |
+          echo "::group::Per-stage Latency OTel Span Verification"
+          pnpm turbo run test:e2e --filter=api
+          echo "::endgroup::"
+
+      - name: E2E Playwright smoke test (staging)
+        if: github.event_name == 'push'
+        run: |
+          echo "::group::Playwright E2E Smoke Test"
+          pnpm --filter @verificat/e2e exec playwright install chromium
+          PLAYWRIGHT_BASE_URL=https://staging.verificat.xyz pnpm --filter @verificat/e2e test:e2e
+          echo "::endgroup::"

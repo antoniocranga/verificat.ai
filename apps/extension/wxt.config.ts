@@ -4,12 +4,8 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     name: "Verificat",
-    // permissions:
-    // - sidePanel: for side panel UI
-    // - storage: for saving consent status locally
-    // - activeTab: to access current tab audio stream
-    // - tabCapture: to capture tab audio
     permissions: ["sidePanel", "storage", "activeTab", "tabCapture"],
+    host_permissions: ["http://localhost:3000/*"],
     side_panel: {
       default_path: "entrypoints/sidepanel/index.html",
     },

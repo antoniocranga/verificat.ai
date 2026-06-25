@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
+import { CookieConsentBanner } from "../components/CookieConsentBanner";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -37,6 +38,26 @@ export default function RootLayout({
     <html lang="ro" className={`${outfit.variable} ${inter.variable}`}>
       <body className="antialiased bg-[#07090e] text-slate-100 font-sans min-h-screen">
         {children}
+        <footer
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            padding: '24px',
+            textAlign: 'center',
+            fontSize: 14,
+            color: '#64748b',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
+            <a href="/privacy" style={{ color: '#94a3b8', textDecoration: 'underline' }}>
+              Politica de Confidențialitate
+            </a>
+            <a href="/terms" style={{ color: '#94a3b8', textDecoration: 'underline' }}>
+              Termeni și Condiții
+            </a>
+          </div>
+          <p style={{ marginTop: 8 }}>© {new Date().getFullYear()} verificat.xyz</p>
+        </footer>
+        <CookieConsentBanner />
       </body>
     </html>
   );

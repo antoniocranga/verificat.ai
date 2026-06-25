@@ -62,7 +62,8 @@ export class JobsConsumer extends WorkerHost {
 
     let textToAnalyze = job.data.text || '';
 
-    // Stage 1: Speech Recognition (if audio is provided)
+    await job.updateProgress({ stage: 'speech', progress: 0 });
+
     if (job.data.audioPath) {
       this.logger.log(`Transcribing audio file from: ${job.data.audioPath}`);
       try {
@@ -77,6 +78,8 @@ export class JobsConsumer extends WorkerHost {
       }
     }
 
+    await job.updateProgress({ stage: 'speech', progress: 100 });
+
     if (!textToAnalyze.trim()) {
       this.logger.warn(`No text or audio content provided for job ${job.id}`);
       return {
@@ -85,23 +88,30 @@ export class JobsConsumer extends WorkerHost {
       };
     }
 
-    // Stage 2: Claim Detection & Normalization
     this.logger.log(`Detecting claims in input text...`);
+    await job.updateProgress({ stage: 'claim_detection', progress: 0 });
     const detectedClaims =
       await this.claimDetectionService.detectClaims(textToAnalyze);
     this.logger.log(`Detected ${detectedClaims.length} claim(s).`);
+    await job.updateProgress({ stage: 'claim_detection', progress: 100 });
 
     const claimsResults: FactVerificationJobResult['claims'] = [];
 
-    // Stage 3-5: Evidence Retrieval, Source Trust Scoring, and Verdict Generation per claim
-    for (const claim of detectedClaims) {
+    for (let i = 0; i < detectedClaims.length; i++) {
+      const claim = detectedClaims[i];
+      const claimProgress = Math.round((i / detectedClaims.length) * 100);
+
       this.logger.log(
         `Retrieving evidence for claim: "${claim.assertion.substring(0, 50)}..."`,
       );
+      await job.updateProgress({
+        stage: 'evidence_retrieval',
+        progress: claimProgress,
+        claim: claim.assertion.substring(0, 50),
+      });
       const rawEvidence =
         await this.evidenceRetrievalService.retrieveEvidence(claim);
 
-      // Score trust for each cited web source
       const evidenceWithTrust: Array<
         EvidenceResult & { trustScore?: number; trustReason?: string }
       > = [];
@@ -128,6 +138,10 @@ export class JobsConsumer extends WorkerHost {
       }
 
       this.logger.log(`Generating verdict for claim...`);
+      await job.updateProgress({
+        stage: 'verdict_generation',
+        progress: claimProgress,
+      });
       const verdictResult = await this.verdictGenerationService.generateVerdict(
         claim,
         rawEvidence,

@@ -125,15 +125,11 @@ jobs:
           script: |
             set -euo pipefail
 
-            # Log in to GHCR on the VPS
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
+            export GITHUB_ACTOR="${{ github.actor }}"
+            export VPS_STAGING_DIR="${{ secrets.VPS_STAGING_DIR }}"
+            export STAGING_SUPABASE_PROJECT_REF="${{ secrets.STAGING_SUPABASE_PROJECT_REF }}"
+            export STAGING_SUPABASE_DB_PASSWORD="${{ secrets.STAGING_SUPABASE_DB_PASSWORD }}"
 
-            # Pull new images
-            docker pull ghcr.io/antoniocranga/verificat.ai/web:latest
-            docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
-
-            # Restart staging stack
-            cd ${{ secrets.VPS_STAGING_DIR }}
-            docker rm -f verificat-web verificat-api || true
-            docker compose -f docker-compose.staging.yml up -d --remove-orphans
-            docker image prune -f
+            chmod +x infrastructure/deployment/deploy-staging.sh
+            ./infrastructure/deployment/deploy-staging.sh

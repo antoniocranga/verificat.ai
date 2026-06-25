@@ -95,6 +95,7 @@ describe('JobsConsumer Integration', () => {
         claimId: 'claim-abc',
         text: 'Inflația a scăzut în 2023 la wikipedia.org',
       },
+      updateProgress: jest.fn().mockResolvedValue(undefined),
     } as unknown as Job<FactVerificationJobData, unknown, string>;
 
     const result = await consumer.process(mockJob);

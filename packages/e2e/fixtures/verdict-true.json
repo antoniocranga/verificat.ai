@@ -1,0 +1,19 @@
+{
+  "id": "e2e-fixture-001",
+  "claimId": "e2e-claim-001",
+  "label": "True",
+  "confidence": 92,
+  "explanation": "Această afirmație este susținută de surse verificate și date oficiale.",
+  "sources": [
+    {
+      "id": "src-001",
+      "url": "https://exemplu.ro/sursa-1",
+      "title": "Sursă verificată 1",
+      "trustScore": 88,
+      "trustScoreExplanation": "Sursă guvernamentală oficială.",
+      "retrievedAt": "2026-06-25T10:00:00Z"
+    }
+  ],
+  "createdAt": "2026-06-25T10:00:00Z",
+  "sessionId": "e2e-session-001"
+}

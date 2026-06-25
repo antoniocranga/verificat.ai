@@ -7,6 +7,9 @@
     },
     "lint": {},
     "test": {},
+    "test:e2e": {},
+    "test:golden": {},
+    "test:ssrf": {},
     "dev": {
       "cache": false,
       "persistent": true
