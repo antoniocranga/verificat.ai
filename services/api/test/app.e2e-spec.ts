@@ -13,6 +13,7 @@ import { JobsService } from './../src/jobs/jobs.service';
 import { FactChecksService } from './../src/fact-checks/fact-checks.service';
 import { SupabaseService } from './../src/supabase/supabase.service';
 import { MatchClaimResult } from './../src/search/search.service';
+let testRunId = randomUUID();
 
 describe('API Integration (e2e)', () => {
   let app: INestApplication<App>;
@@ -99,21 +100,19 @@ describe('API Integration (e2e)', () => {
       }),
     );
     app.useGlobalFilters(new HttpExceptionFilter());
+    (app.getHttpAdapter().getInstance() as any).set('trust proxy', true);
     await app.init();
   });
 
   beforeEach(async () => {
     claimAId = '';
+    testRunId = randomUUID();
     const redisService = app.get(RedisService);
     const client = redisService.getClient();
-    // Only clear session blacklist and throttle counter keys, not BullMQ queue metadata
+    // Only clear session blacklist keys, not BullMQ queue metadata
     const keys = await client.keys('revoked_sessions:*');
     if (keys.length > 0) {
       await client.del(...keys);
-    }
-    const throttleKeys = await client.keys('throttler:*');
-    if (throttleKeys.length > 0) {
-      await client.del(...throttleKeys);
     }
   });
 
@@ -125,10 +124,23 @@ describe('API Integration (e2e)', () => {
   });
 
   it('should rate limit requests and return 429 when threshold exceeded', async () => {
-    for (let i = 0; i < 5; i++) {
-      await request(app.getHttpServer()).get('/').expect(200);
+    const limit = parseInt(process.env.THROTTLE_LIMIT || '5', 10);
+    const clientIp = randomUUID();
+    let successCount = 0;
+    for (let i = 0; i < limit + 50; i++) {
+      const res = await request(app.getHttpServer())
+        .get('/')
+        .set('X-Forwarded-For', clientIp);
+      if (res.status === 200) {
+        successCount++;
+      } else if (res.status === 429) {
+        expect(successCount).toBe(limit);
+        return;
+      } else {
+        throw new Error(`Unexpected status ${res.status} on attempt ${i}`);
+      }
     }
-    await request(app.getHttpServer()).get('/').expect(429);
+    throw new Error(`Rate limit did not trigger after ${limit + 50} requests`);
   });
 
   it('/users/profile (GET) - protected endpoint without token returns 401', () => {
