@@ -18,7 +18,7 @@ describe('API Integration (e2e)', () => {
   let validToken: string;
   let claimAId = '';
 
-  beforeAll(() => {
+  beforeAll(async () => {
     process.env.THROTTLE_LIMIT = '5';
     process.env.THROTTLE_TTL = '5000';
     const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev';
@@ -26,10 +26,7 @@ describe('API Integration (e2e)', () => {
       { sub: 'test-user-id', email: 'test@verificat.xyz' },
       secret,
     );
-  });
 
-  beforeEach(async () => {
-    claimAId = '';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -97,7 +94,10 @@ describe('API Integration (e2e)', () => {
     );
     app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
+  });
 
+  beforeEach(async () => {
+    claimAId = '';
     const redisService = app.get(RedisService);
     await redisService.getClient().flushall();
   });
@@ -372,7 +372,7 @@ describe('API Integration (e2e)', () => {
     });
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 });
