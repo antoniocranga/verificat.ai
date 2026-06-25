@@ -21,10 +21,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
         {/* Header/Branding */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            verificat.xyz
+            Verificat
           </h1>
           <p className="text-slate-400 mt-2 text-sm font-medium">
-            Fact-checking and claim verification platform
+            Verificare în timp real cu surse și dovezi
           </p>
         </div>
 
@@ -46,10 +46,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
           <div className="space-y-8">
             <div>
               <h2 className="text-xl font-semibold text-slate-100">
-                Welcome Back
+                Autentificare
               </h2>
               <p className="text-slate-400 text-xs mt-1">
-                Sign in to your account
+                Conectați-vă la contul dumneavoastră
               </p>
 
               <form action={login} className="space-y-4 mt-4">
@@ -61,20 +61,20 @@ export default async function LoginPage({ searchParams }: PageProps) {
                     type="email"
                     name="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder="nume@exemplu.ro"
                     className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
                   />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      Password
+                      Parolă
                     </label>
                     <a
                       href="/reset-password"
                       className="text-xs text-violet-400 hover:underline"
                     >
-                      Forgot password?
+                      Ați uitat parola?
                     </a>
                   </div>
                   <input
@@ -89,7 +89,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   type="submit"
                   className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-slate-100 rounded-lg font-semibold transition-all transform hover:scale-[1.01] shadow-lg shadow-violet-950/50 text-sm"
                 >
-                  Log In
+                  Autentificare
                 </button>
               </form>
 
@@ -101,22 +101,22 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
             <div className="border-t border-slate-800 pt-6">
               <h2 className="text-xl font-semibold text-slate-100">
-                Create an Account
+                Creare Cont
               </h2>
               <p className="text-slate-400 text-xs mt-1">
-                Join the verification community
+                Alăturați-vă comunității de verificare
               </p>
 
               <form action={signup} className="space-y-4 mt-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    Full Name
+                    Nume complet
                   </label>
                   <input
                     type="text"
                     name="fullName"
                     required
-                    placeholder="John Doe"
+                    placeholder="Ion Popescu"
                     className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
                   />
                 </div>
@@ -128,19 +128,19 @@ export default async function LoginPage({ searchParams }: PageProps) {
                     type="email"
                     name="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder="nume@exemplu.ro"
                     className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    Password
+                    Parolă
                   </label>
                   <input
                     type="password"
                     name="password"
                     required
-                    placeholder="Minimum 8 characters"
+                    placeholder="Minimum 8 caractere"
                     className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
                   />
                 </div>
@@ -148,10 +148,22 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   type="submit"
                   className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-lg font-semibold transition-all transform hover:scale-[1.01] text-sm"
                 >
-                  Register
+                  Înregistrare
                 </button>
               </form>
             </div>
+          </div>
+          <div className="mt-6 pt-4 border-t border-slate-800 text-center">
+            <p className="text-slate-500 text-xs leading-relaxed">
+              Prin crearea unui cont sau autentificare, acceptați{' '}
+              <a href="https://verificat.xyz/privacy" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+                Politica de Confidențialitate
+              </a>
+              {' '}și{' '}
+              <a href="https://verificat.xyz/terms" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+                Termenii de Utilizare
+              </a>.
+            </p>
           </div>
         </div>
       </div>

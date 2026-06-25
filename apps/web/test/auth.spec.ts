@@ -20,8 +20,8 @@ test.describe("Authentication and Route Guarding", () => {
     const title = page.locator("h1");
     await expect(title).toHaveText("verificat.xyz");
 
-    const loginButton = page.locator("button", { hasText: "Log In" });
-    const registerButton = page.locator("button", { hasText: "Register" });
+    const loginButton = page.locator("button", { hasText: "Autentificare" });
+    const registerButton = page.locator("button", { hasText: "Înregistrare" });
     await expect(loginButton).toBeVisible();
     await expect(registerButton).toBeVisible();
   });
