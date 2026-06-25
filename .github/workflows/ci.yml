@@ -50,7 +50,7 @@ jobs:
       - name: Run pnpm audit (dependency vulnerabilities)
         run: |
           echo "::group::pnpm Audit"
-          pnpm audit --audit-level=high || echo "::warning::pnpm audit found high/critical vulnerabilities — review and patch before release."
+          pnpm audit --audit-level=high
           echo "::endgroup::"
 
       - name: OpenAPI spec drift check
