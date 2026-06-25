@@ -16,7 +16,7 @@ export default function CheckPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`${API_BASE}/fact-checks/verdicts/${id}`)
+    fetch(`${API_BASE}/fact-checks/${id}`)
       .then((res) => {
         if (res.status === 404) throw new Error("Verdict negăsit sau privat");
         if (!res.ok) throw new Error("Eroare la încărcarea verdictului");
