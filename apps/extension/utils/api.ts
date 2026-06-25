@@ -1,6 +1,6 @@
 import { storage } from "wxt/storage";
 
-const API_BASE = process.env.PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = process.env.API_URL || "http://localhost:3000";
 
 interface ConsentStatus {
   tabConsent: boolean;

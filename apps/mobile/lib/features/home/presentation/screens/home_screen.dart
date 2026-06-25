@@ -56,7 +56,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               FilledButton(
-                onPressed: () => context.go('/check/demo'),
+                onPressed: () => context.go('/check/e2e00000-0000-0000-0000-000000000003'),
                 child: const Text('Vezi un exemplu'),
               ),
               const SizedBox(height: 12),

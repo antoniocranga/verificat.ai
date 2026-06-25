@@ -1,7 +1,7 @@
 import { storage } from "wxt/storage";
 import { uploadAudio } from "../utils/api";
 
-const API_BASE = process.env.PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = process.env.API_URL || "http://localhost:3000";
 const SESSION_KEY = "local:verification_job_id";
 
 async function consumeVerdictStream(
