@@ -1,23 +1,54 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:verificat_mobile/core/permissions/permission_service.dart';
+import 'package:verificat_mobile/features/listening/domain/repositories/listening_repository.dart';
 import 'package:verificat_mobile/features/listening/presentation/bloc/listening_bloc.dart';
 
-class MockPermissionService extends PermissionService {
+class MockListeningRepository implements ListeningRepository {
   final bool grantPermission;
-  const MockPermissionService(this.grantPermission);
+  final bool startRecordingSuccess;
+  final String? jobId;
+  final Stream<Map<String, dynamic>>? jobStream;
+  bool stopRecordingCalled = false;
+  bool uploadCalled = false;
+
+  MockListeningRepository({
+    this.grantPermission = true,
+    this.startRecordingSuccess = true,
+    this.jobId,
+    this.jobStream,
+  });
 
   @override
   Future<bool> requestMicPermission() async => grantPermission;
 
   @override
-  Future<bool> hasMicPermission() async => grantPermission;
+  Future<String> startRecording() async {
+    if (!startRecordingSuccess) throw Exception('Recording failed');
+    return '/tmp/recording.aac';
+  }
+
+  @override
+  Future<void> stopRecording() async {
+    stopRecordingCalled = true;
+  }
+
+  @override
+  Future<String?> uploadAndVerify() async {
+    uploadCalled = true;
+    return jobId;
+  }
+
+  @override
+  Stream<Map<String, dynamic>> streamJobEvents(String jobId) {
+    return jobStream ?? const Stream.empty();
+  }
 }
 
 void main() {
   group('ListeningBloc', () {
     test('initial state is idle', () {
       final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
+        repository: MockListeningRepository(),
       );
       expect(bloc.state.status, ListeningStatus.idle);
       expect(bloc.state.verdictId, isNull);
@@ -26,9 +57,8 @@ void main() {
     });
 
     test('transitions to listening when mic permission is granted', () async {
-      final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
-      );
+      final repo = MockListeningRepository(grantPermission: true);
+      final bloc = ListeningBloc(repository: repo);
       final states = <ListeningState>[];
       bloc.stream.listen((s) => states.add(s));
 
@@ -41,9 +71,8 @@ void main() {
     });
 
     test('transitions to error when mic permission is denied', () async {
-      final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(false),
-      );
+      final repo = MockListeningRepository(grantPermission: false);
+      final bloc = ListeningBloc(repository: repo);
       final states = <ListeningState>[];
       bloc.stream.listen((s) => states.add(s));
 
@@ -56,69 +85,35 @@ void main() {
       bloc.close();
     });
 
-    test('full flow: start → stop returns to idle', () async {
-      final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
+    test('transitions to error when recording fails', () async {
+      final repo = MockListeningRepository(
+        grantPermission: true,
+        startRecordingSuccess: false,
       );
-      final states = <ListeningStatus>[];
-      bloc.stream.listen((s) => states.add(s.status));
+      final bloc = ListeningBloc(repository: repo);
+      final states = <ListeningState>[];
+      bloc.stream.listen((s) => states.add(s));
 
       bloc.add(const StartListening());
       await Future.delayed(Duration.zero);
-      bloc.add(const StopListening());
-      await Future.delayed(Duration.zero);
 
-      expect(states, [ListeningStatus.listening, ListeningStatus.idle]);
+      expect(states.length, 1);
+      expect(states[0].status, ListeningStatus.error);
       bloc.close();
     });
 
-    test('full flow: start → verdict → stop', () async {
+    test('stop from idle stays idle', () {
       final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
+        repository: MockListeningRepository(),
       );
-      final states = <ListeningStatus>[];
-      bloc.stream.listen((s) => states.add(s.status));
-
-      bloc.add(const StartListening());
-      await Future.delayed(Duration.zero);
-      bloc.add(const VerdictReceived('v-123'));
-      await Future.delayed(Duration.zero);
       bloc.add(const StopListening());
-      await Future.delayed(Duration.zero);
-
-      expect(states, [
-        ListeningStatus.listening,
-        ListeningStatus.verdictReady,
-        ListeningStatus.idle,
-      ]);
-      bloc.close();
-    });
-
-    test('full flow: start → error → stop returns to idle', () async {
-      final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
-      );
-      final states = <ListeningStatus>[];
-      bloc.stream.listen((s) => states.add(s.status));
-
-      bloc.add(const StartListening());
-      await Future.delayed(Duration.zero);
-      bloc.add(const ListeningFailed('Network error'));
-      await Future.delayed(Duration.zero);
-      bloc.add(const StopListening());
-      await Future.delayed(Duration.zero);
-
-      expect(states, [
-        ListeningStatus.listening,
-        ListeningStatus.error,
-        ListeningStatus.idle,
-      ]);
+      expect(bloc.state.status, ListeningStatus.idle);
       bloc.close();
     });
 
     test('VerdictReceived stores verdict id', () async {
       final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
+        repository: MockListeningRepository(grantPermission: true),
       );
       final states = <ListeningState>[];
       bloc.stream.listen((s) => states.add(s));
@@ -136,7 +131,7 @@ void main() {
 
     test('ListeningFailed stores error message', () async {
       final bloc = ListeningBloc(
-        permissionService: const MockPermissionService(true),
+        repository: MockListeningRepository(grantPermission: true),
       );
       final states = <ListeningState>[];
       bloc.stream.listen((s) => states.add(s));
@@ -149,6 +144,51 @@ void main() {
       expect(states.length, 2);
       expect(states[1].status, ListeningStatus.error);
       expect(states[1].errorMessage, 'Timeout');
+      bloc.close();
+    });
+
+    test('reset returns to idle', () async {
+      final bloc = ListeningBloc(
+        repository: MockListeningRepository(grantPermission: true),
+      );
+      bloc.add(const StartListening());
+      await Future.delayed(Duration.zero);
+      expect(bloc.state.status, ListeningStatus.listening);
+
+      bloc.reset();
+      expect(bloc.state.status, ListeningStatus.idle);
+      expect(bloc.state.verdictId, isNull);
+      expect(bloc.state.errorMessage, isNull);
+      bloc.close();
+    });
+
+    test('full flow: start → verdict via SSE stream', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final repo = MockListeningRepository(
+        grantPermission: true,
+        jobId: 'job-1',
+        jobStream: controller.stream,
+      );
+      final bloc = ListeningBloc(repository: repo);
+      final states = <ListeningState>[];
+      bloc.stream.listen((s) => states.add(s));
+
+      bloc.add(const StartListening());
+      await Future.delayed(Duration.zero);
+
+      bloc.add(const StopListening());
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      expect(states.any((s) => s.status == ListeningStatus.listening), isTrue);
+      expect(states.any((s) => s.status == ListeningStatus.processing), isTrue);
+
+      controller.add({'type': 'verdict', 'verdictId': 'v-final'});
+      await Future.delayed(Duration.zero);
+
+      expect(states.any((s) => s.status == ListeningStatus.verdictReady), isTrue);
+      expect(states.lastWhere((s) => s.status == ListeningStatus.verdictReady).verdictId, 'v-final');
+
+      await controller.close();
       bloc.close();
     });
   });

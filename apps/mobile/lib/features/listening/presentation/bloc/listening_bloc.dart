@@ -94,7 +94,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
 
   Future<void> _onStopListening(
     StopListening event,
-    Emitter<ListingState> emit,
+    Emitter<ListeningState> emit,
   ) async {
     if (state.status != ListeningStatus.listening) {
       emit(state.copyWith(status: ListeningStatus.idle));

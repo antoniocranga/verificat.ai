@@ -5,6 +5,8 @@ import '../features/home/presentation/screens/home_screen.dart';
 import '../features/check/presentation/screens/check_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/handoff/presentation/screens/handoff_screen.dart';
+import '../features/listening/presentation/bloc/listening_bloc.dart';
+import '../features/listening/presentation/screens/listening_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -55,6 +57,14 @@ final router = GoRouter(
         final token = state.pathParameters['token'] ?? '';
         return HandoffScreen(token: token);
       },
+    ),
+    GoRoute(
+      path: '/listen',
+      name: 'listen',
+      builder: (context, state) => BlocProvider<ListeningBloc>(
+        create: (_) => ListeningBloc(),
+        child: const ListeningScreen(),
+      ),
     ),
   ],
 );

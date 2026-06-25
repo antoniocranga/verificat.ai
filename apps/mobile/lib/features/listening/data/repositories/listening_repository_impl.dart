@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:verificat_mobile/core/api/job_api_service.dart';
 import 'package:verificat_mobile/core/audio/audio_recorder_service.dart';
 import 'package:verificat_mobile/core/permissions/permission_service.dart';
-import '../../../domain/repositories/listening_repository.dart';
+import '../../domain/repositories/listening_repository.dart';
 
 class ListeningRepositoryImpl implements ListeningRepository {
   final AudioRecorderService _recorder;
