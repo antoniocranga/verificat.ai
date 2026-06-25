@@ -19,6 +19,15 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+    origin: process.env.CORS_ORIGINS?.split(',') ?? [
+      'https://staging.verificat.xyz',
+      'https://verificat.xyz',
+      'http://localhost:3000',
+    ],
+    credentials: true,
+  });
+
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
