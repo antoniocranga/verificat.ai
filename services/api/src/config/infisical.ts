@@ -20,10 +20,7 @@ export async function initConfig() {
       siteUrl,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await client.auth().serviceToken.login({
-      accessToken: token,
-    });
+    client.auth().accessToken(token);
 
     console.log('[Config] Service Token auth successful. Loading secrets...');
     const response = await client.secrets().listSecrets({
