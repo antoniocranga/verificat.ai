@@ -1,12 +1,6 @@
 name: Mobile Beta
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/mobile/**'
-      - '.github/workflows/mobile-beta.yml'
-
   workflow_dispatch:
     inputs:
       env:
