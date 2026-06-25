@@ -105,7 +105,12 @@ describe('API Integration (e2e)', () => {
   beforeEach(async () => {
     claimAId = '';
     const redisService = app.get(RedisService);
-    await redisService.getClient().flushall();
+    const client = redisService.getClient();
+    // Only clear session blacklist keys, not BullMQ queue metadata
+    const keys = await client.keys('revoked_sessions:*');
+    if (keys.length > 0) {
+      await client.del(...keys);
+    }
   });
 
   it('/ (GET) - public endpoint', () => {
