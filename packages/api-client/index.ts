@@ -1,4 +1,4 @@
-import type { Verdict, Claim, CheckSession, ApiError } from '@verificat/types';
+import type { ApiError } from '@verificat/types';
 
 const BASE_URL = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL)
   || 'https://staging.verificat.xyz/api';
@@ -27,29 +27,31 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
-export function getVerdict(id: string, token?: string): Promise<Verdict> {
-  return request<Verdict>(`/fact-checks/verdicts/${id}`, {}, token);
+export function getVerdict(id: string, token?: string): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>(`/fact-checks/${id}`, {}, token);
 }
 
-export function getClaim(id: string, token?: string): Promise<Claim> {
-  return request<Claim>(`/fact-checks/claims/${id}`, {}, token);
+export function searchVerdicts(
+  query = '',
+  page = 1,
+  limit = 20,
+  token?: string,
+): Promise<Record<string, unknown>> {
+  const params = new URLSearchParams({ q: query, page: String(page), limit: String(limit) });
+  return request<Record<string, unknown>>(`/fact-checks/search?${params}`, {}, token);
 }
 
-export function getSession(id: string, token?: string): Promise<CheckSession> {
-  return request<CheckSession>(`/fact-checks/sessions/${id}`, {}, token);
+export function getLatestChecks(token?: string): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>('/fact-checks', {}, token);
 }
 
 export function submitAudio(
   blob: Blob,
-  sessionId: string,
   token?: string,
 ): Promise<{ jobId: string }> {
-  const formData = new FormData();
-  formData.append('audio', blob);
-  formData.append('sessionId', sessionId);
-  return request<{ jobId: string }>('/jobs/audio', {
+  return request<{ jobId: string }>('/jobs/upload', {
     method: 'POST',
-    body: formData,
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    headers: { 'Content-Type': blob.type || 'audio/webm' },
+    body: blob,
   }, token);
 }

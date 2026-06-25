@@ -15,6 +15,7 @@ class VerdictApiService {
     String query = '',
     int page = 1,
     int limit = 20,
+    String? token,
   }) async {
     final uri = Uri.parse('$_baseUrl/fact-checks/search').replace(
       queryParameters: {
@@ -23,20 +24,23 @@ class VerdictApiService {
         'limit': limit.toString(),
       },
     );
-    return _get(uri);
+    return _get(uri, token: token);
   }
 
-  Future<Map<String, dynamic>> getLatestChecks() async {
-    return _get(Uri.parse('$_baseUrl/fact-checks'));
+  Future<Map<String, dynamic>> getLatestChecks({String? token}) async {
+    return _get(Uri.parse('$_baseUrl/fact-checks'), token: token);
   }
 
-  Future<Map<String, dynamic>> getVerdict(String id) async {
-    return _get(Uri.parse('$_baseUrl/fact-checks/verdicts/$id'));
+  Future<Map<String, dynamic>> getVerdict(String id, {String? token}) async {
+    return _get(Uri.parse('$_baseUrl/fact-checks/$id'), token: token);
   }
 
-  Future<Map<String, dynamic>> _get(Uri uri) async {
+  Future<Map<String, dynamic>> _get(Uri uri, {String? token}) async {
     final request = await _client.getUrl(uri);
     request.headers.contentType = ContentType.json;
+    if (token != null) {
+      request.headers.set('Authorization', 'Bearer $token');
+    }
     final response = await request.close();
     final body = await response.transform(utf8.decoder).join();
     if (response.statusCode >= 400) {

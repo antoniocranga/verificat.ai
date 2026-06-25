@@ -56,6 +56,39 @@ export class FactChecksService {
     };
   }
 
+  async getVerdictById(id: string) {
+    const { data, error } = await this.client
+      .from('verdicts')
+      .select(
+        `
+        id,
+        verdict,
+        confidence_score,
+        explanation,
+        created_at,
+        fact_checks!inner(
+          claims!inner(text)
+        )
+      `,
+      )
+      .eq('id', id)
+      .single();
+
+    if (error || !data) return null;
+
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+    const d = data as any;
+    return {
+      id: d.id,
+      verdict: d.verdict,
+      confidenceScore: d.confidence_score,
+      explanation: d.explanation,
+      createdAt: d.created_at,
+      claim: d.fact_checks?.claims ?? {},
+    };
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+  }
+
   getLatestChecks() {
     return this.searchVerdicts('', 1, 10);
   }

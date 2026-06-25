@@ -6,7 +6,7 @@ class VerdictRemoteDataSource {
   VerdictRemoteDataSource({VerdictApiService? api})
       : _api = api ?? VerdictApiService();
 
-  Future<Map<String, dynamic>> getVerdict(String id) {
-    return _api.getVerdict(id);
+  Future<Map<String, dynamic>> getVerdict(String id, {String? token}) {
+    return _api.getVerdict(id, token: token);
   }
 }

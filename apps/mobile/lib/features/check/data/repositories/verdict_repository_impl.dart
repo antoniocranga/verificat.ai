@@ -9,8 +9,8 @@ class VerdictRepositoryImpl implements VerdictRepository {
       : _remoteDataSource = remoteDataSource ?? VerdictRemoteDataSource();
 
   @override
-  Future<Verdict> getVerdict(String id) async {
-    final json = await _remoteDataSource.getVerdict(id);
+  Future<Verdict> getVerdict(String id, {String? token}) async {
+    final json = await _remoteDataSource.getVerdict(id, token: token);
     return Verdict.fromJson(json);
   }
 }

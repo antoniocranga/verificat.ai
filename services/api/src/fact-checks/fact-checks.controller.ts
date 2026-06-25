@@ -1,6 +1,16 @@
-import { Controller, Get, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
+import { Public } from '../auth/public.decorator';
 import { FactChecksService } from './fact-checks.service';
 
+@Public()
 @Controller('fact-checks')
 export class FactChecksController {
   constructor(private readonly factChecksService: FactChecksService) {}
@@ -17,6 +27,13 @@ export class FactChecksController {
       Math.max(1, parseInt(page, 10) || 1),
       Math.min(100, Math.max(1, parseInt(limit, 10) || 20)),
     );
+  }
+
+  @Get(':id')
+  async getVerdictById(@Param('id') id: string) {
+    const verdict = await this.factChecksService.getVerdictById(id);
+    if (!verdict) throw new NotFoundException('Verdict not found');
+    return verdict;
   }
 
   @Get()

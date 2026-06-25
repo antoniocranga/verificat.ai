@@ -370,15 +370,8 @@ describe('API Integration (e2e)', () => {
         .expect(200);
     });
 
-    it('/fact-checks (GET) - unauthenticated returns 401', () => {
-      return request(app.getHttpServer()).get('/fact-checks').expect(401);
-    });
-
-    it('/fact-checks (GET) - authenticated returns 200', () => {
-      return request(app.getHttpServer())
-        .get('/fact-checks')
-        .set('Authorization', `Bearer ${validToken}`)
-        .expect(200);
+    it('/fact-checks (GET) - returns 200 OK (public)', () => {
+      return request(app.getHttpServer()).get('/fact-checks').expect(200);
     });
 
     it('/admin/stats (GET) - unauthenticated returns 401', () => {
