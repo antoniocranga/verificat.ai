@@ -22,21 +22,8 @@ describe("API utilities", () => {
   });
 
   describe("uploadAudio", () => {
-    it("should throw if no consent has been granted", async () => {
-      (storage.getItem as jest.Mock).mockResolvedValue(undefined);
-
-      await expect(uploadAudio(new Blob())).rejects.toThrow(
-        "No consent granted for audio capture.",
-      );
-    });
-
     it("should upload audio with no auth token when not logged in", async () => {
-      (storage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === "local:consent_status") {
-          return Promise.resolve({ tabConsent: true, micConsent: false });
-        }
-        return Promise.resolve(undefined);
-      });
+      (storage.getItem as jest.Mock).mockResolvedValue(undefined);
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ jobId: "job-123" }),
@@ -57,9 +44,6 @@ describe("API utilities", () => {
 
     it("should include Authorization header when auth token is present", async () => {
       (storage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === "local:consent_status") {
-          return Promise.resolve({ tabConsent: false, micConsent: true });
-        }
         if (key === "local:auth_token") {
           return Promise.resolve("test-token-abc");
         }
@@ -87,12 +71,7 @@ describe("API utilities", () => {
     });
 
     it("should throw on HTTP error", async () => {
-      (storage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === "local:consent_status") {
-          return Promise.resolve({ tabConsent: true, micConsent: true });
-        }
-        return Promise.resolve(undefined);
-      });
+      (storage.getItem as jest.Mock).mockResolvedValue(undefined);
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 413,
@@ -100,17 +79,12 @@ describe("API utilities", () => {
       });
 
       await expect(uploadAudio(new Blob())).rejects.toThrow(
-        "Upload failed (413): Payload too large",
+        "Încărcarea a eșuat (413): Payload too large",
       );
     });
 
     it("should throw on network error", async () => {
-      (storage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === "local:consent_status") {
-          return Promise.resolve({ tabConsent: true, micConsent: false });
-        }
-        return Promise.resolve(undefined);
-      });
+      (storage.getItem as jest.Mock).mockResolvedValue(undefined);
       mockFetch.mockRejectedValueOnce(new Error("Network failure"));
 
       await expect(uploadAudio(new Blob())).rejects.toThrow("Network failure");

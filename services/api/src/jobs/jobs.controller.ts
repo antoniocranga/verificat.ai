@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   UnprocessableEntityException,
+  Body,
 } from '@nestjs/common';
 import { Request } from 'express';
 import * as fs from 'fs';
@@ -35,6 +36,16 @@ export class JobsController {
     private readonly jobsService: JobsService,
     private readonly jobsEventService: JobsEventService,
   ) {}
+
+  @Post('verify-text')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async verifyText(@Body('text') text: string) {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      throw new UnprocessableEntityException('Text is required');
+    }
+    const claimId = crypto.randomUUID();
+    return this.jobsService.enqueueVerification(claimId, text.trim());
+  }
 
   @Post('upload')
   @HttpCode(HttpStatus.ACCEPTED)

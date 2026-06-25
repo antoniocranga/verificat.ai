@@ -4,7 +4,13 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     name: "Verificat",
-    permissions: ["sidePanel", "storage", "activeTab", "tabCapture"],
+    permissions: [
+      "sidePanel",
+      "storage",
+      "activeTab",
+      "tabCapture",
+      "contextMenus",
+    ],
     host_permissions: [
       "http://localhost:3000/*",
       "https://api-staging.verificat.xyz/*",
@@ -14,4 +20,11 @@ export default defineConfig({
       default_path: "entrypoints/sidepanel/index.html",
     },
   },
+  vite: () => ({
+    define: {
+      __API_URL__: JSON.stringify(
+        process.env.API_URL || "http://localhost:3000",
+      ),
+    },
+  }),
 });

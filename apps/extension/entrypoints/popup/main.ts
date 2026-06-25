@@ -7,7 +7,6 @@ type PopupMessage =
   | { type: "GET_STATUS" };
 
 type StatusResponse = { ready?: boolean };
-type MicCaptureResponse = { error?: string };
 
 const CONSENT_KEY = "local:privacy_consent";
 
@@ -75,14 +74,14 @@ chrome.runtime.onMessage.addListener((msg: PopupMessage) => {
 });
 
 btnStart.addEventListener("click", () => {
-  chrome.runtime.sendMessage(
-    { type: "START_MIC_CAPTURE" },
-    (response: MicCaptureResponse) => {
-      if (response?.error) {
-        setStatus(response.error);
-      }
-    },
-  );
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId) {
+      void chrome.sidePanel.open({ tabId }).then(() => {
+        void chrome.runtime.sendMessage({ type: "START_MIC_CAPTURE" });
+      });
+    }
+  });
 });
 
 btnStop.addEventListener("click", () => {

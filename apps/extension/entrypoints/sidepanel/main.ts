@@ -1,12 +1,6 @@
-import {
-  getConsentStatus,
-  setConsentStatus,
-  startTabCapture,
-  startMicCapture,
-} from "../../utils/audio-capture";
+import { startTabCapture } from "../../utils/audio-capture";
+import { captureAndVerifyMic } from "../../utils/api";
 
-const consentTab = document.getElementById("consent-tab") as HTMLInputElement;
-const consentMic = document.getElementById("consent-mic") as HTMLInputElement;
 const btnTab = document.getElementById("btn-tab-record") as HTMLButtonElement;
 const btnMic = document.getElementById("btn-mic-record") as HTMLButtonElement;
 const statusDiv = document.getElementById("status") as HTMLDivElement;
@@ -14,28 +8,18 @@ const verdictSection = document.getElementById(
   "verdict-section",
 ) as HTMLDivElement;
 
-let activeStream: MediaStream | null = null;
+const permOverlay = document.getElementById("perm-overlay") as HTMLDivElement;
+const permTitle = document.getElementById("perm-title") as HTMLHeadingElement;
+const permDesc = document.getElementById("perm-desc") as HTMLParagraphElement;
+const btnPermAllow = document.getElementById(
+  "btn-perm-allow",
+) as HTMLButtonElement;
+const btnPermCancel = document.getElementById(
+  "btn-perm-cancel",
+) as HTMLButtonElement;
 
-function updateConsent() {
-  setConsentStatus({
-    tabConsent: consentTab.checked,
-    micConsent: consentMic.checked,
-  }).catch((err: unknown) => {
-    statusDiv.textContent = `Eroare salvare acord: ${String(err)}`;
-  });
-}
-
-consentTab.addEventListener("change", updateConsent);
-consentMic.addEventListener("change", updateConsent);
-
-getConsentStatus()
-  .then((consent) => {
-    consentTab.checked = consent.tabConsent;
-    consentMic.checked = consent.micConsent;
-  })
-  .catch((err: unknown) => {
-    statusDiv.textContent = `Eroare încărcare acord: ${String(err)}`;
-  });
+let pendingCapture: "tab" | "mic" | null = null;
+let recordingType: "tab" | "mic" | null = null;
 
 function setStatus(text: string) {
   statusDiv.textContent = `Stare: ${text}`;
@@ -90,54 +74,124 @@ function showStatus(text: string) {
   `;
 }
 
-btnTab.addEventListener("click", () => {
-  if (activeStream) {
+function showPermDialog(type: "tab" | "mic") {
+  pendingCapture = type;
+  if (type === "tab") {
+    permTitle.textContent = "Permisiune pentru captura audio";
+    permDesc.textContent =
+      "Verificat are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
+  } else {
+    permTitle.textContent = "Permisiune pentru microfon";
+    permDesc.textContent =
+      "Verificat are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
+  }
+  permOverlay.classList.add("open");
+}
+
+function hidePermDialog() {
+  permOverlay.classList.remove("open");
+  pendingCapture = null;
+}
+
+function resetButtons() {
+  btnTab.textContent = "Captură Filă";
+  btnMic.textContent = "Captură Microfon";
+  btnTab.disabled = false;
+  btnMic.disabled = false;
+  recordingType = null;
+}
+
+btnPermCancel.addEventListener("click", hidePermDialog);
+
+btnPermAllow.addEventListener("click", () => {
+  hidePermDialog();
+  if (pendingCapture === "tab") {
+    startTabCaptureImpl();
+  } else if (pendingCapture === "mic") {
+    startMicCaptureImpl();
+  }
+});
+
+function startTabCaptureImpl() {
+  if (recordingType === "tab") {
     void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    activeStream.getTracks().forEach((t) => t.stop());
-    activeStream = null;
+    resetButtons();
     setStatus("Oprit");
-    btnTab.textContent = "Captură Filă";
-    btnMic.disabled = false;
     return;
   }
 
   setStatus("Se inițializează capturarea tabului...");
   startTabCapture()
-    .then((stream) => {
-      activeStream = stream;
-      void chrome.runtime.sendMessage({ type: "START_TAB_CAPTURE" });
+    .then(() => {
+      recordingType = "tab";
       setStatus("Se capturează tabul audio");
       btnTab.textContent = "Oprește";
       btnMic.disabled = true;
     })
     .catch((err: unknown) => {
-      setStatus(`Eroare: ${String(err)}`);
+      const msg = (err as Error).message;
+      if (msg.includes("refuzat")) {
+        setStatus("Captura audio a filei a fost refuzată.");
+      } else {
+        setStatus(`Eroare: ${msg}`);
+      }
     });
-});
+}
 
-btnMic.addEventListener("click", () => {
-  if (activeStream) {
+function startMicCaptureImpl() {
+  if (recordingType === "mic") {
     void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    activeStream.getTracks().forEach((t) => t.stop());
-    activeStream = null;
+    resetButtons();
     setStatus("Oprit");
-    btnMic.textContent = "Captură Microfon";
-    btnTab.disabled = false;
     return;
   }
 
   setStatus("Se inițializează microfonul...");
-  startMicCapture()
-    .then((stream) => {
-      activeStream = stream;
-      void chrome.runtime.sendMessage({ type: "START_MIC_CAPTURE" });
-      setStatus("Se capturează microfonul");
-      btnMic.textContent = "Oprește";
-      btnTab.disabled = true;
+  captureAndVerifyMic()
+    .then(() => {
+      resetButtons();
+      setStatus("Verdict primit");
     })
     .catch((err: unknown) => {
-      setStatus(`Eroare: ${String(err)}`);
+      const msg = (err as Error).message;
+      if (msg.includes("NotAllowed") || msg.includes("Permission")) {
+        setStatus(
+          "Accesul la microfon a fost refuzat. Verifică setările browserului și permite accesul la microfon.",
+        );
+      } else if (msg.includes("NotFound")) {
+        setStatus("Nu s-a găsit niciun microfon.");
+      } else {
+        setStatus(`Eroare: ${msg}`);
+      }
+      resetButtons();
     });
+
+  recordingType = "mic";
+  setStatus("Se ascultă...");
+  btnMic.textContent = "Oprește";
+  btnTab.disabled = true;
+}
+
+btnTab.addEventListener("click", () => {
+  if (recordingType === "tab") {
+    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
+    resetButtons();
+    setStatus("Oprit");
+    return;
+  }
+  if (recordingType === "mic") return;
+  showPermDialog("tab");
+});
+
+btnMic.addEventListener("click", () => {
+  if (recordingType === "mic") {
+    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
+    resetButtons();
+    setStatus("Oprit");
+    return;
+  }
+  if (recordingType === "tab") return;
+  showPermDialog("mic");
 });
 
 type SidepanelMessage =
@@ -155,7 +209,8 @@ type SidepanelMessage =
         }>;
       };
     }
-  | { type: "VERIFICATION_FAILED"; reason: string };
+  | { type: "VERIFICATION_FAILED"; reason: string }
+  | { type: "START_MIC_CAPTURE" };
 
 chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
   if (msg.type === "CAPTURE_STARTED") {
@@ -171,10 +226,15 @@ chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
     const c = msg.result.claims[0];
     showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
     setStatus("Verdict primit");
+    resetButtons();
   }
   if (msg.type === "VERIFICATION_FAILED") {
     verdictSection.style.display = "block";
     verdictSection.innerHTML = `<div style="text-align:center;padding:12px;color:var(--color-body);">Eroare: ${msg.reason}</div>`;
     setStatus("Eroare");
+    resetButtons();
+  }
+  if (msg.type === "START_MIC_CAPTURE") {
+    showPermDialog("mic");
   }
 });
