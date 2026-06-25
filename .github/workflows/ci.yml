@@ -14,6 +14,10 @@ jobs:
     name: Build, Lint & Test
     runs-on: ubuntu-latest
 
+    env:
+      INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
