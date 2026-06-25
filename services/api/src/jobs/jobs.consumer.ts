@@ -88,6 +88,11 @@ export class JobsConsumer extends WorkerHost {
       };
     }
 
+    if (textToAnalyze.toLowerCase().includes('fail')) {
+      this.logger.warn(`Simulating job failure for text containing 'fail'`);
+      throw new Error('Intentional job failure for DLQ testing');
+    }
+
     this.logger.log(`Detecting claims in input text...`);
     await job.updateProgress({ stage: 'claim_detection', progress: 0 });
     const detectedClaims =
