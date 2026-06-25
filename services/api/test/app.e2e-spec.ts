@@ -106,10 +106,14 @@ describe('API Integration (e2e)', () => {
     claimAId = '';
     const redisService = app.get(RedisService);
     const client = redisService.getClient();
-    // Only clear session blacklist keys, not BullMQ queue metadata
+    // Only clear session blacklist and throttle counter keys, not BullMQ queue metadata
     const keys = await client.keys('revoked_sessions:*');
     if (keys.length > 0) {
       await client.del(...keys);
+    }
+    const throttleKeys = await client.keys('throttler:*');
+    if (throttleKeys.length > 0) {
+      await client.del(...throttleKeys);
     }
   });
 
