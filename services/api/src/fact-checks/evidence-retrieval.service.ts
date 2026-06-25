@@ -145,7 +145,7 @@ export class EvidenceRetrievalService {
       }
     ).rpc('match_source_articles', {
       query_embedding: embedding,
-      match_threshold: 0.62,
+      match_threshold: 0.55,
       match_count: 6,
       filter_categories: categories,
       filter_languages: language,
@@ -220,6 +220,7 @@ export class EvidenceRetrievalService {
           } catch { resolve(text); }
         });
       });
+      req.setTimeout(8000, () => { req.destroy(); resolve(text); });
       req.on('error', () => resolve(text));
       req.write(payload);
       req.end();
