@@ -12,7 +12,7 @@ docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
 
 # Restart staging stack
 cd "$STAGING_DIR"
-docker rm -f verificat-web verificat-api || true
+docker rm -f verificat-web verificat-api verificat-whisper || true
 docker compose -f docker-compose.staging.yml up -d --remove-orphans
 docker image prune -f
 
