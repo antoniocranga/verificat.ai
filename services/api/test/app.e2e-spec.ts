@@ -13,8 +13,6 @@ import { JobsService } from './../src/jobs/jobs.service';
 import { FactChecksService } from './../src/fact-checks/fact-checks.service';
 import { SupabaseService } from './../src/supabase/supabase.service';
 import { MatchClaimResult } from './../src/search/search.service';
-let testRunId = randomUUID();
-
 describe('API Integration (e2e)', () => {
   let app: INestApplication<App>;
   let validToken: string;
@@ -34,8 +32,10 @@ describe('API Integration (e2e)', () => {
     })
       .overrideProvider(FactChecksService)
       .useValue({
-        searchVerdicts: () => Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
-        getLatestChecks: () => Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+        searchVerdicts: () =>
+          Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+        getLatestChecks: () =>
+          Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
       })
       .overrideProvider(SupabaseService)
       .useValue({
@@ -100,13 +100,18 @@ describe('API Integration (e2e)', () => {
       }),
     );
     app.useGlobalFilters(new HttpExceptionFilter());
-    (app.getHttpAdapter().getInstance() as any).set('trust proxy', true);
+
+    (
+      app.getHttpAdapter().getInstance() as Record<
+        string,
+        (k: string, v: boolean) => void
+      >
+    ).set('trust proxy', true);
     await app.init();
   });
 
   beforeEach(async () => {
     claimAId = '';
-    testRunId = randomUUID();
     const redisService = app.get(RedisService);
     const client = redisService.getClient();
     // Only clear session blacklist keys, not BullMQ queue metadata
