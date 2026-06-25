@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:verificat_mobile/core/api/job_api_service.dart';
 import 'package:verificat_mobile/core/audio/audio_recorder_service.dart';
+import 'package:verificat_mobile/core/audio/audio_session_service.dart';
 import 'package:verificat_mobile/core/permissions/permission_service.dart';
 import '../../domain/repositories/listening_repository.dart';
 
@@ -9,6 +10,9 @@ class ListeningRepositoryImpl implements ListeningRepository {
   final AudioRecorderService _recorder;
   final JobApiService _api;
   final PermissionService _permissionService;
+  final StreamController<void> _interruptionBeganController = StreamController<void>.broadcast();
+  final StreamController<void> _interruptionEndedController = StreamController<void>.broadcast();
+  StreamSubscription<AudioSessionInterruption>? _interruptionSub;
   File? _audioFile;
 
   ListeningRepositoryImpl({
@@ -17,7 +21,22 @@ class ListeningRepositoryImpl implements ListeningRepository {
     PermissionService? permissionService,
   }) : _recorder = recorder ?? AudioRecorderService(),
        _api = api ?? JobApiService(),
-       _permissionService = permissionService ?? PermissionService();
+       _permissionService = permissionService ?? PermissionService() {
+    _interruptionSub = _recorder.onInterruption.listen((event) {
+      switch (event) {
+        case AudioSessionInterruption.began:
+          _interruptionBeganController.add(null);
+        case AudioSessionInterruption.ended:
+          _interruptionEndedController.add(null);
+      }
+    });
+  }
+
+  @override
+  Stream<void> get onInterruptionBegan => _interruptionBeganController.stream;
+
+  @override
+  Stream<void> get onInterruptionEnded => _interruptionEndedController.stream;
 
   @override
   Future<String> startRecording() => _recorder.startRecording();

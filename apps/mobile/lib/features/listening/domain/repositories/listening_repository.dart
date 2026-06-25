@@ -6,4 +6,6 @@ abstract class ListeningRepository {
   Future<String?> uploadAndVerify();
   Stream<Map<String, dynamic>> streamJobEvents(String jobId);
   Future<bool> requestMicPermission();
+  Stream<void> get onInterruptionBegan;
+  Stream<void> get onInterruptionEnded;
 }

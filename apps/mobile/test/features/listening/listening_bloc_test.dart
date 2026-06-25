@@ -8,6 +8,8 @@ class MockListeningRepository implements ListeningRepository {
   final bool startRecordingSuccess;
   final String? jobId;
   final Stream<Map<String, dynamic>>? jobStream;
+  final Stream<void>? interruptionBegan;
+  final Stream<void>? interruptionEnded;
   bool stopRecordingCalled = false;
   bool uploadCalled = false;
 
@@ -16,6 +18,8 @@ class MockListeningRepository implements ListeningRepository {
     this.startRecordingSuccess = true,
     this.jobId,
     this.jobStream,
+    this.interruptionBegan,
+    this.interruptionEnded,
   });
 
   @override
@@ -42,6 +46,14 @@ class MockListeningRepository implements ListeningRepository {
   Stream<Map<String, dynamic>> streamJobEvents(String jobId) {
     return jobStream ?? const Stream.empty();
   }
+
+  @override
+  Stream<void> get onInterruptionBegan =>
+      interruptionBegan ?? const Stream.empty();
+
+  @override
+  Stream<void> get onInterruptionEnded =>
+      interruptionEnded ?? const Stream.empty();
 }
 
 void main() {
@@ -159,6 +171,61 @@ void main() {
       expect(bloc.state.status, ListeningStatus.idle);
       expect(bloc.state.verdictId, isNull);
       expect(bloc.state.errorMessage, isNull);
+      bloc.close();
+    });
+
+    test('interruption began while listening transitions to error', () async {
+      final beganController = StreamController<void>();
+      final repo = MockListeningRepository(
+        grantPermission: true,
+        interruptionBegan: beganController.stream,
+      );
+      final bloc = ListeningBloc(repository: repo);
+      final states = <ListeningState>[];
+      bloc.stream.listen((s) => states.add(s));
+
+      bloc.add(const StartListening());
+      await Future.delayed(Duration.zero);
+      expect(bloc.state.status, ListeningStatus.listening);
+
+      beganController.add(null);
+      await Future.delayed(Duration.zero);
+
+      expect(bloc.state.status, ListeningStatus.error);
+      expect(bloc.state.errorMessage, isNotNull);
+      expect(repo.stopRecordingCalled, isTrue);
+
+      await beganController.close();
+      bloc.close();
+    });
+
+    test('interruption ended restarts recording to listening', () async {
+      final beganController = StreamController<void>();
+      final endedController = StreamController<void>();
+      final repo = MockListeningRepository(
+        grantPermission: true,
+        interruptionBegan: beganController.stream,
+        interruptionEnded: endedController.stream,
+      );
+      final bloc = ListeningBloc(repository: repo);
+      final states = <ListeningState>[];
+      bloc.stream.listen((s) => states.add(s));
+
+      bloc.add(const StartListening());
+      await Future.delayed(Duration.zero);
+      expect(bloc.state.status, ListeningStatus.listening);
+
+      beganController.add(null);
+      await Future.delayed(Duration.zero);
+      expect(bloc.state.status, ListeningStatus.error);
+
+      endedController.add(null);
+      await Future.delayed(Duration.zero);
+
+      expect(bloc.state.status, ListeningStatus.listening);
+
+      await beganController.close();
+      await endedController.close();
       bloc.close();
     });
 

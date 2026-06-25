@@ -1,11 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'audio_session_service.dart';
 
 class AudioRecorderService {
   final AudioRecorder _recorder;
+  final AudioSessionService _sessionService;
 
-  AudioRecorderService() : _recorder = AudioRecorder();
+  AudioRecorderService()
+    : _recorder = AudioRecorder(),
+      _sessionService = AudioSessionService();
+
+  Stream<AudioSessionInterruption> get onInterruption => _sessionService.onInterruption;
+  Stream<String> get onSessionError => _sessionService.onError;
+  Stream<void> get onRouteLost => _sessionService.onRouteLost;
 
   Future<String> startRecording() async {
     final dir = await getTemporaryDirectory();
@@ -30,5 +39,8 @@ class AudioRecorderService {
 
   Future<bool> isRecording() => _recorder.isRecording();
 
-  Future<void> dispose() => _recorder.dispose();
+  Future<void> dispose() {
+    _sessionService.dispose();
+    return _recorder.dispose();
+  }
 }

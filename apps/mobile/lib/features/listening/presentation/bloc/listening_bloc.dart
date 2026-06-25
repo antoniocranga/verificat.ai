@@ -55,9 +55,19 @@ class ListeningFailed extends ListeningEvent {
   const ListeningFailed(this.message);
 }
 
+class InterruptionBegan extends ListeningEvent {
+  const InterruptionBegan();
+}
+
+class InterruptionEnded extends ListeningEvent {
+  const InterruptionEnded();
+}
+
 class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   final ListeningRepository _repository;
   StreamSubscription<Map<String, dynamic>>? _jobStreamSub;
+  StreamSubscription<void>? _interruptionBeganSub;
+  StreamSubscription<void>? _interruptionEndedSub;
 
   ListeningBloc({ListeningRepository? repository})
     : _repository = repository ?? ListeningRepositoryImpl(),
@@ -66,6 +76,17 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     on<StopListening>(_onStopListening);
     on<VerdictReceived>(_onVerdictReceived);
     on<ListeningFailed>(_onListeningFailed);
+    on<InterruptionBegan>(_onInterruptionBegan);
+    on<InterruptionEnded>(_onInterruptionEnded);
+
+    _interruptionBeganSub = _repository.onInterruptionBegan.listen((_) {
+      if (state.status == ListeningStatus.listening) {
+        add(const InterruptionBegan());
+      }
+    });
+    _interruptionEndedSub = _repository.onInterruptionEnded.listen((_) {
+      add(const InterruptionEnded());
+    });
   }
 
   Future<void> _onStartListening(
@@ -155,6 +176,31 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     ));
   }
 
+  Future<void> _onInterruptionBegan(
+    InterruptionBegan event,
+    Emitter<ListeningState> emit,
+  ) async {
+    try {
+      await _repository.stopRecording();
+    } catch (_) {}
+    emit(state.copyWith(
+      status: ListeningStatus.error,
+      errorMessage: 'Înregistrarea a fost întreruptă.',
+    ));
+  }
+
+  Future<void> _onInterruptionEnded(
+    InterruptionEnded event,
+    Emitter<ListeningState> emit,
+  ) async {
+    final granted = await _repository.requestMicPermission();
+    if (!granted) return;
+    try {
+      await _repository.startRecording();
+      emit(state.copyWith(status: ListeningStatus.listening));
+    } catch (_) {}
+  }
+
   void reset() {
     _jobStreamSub?.cancel();
     emit(const ListeningState());
@@ -163,6 +209,8 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   @override
   Future<void> close() {
     _jobStreamSub?.cancel();
+    _interruptionBeganSub?.cancel();
+    _interruptionEndedSub?.cancel();
     return super.close();
   }
 }
