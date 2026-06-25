@@ -5,8 +5,7 @@ import { useParams } from "next/navigation";
 import type { Verdict } from "@verificat/types";
 import { verdictColors } from "@verificat/ui";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://staging.verificat.xyz/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function CheckPage() {
   const params = useParams();

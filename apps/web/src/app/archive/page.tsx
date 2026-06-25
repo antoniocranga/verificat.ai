@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ButtonPrimarySmall, ButtonGhostSmall, TextInput } from "@verificat/ui";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://staging.verificat.xyz/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface VerdictResult {
   id: string;

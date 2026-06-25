@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { ButtonPrimarySmall } from "@verificat/ui";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://staging.verificat.xyz/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function HandoffPage() {
   const [handoffUrl, setHandoffUrl] = useState<string | null>(null);

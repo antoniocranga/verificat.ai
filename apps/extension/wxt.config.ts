@@ -7,7 +7,7 @@ export default defineConfig({
     permissions: ["sidePanel", "storage", "activeTab", "tabCapture"],
     host_permissions: [
       "http://localhost:3000/*",
-      "https://staging.verificat.xyz/*",
+      "https://api-staging.verificat.xyz/*",
       "https://api.verificat.xyz/*",
     ],
     side_panel: {

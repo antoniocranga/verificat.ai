@@ -8,7 +8,7 @@ class VerdictApiService {
   VerdictApiService({
     String? baseUrl,
     HttpClient? client,
-  }) : _baseUrl = baseUrl ?? 'https://staging.verificat.xyz/api',
+  }) : _baseUrl = baseUrl ?? 'http://localhost:3000',
        _client = client ?? HttpClient();
 
   Future<Map<String, dynamic>> searchVerdicts({

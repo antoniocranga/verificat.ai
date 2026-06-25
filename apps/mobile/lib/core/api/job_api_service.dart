@@ -7,7 +7,7 @@ class JobApiService {
   final HttpClient _client;
 
   JobApiService({String? baseUrl, HttpClient? client})
-    : _baseUrl = baseUrl ?? 'https://staging.verificat.xyz/api',
+    : _baseUrl = baseUrl ?? 'http://localhost:3000',
       _client = client ?? HttpClient();
 
   Future<Map<String, dynamic>> uploadAudio(File audioFile) async {

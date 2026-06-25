@@ -6,7 +6,7 @@ Discovered from scanning `apps/mobile/` for `String.fromEnvironment`, `bool.from
 |---|---|---|
 | `SUPABASE_URL` | `lib/core/env/env.dart` | `''` |
 | `SUPABASE_ANON_KEY` | `lib/core/env/env.dart` | `''` |
-| `API_URL` | `lib/features/handoff/presentation/screens/handoff_screen.dart` | `https://staging.verificat.xyz/api` |
+| `API_URL` | `lib/core/env/env.dart`, `lib/features/handoff/presentation/screens/handoff_screen.dart` | `http://localhost:3000` |
 
 ## Usage
 

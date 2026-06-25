@@ -66,6 +66,7 @@ jobs:
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             NEXT_PUBLIC_SITE_URL=https://staging.verificat.xyz
+            NEXT_PUBLIC_API_URL=https://api-staging.verificat.xyz
 
       - name: Run Trivy vulnerability scanner on Web image
         uses: aquasecurity/trivy-action@master
@@ -88,6 +89,7 @@ jobs:
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             NEXT_PUBLIC_SITE_URL=https://staging.verificat.xyz
+            NEXT_PUBLIC_API_URL=https://api-staging.verificat.xyz
 
       - name: Extract metadata for API
         id: meta-api

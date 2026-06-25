@@ -9,7 +9,8 @@ Staging is deployed to `staging.verificat.xyz` via a CI pipeline triggered on me
 | Service | URL |
 |---------|-----|
 | Web App | https://staging.verificat.xyz |
-| API | https://staging.verificat.xyz/api |
+| API (staging) | https://api-staging.verificat.xyz |
+| API (production) | https://api.verificat.xyz |
 
 ## Required GitHub Secrets
 

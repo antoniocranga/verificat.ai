@@ -1,7 +1,7 @@
 import type { ApiError } from '@verificat/types';
 
 const BASE_URL = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL)
-  || 'https://staging.verificat.xyz/api';
+  || 'http://localhost:3000';
 
 async function request<T>(
   path: string,

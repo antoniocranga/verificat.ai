@@ -22,7 +22,7 @@ class _HandoffScreenState extends State<HandoffScreen> {
   }
 
   Future<void> _claimToken() async {
-    const apiBase = String.fromEnvironment('API_URL', defaultValue: 'https://staging.verificat.xyz/api');
+    const apiBase = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:3000');
     try {
       final client = HttpClient();
       final request = await client.postUrl(Uri.parse('$apiBase/auth/handoff/claim'));

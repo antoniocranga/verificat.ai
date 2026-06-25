@@ -9,8 +9,7 @@ export async function initConfig() {
     return;
   }
 
-  const siteUrl =
-    process.env.INFISICAL_URL || 'https://eu.infisical.com';
+  const siteUrl = process.env.INFISICAL_URL || 'https://eu.infisical.com';
   const environment = process.env.NODE_ENV || 'development';
 
   console.log(
@@ -21,6 +20,7 @@ export async function initConfig() {
       siteUrl,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     await client.auth().serviceToken.login({
       accessToken: token,
     });
