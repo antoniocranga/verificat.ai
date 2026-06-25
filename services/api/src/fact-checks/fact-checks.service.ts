@@ -44,7 +44,11 @@ export class FactChecksService {
         confidenceScore: v.confidence_score,
         explanation: v.explanation,
         createdAt: v.created_at,
-        claim: (v.fact_checks as Record<string, unknown>)?.claims as Record<string, unknown> ?? {},
+        claim:
+          ((v.fact_checks as Record<string, unknown>)?.claims as Record<
+            string,
+            unknown
+          >) ?? {},
       })),
       total: count || 0,
       page,

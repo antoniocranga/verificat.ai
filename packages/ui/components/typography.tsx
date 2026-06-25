@@ -4,6 +4,7 @@ interface TypographyProps {
   children: ReactNode;
   as?: ElementType;
   id?: string;
+  style?: React.CSSProperties;
 }
 
 function createTypography(
@@ -11,9 +12,9 @@ function createTypography(
   style: React.CSSProperties,
   defaultTag?: ElementType,
 ) {
-  const Component = ({ children, as, id }: TypographyProps) => {
+  const Component = ({ children, as, id, style: inlineStyle }: TypographyProps) => {
     const Tag = as || defaultTag || tag;
-    return <Tag id={id} style={style}>{children}</Tag>;
+    return <Tag id={id} style={{ ...style, ...inlineStyle }}>{children}</Tag>;
   };
   Component.displayName = `Typography(${tag})`;
   return Component;

@@ -12,6 +12,7 @@ class ListeningRepositoryImpl implements ListeningRepository {
   final PermissionService _permissionService;
   final StreamController<void> _interruptionBeganController = StreamController<void>.broadcast();
   final StreamController<void> _interruptionEndedController = StreamController<void>.broadcast();
+  // ignore: unused_field
   StreamSubscription<AudioSessionInterruption>? _interruptionSub;
   File? _audioFile;
 
@@ -21,7 +22,7 @@ class ListeningRepositoryImpl implements ListeningRepository {
     PermissionService? permissionService,
   }) : _recorder = recorder ?? AudioRecorderService(),
        _api = api ?? JobApiService(),
-       _permissionService = permissionService ?? PermissionService() {
+        _permissionService = permissionService ?? const PermissionService() {
     _interruptionSub = _recorder.onInterruption.listen((event) {
       switch (event) {
         case AudioSessionInterruption.began:

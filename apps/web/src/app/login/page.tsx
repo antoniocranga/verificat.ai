@@ -155,14 +155,25 @@ export default async function LoginPage({ searchParams }: PageProps) {
           </div>
           <div className="mt-6 pt-4 border-t border-slate-800 text-center">
             <p className="text-slate-500 text-xs leading-relaxed">
-              Prin crearea unui cont sau autentificare, acceptați{' '}
-              <a href="https://verificat.xyz/privacy" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+              Prin crearea unui cont sau autentificare, acceptați{" "}
+              <a
+                href="https://verificat.xyz/privacy"
+                className="text-violet-400 hover:underline"
+                target="_blank"
+                rel="noopener"
+              >
                 Politica de Confidențialitate
-              </a>
-              {' '}și{' '}
-              <a href="https://verificat.xyz/terms" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+              </a>{" "}
+              și{" "}
+              <a
+                href="https://verificat.xyz/terms"
+                className="text-violet-400 hover:underline"
+                target="_blank"
+                rel="noopener"
+              >
                 Termenii de Utilizare
-              </a>.
+              </a>
+              .
             </p>
           </div>
         </div>

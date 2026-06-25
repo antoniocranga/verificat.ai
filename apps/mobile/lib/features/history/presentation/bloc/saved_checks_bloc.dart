@@ -54,7 +54,7 @@ class SavedChecksBloc extends Bloc<SavedChecksEvent, SavedChecksState> {
       final checks = await _repository.getAll();
       emit(SavedChecksState(checks: checks, isLoading: false));
     } catch (e) {
-      emit(SavedChecksState(isLoading: false, error: 'Eroare la încărcare.'));
+      emit(const SavedChecksState(isLoading: false, error: 'Eroare la încărcare.'));
     }
   }
 

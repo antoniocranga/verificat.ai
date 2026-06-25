@@ -34,8 +34,8 @@ void main() {
     });
 
     testWidgets('AppFeatureCard has no elevation shadow', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: AppFeatureCard(child: const Text('test'))),
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(body: AppFeatureCard(child: Text('test'))),
       ));
       final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration as BoxDecoration?;
@@ -43,8 +43,8 @@ void main() {
     });
 
     testWidgets('MonoEyebrow uppercases text', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: const MonoEyebrow(label: 'Test Label')),
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(body: MonoEyebrow(label: 'Test Label')),
       ));
       expect(find.text('TEST LABEL'), findsOneWidget);
       expect(find.text('Test Label'), findsNothing);

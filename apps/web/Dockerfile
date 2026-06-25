@@ -17,6 +17,7 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 COPY . .
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter=@verificat/ui build
 RUN pnpm --filter=web build
 
 FROM base AS runner

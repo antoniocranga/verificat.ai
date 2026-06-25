@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verificat_mobile/features/search/domain/entities/search_result_entity.dart';
 import 'package:verificat_mobile/features/search/domain/repositories/search_repository.dart';
@@ -13,13 +12,13 @@ class MockSearchRepository implements SearchRepository {
   @override
   Future<SearchResultList> search({String query = '', int page = 1, int limit = 20}) async {
     if (onSearch != null) return onSearch!(query: query, page: page, limit: limit);
-    return SearchResultList(results: [], total: 0, page: 1);
+    return const SearchResultList(results: [], total: 0, page: 1);
   }
 
   @override
   Future<SearchResultList> getLatest({int limit = 10}) async {
     if (onGetLatest != null) return onGetLatest!(limit: limit);
-    return SearchResultList(results: [], total: 0, page: 1);
+    return const SearchResultList(results: [], total: 0, page: 1);
   }
 }
 
@@ -38,7 +37,6 @@ void main() {
       bloc.add(const SearchQueryChanged('test'));
       await Future.delayed(Duration.zero);
       bloc.add(const SearchQueryChanged(''));
-      await Future.delayed(Duration.zero);
       expect(bloc.state.query, '');
       expect(bloc.state.results, isEmpty);
       expect(bloc.state.isLoading, isFalse);
@@ -49,7 +47,7 @@ void main() {
       final bloc = SearchBloc(repository: MockSearchRepository(
         onSearch: ({required query, required page, required limit}) async {
           await Future.delayed(Duration.zero);
-          return SearchResultList(
+          return const SearchResultList(
             results: [
               SearchResultEntity(id: '1', verdict: 'True', confidenceScore: 95, explanation: 'Test', createdAt: '2024-01-01'),
             ],

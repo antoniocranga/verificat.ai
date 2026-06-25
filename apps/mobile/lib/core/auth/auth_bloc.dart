@@ -14,11 +14,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthStatus> {
   void _initListener() {
     try {
       Supabase.instance.client.auth.onAuthStateChange.listen((authState) {
-        if (authState.session != null) {
-          emit(AuthStatus.authenticated);
-        } else {
-          emit(AuthStatus.unauthenticated);
-        }
+        // ignore: invalid_use_of_visible_for_testing_member
+        emit(authState.session != null ? AuthStatus.authenticated : AuthStatus.unauthenticated);
       });
     } catch (_) {
       // Supabase not initialized (e.g., in tests)

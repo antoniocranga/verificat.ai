@@ -62,15 +62,15 @@ void main() {
 
   group('AppFeatureCard', () {
     testWidgets('renders child widget', (tester) async {
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AppFeatureCard(child: Text('Hello'))),
       ));
       expect(find.text('Hello'), findsOneWidget);
     });
 
     testWidgets('has white background and 12px border radius', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: AppFeatureCard(child: const SizedBox())),
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(body: AppFeatureCard(child: SizedBox())),
       ));
       final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration! as BoxDecoration;
@@ -81,7 +81,7 @@ void main() {
 
   group('AppTextInput', () {
     testWidgets('renders hint text', (tester) async {
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AppTextInput(hintText: 'Enter text')),
       ));
       expect(find.text('Enter text'), findsOneWidget);
@@ -99,8 +99,8 @@ void main() {
 
   group('MonoEyebrow', () {
     testWidgets('uppercases label text', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: const MonoEyebrow(label: 'Section Title')),
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(body: MonoEyebrow(label: 'Section Title')),
       ));
       expect(find.text('SECTION TITLE'), findsOneWidget);
       expect(find.text('Section Title'), findsNothing);

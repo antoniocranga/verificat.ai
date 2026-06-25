@@ -145,13 +145,47 @@ PRs touching any of the following require the Notion task's Security Considerati
 
 ---
 
-## 9. Open security decisions (as of Phase 1)
+## 9. Open security decisions
 
-| Decision                                                         | Required by      | Notes                                                                   |
-| ---------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| WAF product (Traefik+CrowdSec vs. managed WAF)                   | Phase 8          | Needs ADR before Phase 8 planning                                       |
-| Mobile SSL pinning strategy (cert vs. public-key, rotation plan) | Phase 6 planning | Must be decided before mobile architecture is finalised, not at Phase 8 |
-| Alertmanager vs. Grafana-native alerting channel                 | Phase 8          | Slack vs. email vs. PagerDuty-class tool                                |
-| OpenSearch auth/TLS configuration for self-hosted instance       | Phase 3          | Flag when Phase 3 backlog items are specced                             |
+| Decision                                                         | Required by | Status       | Notes                                                            |
+| ---------------------------------------------------------------- | ----------- | ------------ | ---------------------------------------------------------------- |
+| WAF product (Traefik+CrowdSec vs. managed WAF)                   | Phase 8     | **Resolved** | ADR accepted — Traefik + CrowdSec (F8.1)                         |
+| Mobile SSL pinning strategy (cert vs. public-key, rotation plan) | Phase 8     | Open         | Must be decided before production mobile release, not at Phase 8 |
+| Alertmanager vs. Grafana-native alerting channel                 | Phase 8     | Open         | Slack vs. email vs. PagerDuty-class tool                         |
+| OpenSearch auth/TLS configuration for self-hosted instance       | Phase 3     | Open         | Flag when Phase 3 backlog items are specced                      |
 
 These items are not optional deferred work — each has a deadline phase. An agent must not proceed past that phase boundary without the decision being recorded as an ADR in Notion.
+
+---
+
+## 10. F8.6 — Secrets & Dependency Audit (2026-06-25)
+
+### Audit scope
+
+Full-repository secrets scan and dependency vulnerability assessment as the pre-launch gate per Phase 8 EPIC exit criteria.
+
+### Gitleaks scan
+
+- **Tool**: Gitleaks (CI workflow step) — default ruleset, no custom `.gitleaks.toml`
+- **Pre-commit**: Gitleaks `protect --staged` runs unconditionally via `npx` fallback
+- **CI**: `gitleaks/gitleaks-action@v2` — blocking (gate on findings)
+- **Result**: Zero real secrets detected. All API keys/tokens are `process.env.*` references only.
+- **False positives**: Allowed via `.gitleaksignore` in repo root
+
+### Trivy scan
+
+- **Filesystem scan** (CI): Every commit and PR, severity CRITICAL+HIGH, blocking (exit-code: 1)
+- **API Docker image** (Docker workflow): Every push to main, severity CRITICAL only
+- **Web Docker image** (Docker workflow): Every push to main, severity CRITICAL+HIGH (added this session)
+- **Result**: All CI gates active and blocking.
+
+### Dependency vulnerabilities
+
+- **pnpm audit**: Added to CI as advisory step (warns on high/critical, does not gate)
+- **Dependabot**: Configured at `.github/dependabot.yml` — weekly scans for npm, Docker, and GitHub Actions
+- **Overrides**: `shell-quote`, `tar`, `multer`, `tmp` pinned to patched versions via `pnpm.overrides`
+- **Result**: Dependency scanning automated and active.
+
+### Conclusion
+
+No secrets found outside Infisical. All security scanning gates (Gitleaks + Trivy) are blocking CI checks on the default branch. Dependency updates are automated via Dependabot. The remaining open security decisions (mobile SSL pinning, monitoring channel, OpenSearch auth) are documented in §9 above and are outside the scope of this audit.

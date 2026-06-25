@@ -1,0 +1,9 @@
+# Gitleaks false-positive allowlist
+# This file tells Gitleaks to skip specific findings that are verified false positives.
+# Format: <fingerprint> (from gitleaks output)
+# Regenerate with: gitleaks detect --source=. --no-git --verbose 2>&1 | grep "gitleaks:" | grep "finding"
+#
+# Standard test/example data — not real secrets
+# pnpm-lock.yaml contains integrity hashes that may trigger generic hash rules
+# Processed with: gitleaks detect --source=.
+# Expected: Zero real secrets, only known false positives listed below.

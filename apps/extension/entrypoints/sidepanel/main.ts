@@ -10,7 +10,9 @@ const consentMic = document.getElementById("consent-mic") as HTMLInputElement;
 const btnTab = document.getElementById("btn-tab-record") as HTMLButtonElement;
 const btnMic = document.getElementById("btn-mic-record") as HTMLButtonElement;
 const statusDiv = document.getElementById("status") as HTMLDivElement;
-const verdictSection = document.getElementById("verdict-section") as HTMLDivElement;
+const verdictSection = document.getElementById(
+  "verdict-section",
+) as HTMLDivElement;
 
 let activeStream: MediaStream | null = null;
 
@@ -39,15 +41,6 @@ function setStatus(text: string) {
   statusDiv.textContent = `Stare: ${text}`;
 }
 
-const VERDICT_COLORS: Record<string, string> = {
-  True: "#22c55e",
-  "Mostly True": "#84cc16",
-  "Partially True": "#d97706",
-  Misleading: "#ea580c",
-  False: "#ef4444",
-  Unverified: "#6b7280",
-};
-
 function showVerdict(
   verdict: string,
   explanation: string,
@@ -68,19 +61,11 @@ function showVerdict(
       .join("");
   }
 
-  const color = VERDICT_COLORS[verdict] || "var(--color-ink)";
-  const unverifiedColor = "#6b7280";
-  const badgeColor = verdict === "Unverified" ? unverifiedColor : color;
-  const fillColor = verdict === "Unverified" ? unverifiedColor : color;
-
   verdictSection.style.display = "block";
   verdictSection.innerHTML = `
-    <div class="verdict-badge" style="color:${badgeColor};">${verdict}</div>
+    <div class="verdict-label">${verdict}</div>
     <div class="verdict-confidence">${confidence} / 100</div>
     <div class="verdict-explanation">${explanation}</div>
-    <div class="confidence-bar">
-      <div class="confidence-fill" style="width:${confidence}%;background:${fillColor};"></div>
-    </div>
     ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}
   `;
 }
@@ -107,7 +92,7 @@ function showStatus(text: string) {
 
 btnTab.addEventListener("click", () => {
   if (activeStream) {
-    chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
+    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
     activeStream.getTracks().forEach((t) => t.stop());
     activeStream = null;
     setStatus("Oprit");
@@ -120,7 +105,7 @@ btnTab.addEventListener("click", () => {
   startTabCapture()
     .then((stream) => {
       activeStream = stream;
-      chrome.runtime.sendMessage({ type: "START_TAB_CAPTURE" });
+      void chrome.runtime.sendMessage({ type: "START_TAB_CAPTURE" });
       setStatus("Se capturează tabul audio");
       btnTab.textContent = "Oprește";
       btnMic.disabled = true;
@@ -132,7 +117,7 @@ btnTab.addEventListener("click", () => {
 
 btnMic.addEventListener("click", () => {
   if (activeStream) {
-    chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
+    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
     activeStream.getTracks().forEach((t) => t.stop());
     activeStream = null;
     setStatus("Oprit");
@@ -145,7 +130,7 @@ btnMic.addEventListener("click", () => {
   startMicCapture()
     .then((stream) => {
       activeStream = stream;
-      chrome.runtime.sendMessage({ type: "START_MIC_CAPTURE" });
+      void chrome.runtime.sendMessage({ type: "START_MIC_CAPTURE" });
       setStatus("Se capturează microfonul");
       btnMic.textContent = "Oprește";
       btnTab.disabled = true;
@@ -155,7 +140,24 @@ btnMic.addEventListener("click", () => {
     });
 });
 
-chrome.runtime.onMessage.addListener((msg) => {
+type SidepanelMessage =
+  | { type: "CAPTURE_STARTED" }
+  | { type: "VERIFICATION_STARTED" }
+  | { type: "VERIFICATION_PROGRESS"; stage: string }
+  | {
+      type: "VERIFICATION_COMPLETED";
+      result: {
+        claims: Array<{
+          verdict: string;
+          explanation: string;
+          confidenceScore: number;
+          evidence?: Array<{ title: string; url: string; snippet: string }>;
+        }>;
+      };
+    }
+  | { type: "VERIFICATION_FAILED"; reason: string };
+
+chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
   if (msg.type === "CAPTURE_STARTED") {
     showStatus("Se ascultă...");
   }
@@ -167,12 +169,12 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
   if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims?.[0]) {
     const c = msg.result.claims[0];
-    showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence || []);
+    showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
     setStatus("Verdict primit");
   }
   if (msg.type === "VERIFICATION_FAILED") {
     verdictSection.style.display = "block";
-    verdictSection.innerHTML = `<div style="color:#ef4444;text-align:center;padding:12px;">Eroare: ${msg.reason}</div>`;
+    verdictSection.innerHTML = `<div style="text-align:center;padding:12px;color:var(--color-body);">Eroare: ${msg.reason}</div>`;
     setStatus("Eroare");
   }
 });

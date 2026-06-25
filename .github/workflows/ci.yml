@@ -47,6 +47,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Run pnpm audit (dependency vulnerabilities)
+        run: |
+          echo "::group::pnpm Audit"
+          pnpm audit --audit-level=high || echo "::warning::pnpm audit found high/critical vulnerabilities — review and patch before release."
+          echo "::endgroup::"
+
       - name: OpenAPI spec drift check
         run: |
           echo "::group::OpenAPI Spec Diff Check"

@@ -1,13 +1,13 @@
 export default defineContentScript({
   matches: ["*://*.youtube.com/*", "*://*.twitch.tv/*", "*://*.vimeo.com/*"],
   main() {
-    const OVERLAY_ID = 'verificat-verdict-overlay';
+    const OVERLAY_ID = "verificat-verdict-overlay";
 
     function createOverlay(): HTMLDivElement {
       const existing = document.getElementById(OVERLAY_ID);
       if (existing) return existing as HTMLDivElement;
 
-      const host = document.createElement('div');
+      const host = document.createElement("div");
       host.id = OVERLAY_ID;
       host.style.cssText = `
         all: initial;
@@ -21,7 +21,7 @@ export default defineContentScript({
         pointer-events: none;
       `;
 
-      const shadow = host.attachShadow({ mode: 'closed' });
+      const shadow = host.attachShadow({ mode: "closed" });
       shadow.innerHTML = `
         <style>
           :host { all: initial; display: block; }
@@ -33,8 +33,7 @@ export default defineContentScript({
             font-size: 13px;
             line-height: 1.5;
             color: #4d4d4d;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: opacity 0.3s ease;
+            transition: opacity 200ms ease;
           }
           .ink { color: #171717; }
           .mute { color: #8f8f8f; }
@@ -77,7 +76,7 @@ export default defineContentScript({
       if (!host) return;
       const shadow = host.shadowRoot;
       if (!shadow) return;
-      const el = shadow.getElementById('status');
+      const el = shadow.getElementById("status");
       if (el) el.textContent = text;
     }
 
@@ -86,7 +85,7 @@ export default defineContentScript({
       if (!host) return;
       const shadow = host.shadowRoot;
       if (!shadow) return;
-      const card = shadow.getElementById('card');
+      const card = shadow.getElementById("card");
       if (!card) return;
       card.innerHTML = `<div class="status-text">Se ascultă...</div>`;
     }
@@ -96,40 +95,34 @@ export default defineContentScript({
       if (!host) return;
       const shadow = host.shadowRoot;
       if (!shadow) return;
-      const card = shadow.getElementById('card');
+      const card = shadow.getElementById("card");
       if (!card) return;
       const labels: Record<string, string> = {
-        speech: 'Transcriere audio...',
-        claim_detection: 'Detectare afirmații...',
-        evidence_retrieval: 'Căutare dovezi...',
-        verdict_generation: 'Generare verdict...',
+        speech: "Transcriere audio...",
+        claim_detection: "Detectare afirmații...",
+        evidence_retrieval: "Căutare dovezi...",
+        verdict_generation: "Generare verdict...",
       };
-      card.innerHTML = `<div class="status-text">${labels[stage] || 'Procesare...'}</div>`;
+      card.innerHTML = `<div class="status-text">${labels[stage] || "Procesare..."}</div>`;
     }
 
-    const VERDICT_COLORS: Record<string, string> = {
-      True: '#22c55e',
-      'Mostly True': '#84cc16',
-      'Partially True': '#d97706',
-      Misleading: '#ea580c',
-      False: '#ef4444',
-      Unverified: '#6b7280',
-    };
-
-    function showVerdict(verdict: string, explanation: string, confidence: number) {
+    function showVerdict(
+      verdict: string,
+      explanation: string,
+      confidence: number,
+    ) {
       const host = document.getElementById(OVERLAY_ID);
       if (!host) return;
       const shadow = host.shadowRoot;
       if (!shadow) return;
-      const card = shadow.getElementById('card');
+      const card = shadow.getElementById("card");
       if (!card) return;
-      const color = VERDICT_COLORS[verdict] || '#171717';
       card.innerHTML = `
-        <div class="verdict-label" style="color:${verdict === 'Unverified' ? '#6b7280' : color};">${verdict}</div>
-        <div class="status-text" style="margin:2px 0;">${confidence} / 100</div>
-        <div style="margin:4px 0;">${explanation}</div>
+        <div class="verdict-label">${verdict}</div>
+        <div style="font-size:12px;color:#8f8f8f;margin:2px 0;">${confidence} / 100</div>
+        <div style="margin:4px 0;color:#4d4d4d;">${explanation}</div>
         <div class="confidence-bar">
-          <div class="confidence-fill" style="width: ${confidence}%; background:${verdict === 'Unverified' ? '#6b7280' : color};"></div>
+          <div class="confidence-fill" style="width: ${confidence}%;"></div>
         </div>
       `;
     }
@@ -139,34 +132,54 @@ export default defineContentScript({
       if (!host) return;
       const shadow = host.shadowRoot;
       if (!shadow) return;
-      const card = shadow.getElementById('card');
+      const card = shadow.getElementById("card");
       if (!card) return;
-      card.innerHTML = `<div class="status-text" style="color:#ef4444;">Eroare: ${reason}</div>`;
+      card.innerHTML = `<div class="status-text" style="color:#dc2626;">Eroare: ${reason}</div>`;
     }
 
-    chrome.runtime.onMessage.addListener((msg) => {
-      if (msg.type === 'CAPTURE_STARTED') {
+    type VerdictMsg =
+      | { type: "CAPTURE_STARTED" }
+      | { type: "VERIFICATION_STARTED" }
+      | { type: "VERIFICATION_PROGRESS"; stage: string }
+      | {
+          type: "VERIFICATION_COMPLETED";
+          result: {
+            claims?: Array<{
+              verdict: string;
+              explanation: string;
+              confidenceScore: number;
+            }>;
+          };
+        }
+      | { type: "VERIFICATION_FAILED"; reason: string }
+      | { type: "VERIFICATION_RESUMING" };
+
+    chrome.runtime.onMessage.addListener((msg: unknown) => {
+      const m = msg as VerdictMsg;
+      if (m.type === "CAPTURE_STARTED") {
         createOverlay();
         showCapturing();
       }
-      if (msg.type === 'VERIFICATION_STARTED') {
+      if (m.type === "VERIFICATION_STARTED") {
         createOverlay();
-        showStatus('Încărcare audio...');
+        showStatus("Încărcare audio...");
       }
-      if (msg.type === 'VERIFICATION_PROGRESS') {
+      if (m.type === "VERIFICATION_PROGRESS") {
         createOverlay();
-        showProgress(msg.stage);
+        showProgress(m.stage);
       }
-      if (msg.type === 'VERIFICATION_COMPLETED' && msg.result?.claims?.[0]) {
-        const c = msg.result.claims[0];
-        showVerdict(c.verdict, c.explanation, c.confidenceScore);
+      if (m.type === "VERIFICATION_COMPLETED" && m.result) {
+        const claim = m.result.claims?.[0];
+        if (claim) {
+          showVerdict(claim.verdict, claim.explanation, claim.confidenceScore);
+        }
       }
-      if (msg.type === 'VERIFICATION_FAILED') {
-        showError(msg.reason);
+      if (m.type === "VERIFICATION_FAILED") {
+        showError(m.reason);
       }
-      if (msg.type === 'VERIFICATION_RESUMING') {
+      if (m.type === "VERIFICATION_RESUMING") {
         createOverlay();
-        showStatus('Se reia sesiunea...');
+        showStatus("Se reia sesiunea...");
       }
     });
   },

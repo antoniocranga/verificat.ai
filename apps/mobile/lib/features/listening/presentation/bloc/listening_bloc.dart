@@ -63,6 +63,10 @@ class InterruptionEnded extends ListeningEvent {
   const InterruptionEnded();
 }
 
+class ResetListening extends ListeningEvent {
+  const ResetListening();
+}
+
 class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   final ListeningRepository _repository;
   StreamSubscription<Map<String, dynamic>>? _jobStreamSub;
@@ -78,6 +82,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     on<ListeningFailed>(_onListeningFailed);
     on<InterruptionBegan>(_onInterruptionBegan);
     on<InterruptionEnded>(_onInterruptionEnded);
+    on<ResetListening>(_onReset);
 
     _interruptionBeganSub = _repository.onInterruptionBegan.listen((_) {
       if (state.status == ListeningStatus.listening) {
@@ -203,6 +208,10 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
 
   void reset() {
     _jobStreamSub?.cancel();
+    add(const ResetListening());
+  }
+
+  void _onReset(ResetListening event, Emitter<ListeningState> emit) {
     emit(const ListeningState());
   }
 

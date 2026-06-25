@@ -1,14 +1,32 @@
 import {
-  Controller, Post, Body, HttpCode, HttpStatus, Request, NotFoundException,
-  BadRequestException, UnauthorizedException,
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Request,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { RedisService } from './redis.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Public } from './public.decorator';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user?: { sub?: string; email?: string; session_id?: string };
+}
+
+interface HandoffToken {
+  id?: string;
+  user_id: string;
+  session_id?: string | null;
+  token?: string;
+  expires_at: string;
+  used_at?: string | null;
+  created_at?: string;
 }
 
 @Controller('auth')
@@ -36,8 +54,8 @@ export class AuthController {
       throw new UnauthorizedException('Not authenticated');
     }
 
-    const supabase = this.supabaseService.getClient();
-    const result = await (supabase as any)
+    const supabase = this.supabaseService.getClient() as SupabaseClient;
+    const result = await supabase
       .from('handoff_tokens')
       .insert({
         user_id: userId,
@@ -51,10 +69,12 @@ export class AuthController {
       throw new BadRequestException('Failed to generate handoff token');
     }
 
+    const row = result.data as Pick<HandoffToken, 'token' | 'expires_at'>;
+
     return {
-      token: result.data.token,
-      expiresAt: result.data.expires_at,
-      url: `${process.env.WEB_ORIGIN || 'https://verificat.xyz'}/handoff/${result.data.token}`,
+      token: row.token,
+      expiresAt: row.expires_at,
+      url: `${process.env.WEB_ORIGIN || 'https://verificat.xyz'}/handoff/${row.token}`,
     };
   }
 
@@ -66,9 +86,9 @@ export class AuthController {
       throw new BadRequestException('Token is required');
     }
 
-    const supabase = this.supabaseService.getClient();
+    const supabase = this.supabaseService.getClient() as SupabaseClient;
 
-    const lookupResult = await (supabase as any)
+    const lookupResult = await supabase
       .from('handoff_tokens')
       .select('*')
       .eq('token', body.token)
@@ -78,15 +98,17 @@ export class AuthController {
       throw new NotFoundException('Invalid handoff token');
     }
 
-    if (lookupResult.data.used_at) {
+    const tokenRecord = lookupResult.data as HandoffToken;
+
+    if (tokenRecord.used_at) {
       throw new BadRequestException('Handoff token has already been used');
     }
 
-    if (new Date(lookupResult.data.expires_at) < new Date()) {
+    if (new Date(tokenRecord.expires_at) < new Date()) {
       throw new BadRequestException('Handoff token has expired');
     }
 
-    const updateResult = await (supabase as any)
+    const updateResult = await supabase
       .from('handoff_tokens')
       .update({ used_at: new Date().toISOString() })
       .eq('token', body.token);
@@ -95,28 +117,31 @@ export class AuthController {
       throw new BadRequestException('Failed to claim handoff token');
     }
 
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-      lookupResult.data.user_id,
-    );
+    const { data: userData, error: userError } =
+      await supabase.auth.admin.getUserById(tokenRecord.user_id);
 
     if (userError || !userData.user?.email) {
       throw new BadRequestException('User not found');
     }
 
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: userData.user.email,
-      options: {
-        redirectTo: `${process.env.MOBILE_REDIRECT_URL || 'verificat://auth/callback'}`,
-      },
-    });
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: userData.user.email,
+        options: {
+          redirectTo: `${process.env.MOBILE_REDIRECT_URL || 'verificat://auth/callback'}`,
+        },
+      });
 
     if (linkError || !linkData) {
       throw new BadRequestException('Failed to generate sign-in link');
     }
 
     return {
-      url: linkData.properties?.action_link || linkData.properties?.email_otp || '',
+      url:
+        linkData.properties?.action_link ||
+        linkData.properties?.email_otp ||
+        '',
     };
   }
 }

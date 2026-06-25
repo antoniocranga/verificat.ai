@@ -1,8 +1,12 @@
 pnpm exec lint-staged
 
-# Check for staged secrets locally using Gitleaks if installed
-if command -v gitleaks &> /dev/null; then
-  gitleaks protect --staged --verbose
-else
-  echo "Warning: gitleaks CLI is not installed locally. Skipping pre-commit secret detection scan."
+# Check for staged secrets using Gitleaks
+# Falls back to npx if gitleaks CLI is not installed locally
+GITLEAKS_CMD="gitleaks"
+if ! command -v gitleaks &> /dev/null; then
+  if command -v npx &> /dev/null; then
+    GITLEAKS_CMD="npx gitleaks"
+  fi
 fi
+
+$GITLEAKS_CMD protect --staged --verbose

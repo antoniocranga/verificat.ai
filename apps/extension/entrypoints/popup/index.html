@@ -14,6 +14,7 @@
         --color-mute: #8f8f8f;
         --color-elevated: #ffffff;
         --color-primary: #0070f3;
+        --spacing-xs: 8px;
         --spacing-sm: 12px;
         --spacing-md: 16px;
         --rounded-sm: 6px;
@@ -22,55 +23,57 @@
         color: var(--color-body);
         background: var(--color-canvas);
       }
-      body { margin: 0; padding: var(--spacing-sm); width: 280px; }
+      body {
+        margin: 0;
+        padding: var(--spacing-sm);
+        width: 320px;
+        box-sizing: border-box;
+      }
       h3 {
-        margin: 0 0 8px 0;
+        margin: 0 0 var(--spacing-xs) 0;
         font-size: 15px;
         font-weight: 600;
         color: var(--color-ink);
         letter-spacing: -0.4px;
       }
-      .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-      .dot {
-        width: 8px; height: 8px; border-radius: 50%; display: inline-block;
-      }
-      .dot-green { background: #22c55e; }
-      .dot-yellow { background: #d97706; }
-      .dot-red { background: #ef4444; }
-      .dot-gray { background: #a1a1a1; }
-      button {
+      .btn-primary-small {
         display: block;
         width: 100%;
-        padding: 6px;
+        height: 32px;
+        padding: 0 6px;
         border-radius: var(--rounded-sm);
-        font-size: 13px;
-        font-weight: 500;
-        font-family: inherit;
-        cursor: pointer;
-        line-height: 20px;
-        margin-bottom: 6px;
-        box-sizing: border-box;
-      }
-      .btn-primary {
+        border: none;
         background: var(--color-ink);
         color: var(--color-elevated);
-        border: none;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        cursor: pointer;
+        box-sizing: border-box;
+        margin-bottom: 6px;
       }
-      .btn-danger {
-        background: #ef4444;
-        color: #fff;
-        border: none;
-      }
-      .btn-secondary {
+      .btn-ghost-small {
+        display: block;
+        width: 100%;
+        height: 32px;
+        padding: 0 6px;
+        border-radius: var(--rounded-sm);
+        border: 1px solid var(--color-hairline);
         background: var(--color-elevated);
         color: var(--color-body);
-        border: 1px solid var(--color-hairline);
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        cursor: pointer;
+        box-sizing: border-box;
+        margin-bottom: 6px;
       }
-      #status-text { font-size: 12px; color: var(--color-mute); }
-      #consent-screen { padding: 8px 4px; }
-      #consent-screen p { font-size: 12px; line-height: 1.5; color: var(--color-body); margin: 0 0 12px 0; }
+      #status-text { font-size: 12px; color: var(--color-mute); margin-bottom: var(--spacing-xs); }
+      #consent-screen { padding: var(--spacing-xs) 4px; }
+      #consent-screen p { font-size: 12px; line-height: 1.5; color: var(--color-body); margin: 0 0 var(--spacing-sm) 0; }
       #consent-screen a { color: var(--color-primary); }
-      #consent-screen .btn-accept { background: #22c55e; color: #fff; border: none; }
       #main-ui { display: none; }
     </style>
   </head>
@@ -84,16 +87,13 @@
       <p>
         <a href="https://verificat.xyz/privacy" target="_blank">Politica de Confidențialitate</a>
       </p>
-      <button id="btn-accept-consent" class="btn-accept">Accept și Continuă</button>
+      <button id="btn-accept-consent" class="btn-primary-small">Accept și Continuă</button>
     </div>
     <div id="main-ui">
-      <div class="status-row">
-        <span class="dot dot-gray" id="status-dot"></span>
-        <span id="status-text">Pregătit</span>
-      </div>
-      <button id="btn-start" class="btn-primary">Începe Ascultarea</button>
-      <button id="btn-stop" class="btn-danger" style="display:none;">Oprește</button>
-      <button id="btn-open" class="btn-secondary">Deschide Panoul Lateral</button>
+      <div id="status-text">Pregătit</div>
+      <button id="btn-start" class="btn-primary-small">Începe Ascultarea</button>
+      <button id="btn-stop" class="btn-ghost-small" style="display:none;">Oprește</button>
+      <button id="btn-open" class="btn-ghost-small">Deschide Panoul Lateral</button>
     </div>
     <script type="module" src="./main.ts"></script>
   </body>

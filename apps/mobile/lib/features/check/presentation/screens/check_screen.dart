@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../data/datasources/verdict_remote_datasource.dart';
 import '../../data/repositories/verdict_repository_impl.dart';
 import '../../domain/entities/verdict.dart';
 import '../../domain/repositories/verdict_repository.dart';
@@ -88,7 +87,7 @@ class _CheckScreenState extends State<CheckScreen> {
 
     final verdict = _verdict!;
     final labelColor = _verdictColors[verdict.label] ?? const Color(0xFF171717);
-    final unverifiedColor = const Color(0xFF6B7280);
+    const unverifiedColor = Color(0xFF6B7280);
     final accentColor =
         verdict.label == 'Unverified' ? unverifiedColor : labelColor;
 

@@ -10,7 +10,10 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "security:gitleaks": "gitleaks detect --source=. --verbose",
+    "security:audit": "pnpm audit --audit-level=high",
+    "security:scan": "pnpm run security:gitleaks && pnpm run security:audit"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
