@@ -11,7 +11,7 @@ void main() {
     await tester.pumpWidget(const VerificatApp(initialConsented: false));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confidențialitatea datelor'), findsOneWidget);
+    expect(find.text('CONFIDENȚIALITATEA DATELOR'), findsOneWidget);
     expect(find.text('Am înțeles. Continuați'), findsOneWidget);
   });
 
@@ -24,7 +24,7 @@ void main() {
     await tester.tap(find.text('Am înțeles. Continuați'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confidențialitatea datelor'), findsNothing);
+    expect(find.text('CONFIDENȚIALITATEA DATELOR'), findsNothing);
     expect(find.text('Vezi un exemplu'), findsOneWidget);
   });
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../history/domain/repositories/saved_checks_repository.dart';
 import '../../../history/data/repositories/saved_checks_repository_impl.dart';
 import '../bloc/search_bloc.dart';
@@ -26,12 +27,8 @@ class SearchScreen extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Caută după textul afirmației...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
+            child: AppTextInput(
+              hintText: 'Caută după textul afirmației...',
               onChanged: (value) {
                 context.read<SearchBloc>().add(SearchQueryChanged(value));
               },
@@ -43,13 +40,21 @@ class SearchScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
               if (state.error != null) {
-                return Center(child: Text(state.error!, style: const TextStyle(color: Colors.red)));
+                return Center(
+                  child: Text(state.error!, style: const TextStyle(color: Color(0xFFEE0000))),
+                );
               }
               if (state.results.isEmpty && state.query.isNotEmpty) {
-                return const Center(child: Text('Niciun rezultat găsit.'));
+                return Center(
+                  child: Text('Niciun rezultat găsit.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                );
               }
               if (state.results.isEmpty) {
-                return const Center(child: Text('Introduceți un termen de căutare.'));
+                return Center(
+                  child: Text('Introduceți un termen de căutare.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                );
               }
               return NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
@@ -115,23 +120,38 @@ class _ResultCardState extends State<_ResultCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        title: Text(widget.result.claimText ?? 'Verificare #${widget.result.id.substring(0, 8)}'),
-        subtitle: Text('${widget.result.verdict} · ${widget.result.confidenceScore.toStringAsFixed(0)}/100'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!_loadingSaved)
-              IconButton(
-                icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border),
-                onPressed: _toggleSave,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: AppFeatureCard(
+        child: InkWell(
+          onTap: () => context.go('/check/${widget.result.id}'),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.result.claimText ?? 'Verificare #${widget.result.id.substring(0, 8)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${widget.result.verdict} · ${widget.result.confidenceScore.toStringAsFixed(0)}/100',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF8F8F8F)),
+                    ),
+                  ],
+                ),
               ),
-            const Icon(Icons.chevron_right),
-          ],
+              if (!_loadingSaved)
+                IconButton(
+                  icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border, size: 20),
+                  onPressed: _toggleSave,
+                ),
+              const Icon(Icons.chevron_right, size: 20),
+            ],
+          ),
         ),
-        onTap: () => context.go('/check/${widget.result.id}'),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../bloc/listening_bloc.dart';
 
 class ListeningScreen extends StatelessWidget {
@@ -20,24 +21,18 @@ class ListeningScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildStatusIcon(state.status),
+                  _buildStatusIndicator(state.status),
                   const SizedBox(height: 24),
                   Text(
                     _statusText(state.status),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
                     textAlign: TextAlign.center,
                   ),
                   if (state.errorMessage != null) ...[
                     const SizedBox(height: 12),
                     Text(
                       state.errorMessage!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.red.shade700,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFFEE0000)),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -52,27 +47,37 @@ class ListeningScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(ListeningStatus status) {
-    switch (status) {
-      case ListeningStatus.idle:
-        return const Icon(Icons.mic, size: 64, color: Colors.grey);
-      case ListeningStatus.listening:
-        return const SizedBox(
-          width: 80,
-          height: 80,
-          child: CircularProgressIndicator(strokeWidth: 6),
-        );
-      case ListeningStatus.processing:
-        return const SizedBox(
-          width: 80,
-          height: 80,
-          child: CircularProgressIndicator(strokeWidth: 6),
-        );
-      case ListeningStatus.verdictReady:
-        return const Icon(Icons.check_circle, size: 64, color: Colors.green);
-      case ListeningStatus.error:
-        return const Icon(Icons.error, size: 64, color: Colors.red);
+  Widget _buildStatusIndicator(ListeningStatus status) {
+    if (status == ListeningStatus.listening || status == ListeningStatus.processing) {
+      return SizedBox(
+        width: 16,
+        height: 16,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 1000),
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: 0.3 + (0.7 * value),
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEBEBEB),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            );
+          },
+        ),
+      );
     }
+    if (status == ListeningStatus.verdictReady) {
+      return const Icon(Icons.check_circle, size: 64, color: Color(0xFF4CAF50));
+    }
+    if (status == ListeningStatus.error) {
+      return const Icon(Icons.error, size: 64, color: Color(0xFFEE0000));
+    }
+    return const SizedBox(width: 64, height: 64);
   }
 
   String _statusText(ListeningStatus status) {
@@ -94,23 +99,15 @@ class ListeningScreen extends StatelessWidget {
     switch (status) {
       case ListeningStatus.idle:
       case ListeningStatus.error:
-        return FilledButton.icon(
+        return AppSmallPrimaryButton(
+          label: 'Începe Verificarea',
           onPressed: () => context.read<ListeningBloc>().add(const StartListening()),
-          icon: const Icon(Icons.mic),
-          label: const Text('Începe Verificarea'),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(200, 48),
-          ),
         );
       case ListeningStatus.listening:
-        return FilledButton.icon(
+        return AppSmallPrimaryButton(
+          label: 'Oprește',
+          foregroundColor: const Color(0xFFEE0000),
           onPressed: () => context.read<ListeningBloc>().add(const StopListening()),
-          icon: const Icon(Icons.stop),
-          label: const Text('Oprește'),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(200, 48),
-            backgroundColor: Colors.red,
-          ),
         );
       case ListeningStatus.processing:
         return const SizedBox(
@@ -119,13 +116,9 @@ class ListeningScreen extends StatelessWidget {
           child: CircularProgressIndicator(strokeWidth: 3),
         );
       case ListeningStatus.verdictReady:
-        return FilledButton.icon(
+        return AppSmallPrimaryButton(
+          label: 'Verifică din nou',
           onPressed: () => context.read<ListeningBloc>().add(const StopListening()),
-          icon: const Icon(Icons.refresh),
-          label: const Text('Verifică din nou'),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(200, 48),
-          ),
         );
     }
   }

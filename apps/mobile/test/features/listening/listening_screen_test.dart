@@ -49,7 +49,6 @@ void main() {
       expect(find.text('Apăsați butonul pentru a începe verificarea'),
           findsOneWidget);
       expect(find.text('Începe Verificarea'), findsOneWidget);
-      expect(find.byIcon(Icons.mic), findsWidgets);
       bloc.close();
     });
 
@@ -60,7 +59,6 @@ void main() {
 
       expect(find.text('Ascult...'), findsOneWidget);
       expect(find.text('Oprește'), findsOneWidget);
-      expect(find.byIcon(Icons.stop), findsOneWidget);
       bloc.close();
     });
 

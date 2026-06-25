@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? error;
@@ -56,56 +57,38 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Verificat',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.4,
-                  ),
+                  style: Theme.of(context).textTheme.displayLarge,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Autentifică-te pentru a-ți vedea istoricul',
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D)),
                 ),
                 const SizedBox(height: 32),
-                TextField(
+                AppTextInput(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
+                  hintText: 'Email',
+                  onChanged: (_) {},
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                AppTextInput(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Parolă',
-                    border: OutlineInputBorder(),
-                  ),
+                  hintText: 'Parolă',
                   obscureText: true,
+                  onChanged: (_) {},
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                  Text(_error!, style: const TextStyle(color: Color(0xFFEE0000))),
                 ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(
+                  child: AppSmallPrimaryButton(
+                    label: _loading ? 'Se încarcă...' : 'Autentificare',
                     onPressed: _loading ? null : _login,
-                    child: _loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Autentificare'),
                   ),
                 ),
               ],

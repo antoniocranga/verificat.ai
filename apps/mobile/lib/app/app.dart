@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/auth/auth_bloc.dart';
+import '../core/theme/app_theme.dart';
 import '../features/consent/presentation/screens/consent_screen.dart';
 import 'router.dart';
 
@@ -45,20 +46,10 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
 
   @override
   Widget build(BuildContext context) {
-    final theme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF171717),
-        brightness: Brightness.light,
-        surface: const Color(0xFFFAFAFA),
-      ),
-      scaffoldBackgroundColor: const Color(0xFFFAFAFA),
-      useMaterial3: true,
-    );
-
     if (!_consented) {
       return MaterialApp(
         title: 'Verificat',
-        theme: theme,
+        theme: appTheme,
         debugShowCheckedModeBanner: false,
         home: ConsentScreen(onAccept: _acceptConsent),
       );
@@ -68,7 +59,7 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
       create: (_) => AuthBloc()..add(AuthCheckRequested()),
       child: MaterialApp.router(
         title: 'Verificat',
-        theme: theme,
+        theme: appTheme,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),

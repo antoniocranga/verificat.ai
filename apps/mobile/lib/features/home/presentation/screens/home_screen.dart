@@ -74,6 +74,11 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () => context.go('/saved'),
                 child: const Text('Verificări salvate'),
               ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.go('/settings'),
+                child: const Text('Setări'),
+              ),
             ],
           ),
         ),

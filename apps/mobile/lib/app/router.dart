@@ -11,6 +11,7 @@ import '../features/search/presentation/bloc/search_bloc.dart';
 import '../features/search/presentation/screens/search_screen.dart';
 import '../features/history/presentation/bloc/saved_checks_bloc.dart';
 import '../features/history/presentation/screens/history_screen.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -85,6 +86,11 @@ final router = GoRouter(
         create: (_) => SavedChecksBloc()..add(const SavedChecksLoaded()),
         child: const HistoryScreen(),
       ),
+    ),
+    GoRoute(
+      path: '/settings',
+      name: 'settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );
