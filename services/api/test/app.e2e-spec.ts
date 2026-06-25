@@ -100,13 +100,10 @@ describe('API Integration (e2e)', () => {
       }),
     );
     app.useGlobalFilters(new HttpExceptionFilter());
-
-    (
-      app.getHttpAdapter().getInstance() as Record<
-        string,
-        (k: string, v: boolean) => void
-      >
-    ).set('trust proxy', true);
+    const expressApp: Record<string, (k: string, v: boolean) => void> = app
+      .getHttpAdapter()
+      .getInstance() as never;
+    expressApp.set('trust proxy', true);
     await app.init();
   });
 
