@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseService } from '../supabase/supabase.service';
 
@@ -12,9 +12,8 @@ export class FactChecksService {
 
   async searchVerdicts(query: string, page = 1, limit = 20) {
     const offset = (page - 1) * limit;
-    const searchTerm = `%${query}%`;
 
-    const { data, error, count } = await this.client
+    let req = this.client
       .from('verdicts')
       .select(
         `
@@ -24,18 +23,24 @@ export class FactChecksService {
         explanation,
         created_at,
         fact_checks!inner(
-          claims!inner(text)
+          claims!inner(id, text)
         )
       `,
         { count: 'exact' },
       )
-      .or(
-        `explanation.ilike.${searchTerm},fact_checks.claims.text.ilike.${searchTerm}`,
-      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (error) throw error;
+    if (query) {
+      const searchTerm = `%${query}%`;
+      req = req.or(`explanation.ilike.${searchTerm}`);
+    }
+
+    const { data, error, count } = await req;
+    if (error)
+      throw new InternalServerErrorException(
+        error.message || 'Database query failed',
+      );
 
     return {
       data: (data || []).map((v: Record<string, unknown>) => ({
@@ -83,7 +88,11 @@ export class FactChecksService {
       .eq('id', id)
       .single();
 
-    if (error || !data) return null;
+    if (error)
+      throw new InternalServerErrorException(
+        error.message || 'Database query failed',
+      );
+    if (!data) return null;
 
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     const d = data as any;

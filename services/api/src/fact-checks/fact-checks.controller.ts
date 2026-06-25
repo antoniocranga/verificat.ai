@@ -6,9 +6,13 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Public } from '../auth/public.decorator';
 import { FactChecksService } from './fact-checks.service';
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Public()
 @Controller('fact-checks')
@@ -31,6 +35,9 @@ export class FactChecksController {
 
   @Get(':id')
   async getVerdictById(@Param('id') id: string) {
+    if (!UUID_RE.test(id)) {
+      throw new BadRequestException('Invalid verdict ID format');
+    }
     const verdict = await this.factChecksService.getVerdictById(id);
     if (!verdict) throw new NotFoundException('Verdict not found');
     return verdict;
