@@ -20,6 +20,7 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
     .setTitle('Verificat API')
