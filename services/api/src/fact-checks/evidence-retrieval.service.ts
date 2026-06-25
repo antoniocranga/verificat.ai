@@ -11,6 +11,10 @@ export interface EvidenceResult {
   snippet: string;
   source: string;
   similarityScore: number;
+  sourceId?: string;
+  sourceName?: string;
+  articleUrl?: string;
+  publishedAt?: string;
 }
 
 @Injectable()
@@ -97,105 +101,137 @@ export class EvidenceRetrievalService {
     });
   }
 
+  private determineCategories(text: string): string[] {
+    const categories = new Set<string>();
+    categories.add('fact_checker_international');
+    categories.add('fact_checker_ro');
+    const lower = text.toLowerCase();
+    if (
+      /\b(ue|uniunea europeană|nato|uniunea europeană|onu|tratat|lege|legal|directivă|regulament)\b/.test(
+        lower,
+      )
+    ) {
+      categories.add('official_body_international');
+    }
+    if (
+      /\b(românia|român|guvern|minister|președinte|parlament|senat|deputat)\b/.test(
+        lower,
+      )
+    ) {
+      categories.add('official_body_ro');
+    }
+    if (
+      /\b(conflict|război|militar|atac|invazie|armată|apărare|sancțiune|beligerant)\b/.test(
+        lower,
+      )
+    ) {
+      categories.add('think_tank');
+      categories.add('wire_agency');
+    }
+    return Array.from(categories);
+  }
+
+  private async matchSourceArticles(
+    embedding: number[],
+    categories: string[],
+    language: string[],
+  ): Promise<EvidenceResult[]> {
+    const { data, error } = await (
+      this.supabaseService.getClient() as unknown as {
+        rpc: (
+          name: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }
+    ).rpc('match_source_articles', {
+      query_embedding: embedding,
+      match_threshold: 0.72,
+      match_count: 5,
+      filter_categories: categories,
+      filter_languages: language,
+    });
+
+    if (error) {
+      this.logger.warn(`match_source_articles RPC failed: ${error.message}`);
+      return [];
+    }
+
+    if (!data || !Array.isArray(data)) return [];
+
+    return (
+      data as Array<{
+        id: string;
+        source_id: string;
+        source_name: string;
+        source_category: string;
+        article_url: string;
+        title: string;
+        content: string;
+        published_at: string | null;
+        similarity: number;
+      }>
+    ).map((row) => ({
+      title: row.title,
+      url: row.article_url,
+      snippet: (row.content || '').substring(0, 300),
+      source: row.source_name,
+      similarityScore: Math.round(row.similarity * 100),
+      sourceId: row.id,
+      sourceName: row.source_name,
+      articleUrl: row.article_url,
+      publishedAt: row.published_at || undefined,
+    }));
+  }
+
   async retrieveEvidence(claim: NormalizedClaim): Promise<EvidenceResult[]> {
     const results: EvidenceResult[] = [];
 
-    // 1. pgvector similarity search
+    // 1. Semantic search via match_source_articles
     try {
       const embedding = await this.getEmbedding(claim.assertion);
-      const matches = await this.searchService.searchSimilarClaims(
+      const categories = this.determineCategories(claim.assertion);
+      const semanticResults = await this.matchSourceArticles(
         embedding,
-        0.7,
-        5,
+        categories,
+        ['ro', 'en'],
       );
-      for (const match of matches) {
-        results.push({
-          title: `Similar Fact-Check Claim`,
-          url: '',
-          snippet: match.text,
-          source: 'Database (pgvector)',
-          similarityScore: match.similarity,
-        });
-      }
+      results.push(...semanticResults);
     } catch (err) {
-      this.logger.warn(`pgvector search failed: ${String(err)}`);
+      this.logger.warn(`Semantic evidence retrieval failed: ${String(err)}`);
     }
 
-    // 2. Keyword fallback search
-    try {
-      const words = claim.assertion
-        .split(/\s+/)
-        .map((w) => w.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '').trim())
-        .filter((w) => w.length > 4);
-
-      if (words.length > 0) {
-        const queryFilter = words.map((w) => `text.ilike.%${w}%`).join(',');
-        const { data: claimsData } = await this.supabaseService
-          .getClient()
-          .from('claims')
-          .select('id, text')
-          .or(queryFilter)
-          .limit(5);
-
-        if (claimsData) {
-          for (const item of claimsData as Array<{
-            id: string;
-            text: string;
-          }>) {
-            // Avoid duplicates
-            if (!results.some((r) => r.snippet === item.text)) {
-              results.push({
-                title: 'Keyword-Matched Factual Source',
-                url: '',
-                snippet: item.text,
-                source: 'Database (Keywords)',
-                similarityScore: 0.6,
-              });
-            }
-          }
+    // 2. Outbound URL Fetching (SSRF safe) — only if no semantic results
+    if (results.length === 0) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urls: string[] = [];
+      const textToScan = claim.assertion + ' ' + claim.qualifiers.join(' ');
+      let urlMatch: RegExpExecArray | null;
+      while ((urlMatch = urlRegex.exec(textToScan)) !== null) {
+        urls.push(urlMatch[1]);
+      }
+      for (const urlStr of urls) {
+        try {
+          const cleanUrl = urlStr.replace(/[.,;:!?)\]\s]+$/, '');
+          const content = await this.safeFetcherService.fetchSafe(cleanUrl);
+          const cleanText = content
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          results.push({
+            title: `Web Evidence Source`,
+            url: cleanUrl,
+            snippet: cleanText.substring(0, 300),
+            source: 'Allowlisted External Link',
+            similarityScore: 0.8,
+          });
+        } catch (err) {
+          this.logger.warn(
+            `Safe fetch failed for URL "${urlStr}": ${String(err)}`,
+          );
         }
       }
-    } catch (err) {
-      this.logger.warn(`Keyword search failed: ${String(err)}`);
     }
 
-    // 3. Outbound URL Fetching (SSRF safe)
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const urls: string[] = [];
-    const textToScan = claim.assertion + ' ' + claim.qualifiers.join(' ');
-    let match: RegExpExecArray | null;
-    while ((match = urlRegex.exec(textToScan)) !== null) {
-      urls.push(match[1]);
-    }
-
-    for (const urlStr of urls) {
-      try {
-        const cleanUrl = urlStr.replace(/[.,;:!?)\]\s]+$/, '');
-        this.logger.log(
-          `Performing safe HTTP fetch for evidence URL: ${cleanUrl}`,
-        );
-        const content = await this.safeFetcherService.fetchSafe(cleanUrl);
-
-        // Simple snippet extraction: clean HTML tags, grab first 300 characters
-        const cleanText = content
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        results.push({
-          title: `Web Evidence Source`,
-          url: cleanUrl,
-          snippet: cleanText.substring(0, 300),
-          source: 'Allowlisted External Link',
-          similarityScore: 0.8,
-        });
-      } catch (err) {
-        this.logger.warn(
-          `Safe fetch failed for URL "${urlStr}": ${String(err)}`,
-        );
-      }
-    }
-
-    // Sort results by similarity score descending
     return results.sort((a, b) => b.similarityScore - a.similarityScore);
   }
 }

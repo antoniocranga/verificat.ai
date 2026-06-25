@@ -37,6 +37,10 @@ export interface FactVerificationJobResult {
       similarityScore: number;
       trustScore?: number;
       trustReason?: string;
+      sourceId?: string;
+      sourceName?: string;
+      articleUrl?: string;
+      publishedAt?: string;
     }>;
   }>;
 }
@@ -165,6 +169,10 @@ export class JobsConsumer extends WorkerHost {
           similarityScore: e.similarityScore,
           trustScore: e.trustScore,
           trustReason: e.trustReason,
+          sourceId: e.sourceId,
+          sourceName: e.sourceName,
+          articleUrl: e.articleUrl,
+          publishedAt: e.publishedAt,
         })),
       });
     }

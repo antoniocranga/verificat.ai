@@ -114,21 +114,22 @@ Provide a detailed "explanation" in Romanian and an array of "citedSources" URLs
       throw new Error('OPENAI_API_KEY is missing.');
     }
 
+    const groundingBlock = evidence
+      .map(
+        (e, i) =>
+          `[${i + 1}] ${e.sourceName || e.source}${e.publishedAt ? ` (${e.publishedAt.split('T')[0]})` : ''}: ${e.title}\n${e.snippet}...\nURL: ${e.articleUrl || e.url} | Similaritate: ${(e.similarityScore / 100).toFixed(2)}`,
+      )
+      .join('\n\n');
+
+    const userContent = groundingBlock
+      ? `---SURSE RELEVANTE---\n${groundingBlock}\n---SFÂRȘIT SURSE---\n\nAfirmație: "${claim.assertion}"\n\nEvaluează această afirmație pe baza surselor de mai sus și returnează un răspuns JSON conform instrucțiunilor.`
+      : `Nu există surse disponibile pentru această afirmație. Returnează "Unverified" cu confidenceScore 0.\n\nAfirmație: "${claim.assertion}"`;
+
     const payload = JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: this.systemPrompt },
-        {
-          role: 'user',
-          content: JSON.stringify({
-            claim,
-            evidence: evidence.map((e) => ({
-              source: e.source,
-              snippet: e.snippet,
-              url: e.url,
-            })),
-          }),
-        },
+        { role: 'user', content: userContent },
       ],
       response_format: { type: 'json_object' },
       temperature: 0.1,
