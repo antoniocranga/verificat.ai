@@ -171,6 +171,7 @@ jobs:
             export VPS_DIR="${{ secrets.VPS_DIR }}"
             export SUPABASE_PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
             export SUPABASE_DB_PASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
+            export INFISICAL_TOKEN="${{ secrets.INFISICAL_TOKEN }}"
 
             chmod +x deploy-staging.sh
             ./deploy-staging.sh
