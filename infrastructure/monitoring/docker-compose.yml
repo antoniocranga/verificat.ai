@@ -53,6 +53,7 @@ services:
       - traefik_default
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_default"
       - "traefik.http.routers.grafana.rule=Host(`monitoring-staging.verificat.xyz`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"

@@ -44,10 +44,11 @@ import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
       imports: [AuthModule],
       inject: [RedisService],
       useFactory: () => {
-        const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+        const url = new URL(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
         return {
           connection: {
-            url: redisUrl,
+            host: url.hostname,
+            port: Number(url.port) || 6379,
           },
         };
       },
