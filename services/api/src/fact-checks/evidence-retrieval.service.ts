@@ -145,8 +145,8 @@ export class EvidenceRetrievalService {
       }
     ).rpc('match_source_articles', {
       query_embedding: embedding,
-      match_threshold: 0.72,
-      match_count: 5,
+      match_threshold: 0.62,
+      match_count: 6,
       filter_categories: categories,
       filter_languages: language,
     });
