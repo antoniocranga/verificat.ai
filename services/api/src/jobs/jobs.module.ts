@@ -30,9 +30,12 @@ import { SourcesModule } from '../sources/sources.module';
     {
       provide: 'QUEUE_EVENTS',
       useFactory: () => {
-        const url = new URL(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+        const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+        const match = redisUrl.match(/redis:\/\/([^:]+):(\d+)/);
+        const host = match?.[1] || '127.0.0.1';
+        const port = parseInt(match?.[2] || '6379', 10);
         const events = new QueueEvents('fact-verification', {
-          connection: { host: url.hostname, port: Number(url.port) || 6379 },
+          connection: { host, port },
         });
         events.on('error', (err) => {
           console.error('QueueEvents error:', err);

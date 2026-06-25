@@ -9,7 +9,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
-import { RedisService } from './auth/redis.service';
 import { UsersModule } from './users/users.module';
 import { FactChecksModule } from './fact-checks/fact-checks.module';
 import { SourcesModule } from './sources/sources.module';
@@ -35,14 +34,13 @@ import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
       ],
     }),
     BullModule.forRootAsync({
-      imports: [AuthModule],
-      inject: [RedisService],
       useFactory: () => {
-        const url = new URL(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+        const u = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+        const m = u.match(/redis:\/\/([^:]+):(\d+)/);
         return {
           connection: {
-            host: url.hostname,
-            port: Number(url.port) || 6379,
+            host: m?.[1] || '127.0.0.1',
+            port: parseInt(m?.[2] || '6379', 10),
           },
         };
       },
