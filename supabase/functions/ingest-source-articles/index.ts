@@ -1,8 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+  Deno.env.get("SUPABASE_ANON_KEY") ||
+  "";
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
 const MAX_CONTENT_CHARS = 8000;
@@ -23,25 +25,32 @@ Deno.serve(async (_req: Request) => {
     });
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  };
 
-  const { data: sources, error: srcErr } = await supabase
-    .from("sources")
-    .select("id, name, url, feed_url, category, language")
-    .in("category", MATCH_TARGET_CATEGORIES)
-    .not("feed_url", "is", null);
-
-  if (srcErr) {
-    return new Response(JSON.stringify({ error: srcErr.message }), {
+  // Fetch sources with feed_url
+  const srcResp = await fetch(
+    `${SUPABASE_URL}/rest/v1/sources?select=id,name,url,feed_url,category,language&feed_url=not.is.null&category=in.(${MATCH_TARGET_CATEGORIES.map((c) => `"${c}"`).join(",")})`,
+    { headers },
+  );
+  if (!srcResp.ok) {
+    const errBody = await srcResp.text();
+    return new Response(JSON.stringify({ error: `sources fetch failed: ${errBody}` }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
+  const sources = await srcResp.json() as Array<{ id: string; name: string; url: string; feed_url: string; category: string; language: string[] }>;
 
   if (!sources || sources.length === 0) {
-    return new Response(JSON.stringify({ message: "No sources with feed_url", articles_added: 0 }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ message: "No sources with feed_url", articles_added: 0 }),
+      { headers: { "Content-Type": "application/json" } },
+    );
   }
 
   const logEntries: Array<{
@@ -57,14 +66,12 @@ Deno.serve(async (_req: Request) => {
     const start = Date.now();
     let added = 0;
     let errMsg: string | null = null;
-
     try {
-      added = await ingestSource(supabase, source);
+      added = await ingestSource(headers, source);
       totalAdded += added;
     } catch (e) {
       errMsg = String(e);
     }
-
     logEntries.push({
       source_id: source.id,
       articles_added: added,
@@ -73,10 +80,12 @@ Deno.serve(async (_req: Request) => {
     });
   }
 
-  const { error: logErr } = await supabase.from("ingest_runs").insert(logEntries);
-  if (logErr) {
-    console.error("Failed to write ingest_runs log:", logErr);
-  }
+  // Write ingest log
+  await fetch(`${SUPABASE_URL}/rest/v1/ingest_runs`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(logEntries),
+  });
 
   return new Response(
     JSON.stringify({
@@ -90,33 +99,33 @@ Deno.serve(async (_req: Request) => {
 });
 
 async function ingestSource(
-  supabase: ReturnType<typeof createClient>,
+  headers: Record<string, string>,
   source: { id: string; name: string; feed_url: string },
 ): Promise<number> {
   const feedResp = await fetch(source.feed_url, {
     headers: { "User-Agent": "Verificat/1.0 (RSS ingester; +https://verificat.xyz)" },
     signal: AbortSignal.timeout(15000),
   });
-
   if (!feedResp.ok) {
     throw new Error(`Feed fetch failed (${feedResp.status}): ${source.feed_url}`);
   }
 
   const feedText = await feedResp.text();
   const items = parseFeedItems(feedText);
-
   let added = 0;
 
   for (const item of items) {
     if (!item.link || !item.title) continue;
 
-    const existing = await supabase
-      .from("source_articles")
-      .select("id")
-      .eq("article_url", item.link)
-      .maybeSingle();
-
-    if (existing.data) continue;
+    // Check if article already exists
+    const existResp = await fetch(
+      `${SUPABASE_URL}/rest/v1/source_articles?select=id&article_url=eq.${encodeURIComponent(item.link)}`,
+      { headers },
+    );
+    if (existResp.ok) {
+      const existing = await existResp.json() as Array<{ id: string }>;
+      if (existing.length > 0) continue;
+    }
 
     let cleanText = item.content || item.description || item.title;
     try {
@@ -131,8 +140,10 @@ async function ingestSource(
     const embedding = await getEmbedding(cleanText.slice(0, 6000));
     if (!embedding) continue;
 
-    const { error: upsertErr } = await supabase.from("source_articles").upsert(
-      {
+    const upsertResp = await fetch(`${SUPABASE_URL}/rest/v1/source_articles`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
         source_id: source.id,
         article_url: item.link,
         title: item.title,
@@ -141,13 +152,11 @@ async function ingestSource(
         published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
         embedding,
         token_count: Math.ceil(cleanText.length / 4),
-      },
-      { onConflict: "article_url" },
-    );
+      }),
+    });
 
-    if (upsertErr) {
-      console.error(`Upsert failed for ${item.link}:`, upsertErr);
-    } else {
+    // Conflict is OK (article_url unique)
+    if (upsertResp.status === 201) {
       added++;
     }
   }
@@ -170,7 +179,6 @@ function parseFeedItems(xml: string): Array<{
     pubDate?: string;
   }> = [];
 
-  // Try RSS 2.0
   const rssItems = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
   for (const match of rssItems) {
     const block = match[1];
@@ -185,7 +193,6 @@ function parseFeedItems(xml: string): Array<{
 
   if (items.length > 0) return items;
 
-  // Try Atom
   const atomItems = xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g);
   for (const match of atomItems) {
     const block = match[1];
@@ -224,12 +231,9 @@ async function fetchAndCleanArticle(url: string): Promise<string> {
     headers: { "User-Agent": "Verificat/1.0 (Article fetcher; +https://verificat.xyz)" },
     signal: AbortSignal.timeout(10000),
   });
-
   if (!resp.ok) throw new Error(`Article fetch failed (${resp.status})`);
 
   const html = await resp.text();
-
-  // Strip scripts, styles, nav, footer, header
   let clean = html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -241,7 +245,6 @@ async function fetchAndCleanArticle(url: string): Promise<string> {
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-
   return clean;
 }
 
@@ -252,10 +255,7 @@ async function getEmbedding(text: string): Promise<number[] | null> {
       "Authorization": `Bearer ${OPENAI_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      input: text,
-      model: "text-embedding-3-small",
-    }),
+    body: JSON.stringify({ input: text, model: "text-embedding-3-small" }),
   });
 
   if (!resp.ok) {
