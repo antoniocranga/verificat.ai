@@ -54,17 +54,23 @@ void main() {
 
     testWidgets('renders listening state with stop button', (tester) async {
       final bloc = ListeningBloc(repository: MockRepository());
-      bloc.emit(const ListeningState(status: ListeningStatus.listening));
+      bloc.emit(const ListeningState(
+        status: ListeningStatus.listening,
+        elapsedSeconds: 0,
+      ));
       await tester.pumpWidget(createTestWidget(bloc));
 
-      expect(find.text('Ascult...'), findsOneWidget);
+      expect(find.text('Se înregistrează...'), findsOneWidget);
       expect(find.text('Oprește'), findsOneWidget);
       bloc.close();
     });
 
     testWidgets('renders processing state', (tester) async {
       final bloc = ListeningBloc(repository: MockRepository());
-      bloc.emit(const ListeningState(status: ListeningStatus.processing));
+      bloc.emit(const ListeningState(
+        status: ListeningStatus.processing,
+        elapsedSeconds: 0,
+      ));
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Se procesează...'), findsOneWidget);
@@ -76,7 +82,10 @@ void main() {
       final bloc = ListeningBloc(repository: MockRepository());
       bloc.emit(const ListeningState(
         status: ListeningStatus.verdictReady,
-        verdictId: 'v-123',
+        elapsedSeconds: 0,
+        claimsData: [
+          {'verdict': 'True', 'confidenceScore': 95, 'explanation': 'Corect', 'assertion': 'Test'},
+        ],
       ));
       await tester.pumpWidget(createTestWidget(bloc));
 
@@ -90,6 +99,7 @@ void main() {
       final bloc = ListeningBloc(repository: MockRepository());
       bloc.emit(const ListeningState(
         status: ListeningStatus.error,
+        elapsedSeconds: 0,
         errorMessage: 'Permisiunea pentru microfon a fost refuzată.',
       ));
       await tester.pumpWidget(createTestWidget(bloc));
@@ -97,7 +107,7 @@ void main() {
       expect(find.text('A apărut o eroare'), findsOneWidget);
       expect(find.text('Permisiunea pentru microfon a fost refuzată.'),
           findsOneWidget);
-      expect(find.text('Începe Verificarea'), findsOneWidget);
+      expect(find.text('Încearcă din Nou'), findsOneWidget);
       expect(find.byIcon(Icons.error), findsOneWidget);
       bloc.close();
     });

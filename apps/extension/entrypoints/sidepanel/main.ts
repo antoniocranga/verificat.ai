@@ -1,12 +1,64 @@
-import { startTabCapture } from "../../utils/audio-capture";
-import { captureAndVerifyMic } from "../../utils/api";
+import {
+  startTabCapture,
+  startMicCapture,
+  collectChunks,
+} from "../../utils/audio-capture";
+import { resumePendingJob, dispatchAndWait } from "../../utils/api";
+
+type CaptureState =
+  | "idle"
+  | "preparing"
+  | "recording"
+  | "processing"
+  | "result"
+  | "error";
+type CaptureType = "tab" | "mic";
+
+let state: CaptureState = "idle";
+let captureType: CaptureType | null = null;
+let micRecorder: MediaRecorder | null = null;
+let micStop: (() => void) | null = null;
+let blobReady: Promise<Blob> | null = null;
+let elapsedSeconds = 0;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let isTabCapturing = false;
 
 const btnTab = document.getElementById("btn-tab-record") as HTMLButtonElement;
 const btnMic = document.getElementById("btn-mic-record") as HTMLButtonElement;
 const statusDiv = document.getElementById("status") as HTMLDivElement;
+
+const idleUi = document.getElementById("idle-ui") as HTMLDivElement;
+const preparingUi = document.getElementById("preparing-ui") as HTMLDivElement;
+const preparingText = document.getElementById(
+  "preparing-text",
+) as HTMLDivElement;
+const recordingUi = document.getElementById("recording-ui") as HTMLDivElement;
+const timerDisplay = document.getElementById("timer-display") as HTMLDivElement;
+const recordingLabel = document.getElementById(
+  "recording-label",
+) as HTMLDivElement;
+const btnStopRecording = document.getElementById(
+  "btn-stop-recording",
+) as HTMLButtonElement;
+const processingUi = document.getElementById("processing-ui") as HTMLDivElement;
+const processingStatus = document.getElementById(
+  "processing-status",
+) as HTMLDivElement;
+const progressDetail = document.getElementById(
+  "progress-detail",
+) as HTMLDivElement;
+const resultUi = document.getElementById("result-ui") as HTMLDivElement;
 const verdictSection = document.getElementById(
   "verdict-section",
 ) as HTMLDivElement;
+const btnNewCheck = document.getElementById(
+  "btn-new-check",
+) as HTMLButtonElement;
+const errorUi = document.getElementById("error-ui") as HTMLDivElement;
+const errorText = document.getElementById("error-text") as HTMLDivElement;
+const btnErrorRetry = document.getElementById(
+  "btn-error-retry",
+) as HTMLButtonElement;
 
 const permOverlay = document.getElementById("perm-overlay") as HTMLDivElement;
 const permTitle = document.getElementById("perm-title") as HTMLHeadingElement;
@@ -18,11 +70,217 @@ const btnPermCancel = document.getElementById(
   "btn-perm-cancel",
 ) as HTMLButtonElement;
 
-let pendingCapture: "tab" | "mic" | null = null;
-let recordingType: "tab" | "mic" | null = null;
+let pendingCapture: CaptureType | null = null;
 
 function setStatus(text: string) {
   statusDiv.textContent = `Stare: ${text}`;
+}
+
+function transitionTo(newState: CaptureState) {
+  state = newState;
+  idleUi.style.display = "none";
+  preparingUi.style.display = "none";
+  recordingUi.style.display = "none";
+  processingUi.style.display = "none";
+  resultUi.style.display = "none";
+  errorUi.style.display = "none";
+
+  switch (newState) {
+    case "idle":
+      idleUi.style.display = "block";
+      btnTab.disabled = false;
+      btnMic.disabled = false;
+      btnTab.textContent = "Captură Filă";
+      btnMic.textContent = "Captură Microfon";
+      setStatus("Pregătit");
+      break;
+    case "preparing":
+      preparingUi.style.display = "block";
+      btnTab.disabled = true;
+      btnMic.disabled = true;
+      setStatus("Se inițializează...");
+      break;
+    case "recording":
+      recordingUi.style.display = "block";
+      setStatus("Se înregistrează");
+      break;
+    case "processing":
+      processingUi.style.display = "block";
+      setStatus("Se procesează");
+      break;
+    case "result":
+      resultUi.style.display = "block";
+      setStatus("Verdict primit");
+      break;
+    case "error":
+      errorUi.style.display = "block";
+      setStatus("Eroare");
+      break;
+  }
+}
+
+function startTimer() {
+  elapsedSeconds = 0;
+  updateTimer();
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    updateTimer();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimer() {
+  const mins = Math.floor(elapsedSeconds / 60);
+  const secs = elapsedSeconds % 60;
+  timerDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function showPermDialog(type: CaptureType) {
+  pendingCapture = type;
+  if (type === "tab") {
+    permTitle.textContent = "Permisiune pentru captura audio";
+    permDesc.textContent =
+      "Verificat are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
+  } else {
+    permTitle.textContent = "Permisiune pentru microfon";
+    permDesc.textContent =
+      "Verificat are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
+  }
+  permOverlay.classList.add("open");
+}
+
+function hidePermDialog() {
+  permOverlay.classList.remove("open");
+  pendingCapture = null;
+}
+
+btnPermCancel.addEventListener("click", hidePermDialog);
+
+btnPermAllow.addEventListener("click", () => {
+  hidePermDialog();
+  if (pendingCapture === "tab") {
+    void startTabCaptureImpl();
+  } else if (pendingCapture === "mic") {
+    void startMicCaptureImpl();
+  }
+});
+
+btnStopRecording.addEventListener("click", () => {
+  void stopRecording();
+});
+
+btnNewCheck.addEventListener("click", () => {
+  transitionTo("idle");
+});
+
+btnErrorRetry.addEventListener("click", () => {
+  transitionTo("idle");
+});
+
+async function startTabCaptureImpl() {
+  if (isTabCapturing) return;
+  transitionTo("preparing");
+  preparingText.textContent = "Se inițializează capturarea filei...";
+  captureType = "tab";
+
+  try {
+    await startTabCapture();
+    isTabCapturing = true;
+    captureType = "tab";
+    recordingLabel.textContent = "Se capturează audio din filă";
+    transitionTo("recording");
+    startTimer();
+  } catch (err: unknown) {
+    const msg = (err as Error).message;
+    showInlineError(msg);
+  }
+}
+
+async function startMicCaptureImpl() {
+  if (micRecorder) return;
+  transitionTo("preparing");
+  preparingText.textContent = "Se inițializează microfonul...";
+  captureType = "mic";
+
+  try {
+    const capture = await startMicCapture();
+    micRecorder = capture.recorder;
+    micStop = capture.stop;
+
+    const { onStop } = collectChunks(micRecorder);
+    blobReady = onStop;
+
+    micRecorder.start(1000);
+
+    void chrome.runtime.sendMessage({
+      type: "CAPTURE_STARTED",
+      captureType: "mic",
+    });
+
+    recordingLabel.textContent = "Se înregistrează de la microfon";
+    transitionTo("recording");
+    startTimer();
+  } catch (err: unknown) {
+    const msg = (err as Error).message;
+    showInlineError(msg);
+  }
+}
+
+async function stopRecording() {
+  stopTimer();
+
+  if (captureType === "tab") {
+    void chrome.runtime.sendMessage({ type: "STOP_TAB_CAPTURE" });
+    isTabCapturing = false;
+    transitionTo("processing");
+    processingStatus.textContent = "Se așteaptă verdictul...";
+    setStatus("Procesare");
+  } else if (captureType === "mic" && micRecorder) {
+    micStop?.();
+    micRecorder = null;
+    micStop = null;
+
+    transitionTo("processing");
+    processingStatus.textContent = "Se încarcă audio...";
+
+    try {
+      const blob = await blobReady;
+      if (!blob) throw new Error("Captura audio nu a produs date.");
+      processingStatus.textContent = "Se analizează...";
+      await dispatchAudioAndWait(blob);
+    } catch (err: unknown) {
+      showInlineError((err as Error).message);
+    }
+  }
+}
+
+async function dispatchAudioAndWait(blob: Blob) {
+  await dispatchAndWait(blob, (p) => {
+    showProgress(p.stage, p.progress, p.claim);
+  });
+}
+
+function showProgress(stage: string, pct: number, claim?: string) {
+  const labels: Record<string, string> = {
+    speech: "Transcriere audio...",
+    claim_detection: "Detectare afirmații...",
+    evidence_retrieval: "Căutare dovezi...",
+    verdict_generation: "Generare verdict...",
+  };
+  const clampedPct = Math.max(0, Math.min(100, pct));
+  let html = `<div class="stage-text">${labels[stage] || "Procesare..."} ${clampedPct}%</div>`;
+  html += `<div class="progress-bar-track"><div class="progress-bar-fill" style="width:${clampedPct}%"></div></div>`;
+  if (claim) {
+    html += `<div class="progress-claim">"${claim.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>`;
+  }
+  progressDetail.innerHTML = html;
+  processingStatus.textContent = labels[stage] || "Procesare...";
 }
 
 const verdictTranslations: Record<string, string> = {
@@ -32,6 +290,15 @@ const verdictTranslations: Record<string, string> = {
   Misleading: "Înșelător",
   False: "Fals",
   Unverified: "Neverificat",
+};
+
+const verdictColors: Record<string, string> = {
+  True: "#22c55e",
+  "Mostly True": "#84cc16",
+  "Partially True": "#d97706",
+  Misleading: "#ea580c",
+  False: "#ef4444",
+  Unverified: "#6b7280",
 };
 
 function showVerdict(
@@ -54,163 +321,44 @@ function showVerdict(
       .join("");
   }
 
-  verdictSection.style.display = "block";
+  const accentColor = verdictColors[verdict] || "#171717";
+
   verdictSection.innerHTML = `
-    <div class="verdict-label">${verdictTranslations[verdict] || verdict}</div>
+    <div class="verdict-label" style="color:${accentColor};">${verdictTranslations[verdict] || verdict}</div>
     <div class="verdict-confidence">${confidence} / 100</div>
     <div class="verdict-explanation">${explanation}</div>
     ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}
+    <div class="progress-bar-track" style="margin-top:12px;">
+      <div class="progress-bar-fill" style="width:${confidence}%;background:${accentColor};"></div>
+    </div>
   `;
+  transitionTo("result");
 }
 
-function showProgress(stage: string, pct: number, claim?: string) {
-  const labels: Record<string, string> = {
-    speech: "Transcriere audio...",
-    claim_detection: "Detectare afirmații...",
-    evidence_retrieval: "Căutare dovezi...",
-    verdict_generation: "Generare verdict...",
-  };
-  const clampedPct = Math.max(0, Math.min(100, pct));
-  let html = `<div class="stage-text">${labels[stage] || "Procesare..."} ${clampedPct}%</div>`;
-  html += `<div class="progress-bar-track"><div class="progress-bar-fill" style="width:${clampedPct}%"></div></div>`;
-  if (claim) {
-    html += `<div class="progress-claim">"${claim.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>`;
-  }
-  verdictSection.style.display = "block";
-  verdictSection.innerHTML = html;
-}
-
-function showStatus(text: string) {
-  verdictSection.style.display = "block";
-  verdictSection.innerHTML = `
-    <div class="stage-text">${text}</div>
-  `;
-}
-
-function showPermDialog(type: "tab" | "mic") {
-  pendingCapture = type;
-  if (type === "tab") {
-    permTitle.textContent = "Permisiune pentru captura audio";
-    permDesc.textContent =
-      "Verificat are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
-  } else {
-    permTitle.textContent = "Permisiune pentru microfon";
-    permDesc.textContent =
-      "Verificat are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
-  }
-  permOverlay.classList.add("open");
-}
-
-function hidePermDialog() {
-  permOverlay.classList.remove("open");
-  pendingCapture = null;
-}
-
-function resetButtons() {
-  btnTab.textContent = "Captură Filă";
-  btnMic.textContent = "Captură Microfon";
-  btnTab.disabled = false;
-  btnMic.disabled = false;
-  recordingType = null;
-}
-
-btnPermCancel.addEventListener("click", hidePermDialog);
-
-btnPermAllow.addEventListener("click", () => {
-  hidePermDialog();
-  if (pendingCapture === "tab") {
-    startTabCaptureImpl();
-  } else if (pendingCapture === "mic") {
-    startMicCaptureImpl();
-  }
-});
-
-function startTabCaptureImpl() {
-  if (recordingType === "tab") {
-    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    resetButtons();
-    setStatus("Oprit");
-    return;
-  }
-
-  setStatus("Se inițializează capturarea tabului...");
-  startTabCapture()
-    .then(() => {
-      recordingType = "tab";
-      setStatus("Se capturează tabul audio");
-      btnTab.textContent = "Oprește";
-      btnMic.disabled = true;
-    })
-    .catch((err: unknown) => {
-      const msg = (err as Error).message;
-      if (msg.includes("refuzat")) {
-        setStatus("Captura audio a filei a fost refuzată.");
-      } else {
-        setStatus(`Eroare: ${msg}`);
-      }
-    });
-}
-
-function startMicCaptureImpl() {
-  if (recordingType === "mic") {
-    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    resetButtons();
-    setStatus("Oprit");
-    return;
-  }
-
-  setStatus("Se inițializează microfonul...");
-  captureAndVerifyMic()
-    .then(() => {
-      resetButtons();
-      setStatus("Verdict primit");
-    })
-    .catch((err: unknown) => {
-      const msg = (err as Error).message;
-      if (msg.includes("NotAllowed") || msg.includes("Permission")) {
-        setStatus(
-          "Accesul la microfon a fost refuzat. Verifică setările browserului și permite accesul la microfon.",
-        );
-      } else if (msg.includes("NotFound")) {
-        setStatus("Nu s-a găsit niciun microfon.");
-      } else {
-        setStatus(`Eroare: ${msg}`);
-      }
-      resetButtons();
-    });
-
-  recordingType = "mic";
-  setStatus("Se ascultă...");
-  btnMic.textContent = "Oprește";
-  btnTab.disabled = true;
+function showInlineError(message: string) {
+  errorText.textContent = message;
+  transitionTo("error");
 }
 
 btnTab.addEventListener("click", () => {
-  if (recordingType === "tab") {
-    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    resetButtons();
-    setStatus("Oprit");
-    return;
-  }
-  if (recordingType === "mic") return;
+  if (state !== "idle") return;
   showPermDialog("tab");
 });
 
 btnMic.addEventListener("click", () => {
-  if (recordingType === "mic") {
-    void chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    resetButtons();
-    setStatus("Oprit");
-    return;
-  }
-  if (recordingType === "tab") return;
+  if (state !== "idle") return;
   showPermDialog("mic");
 });
 
 type SidepanelMessage =
-  | { type: "CAPTURE_STARTED" }
-  | { type: "VERIFICATION_STARTED"; source?: string }
-  | { type: "VERIFICATION_PROGRESS"; stage: string; progress: number; claim?: string }
+  | { type: "CAPTURE_STARTED"; captureType?: string }
+  | { type: "VERIFICATION_STARTED"; source?: string; jobId?: string }
+  | {
+      type: "VERIFICATION_PROGRESS";
+      stage: string;
+      progress: number;
+      claim?: string;
+    }
   | {
       type: "VERIFICATION_COMPLETED";
       result: {
@@ -226,28 +374,30 @@ type SidepanelMessage =
   | { type: "START_MIC_CAPTURE" };
 
 chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
-  if (msg.type === "CAPTURE_STARTED") {
-    showStatus("Se ascultă...");
-  }
   if (msg.type === "VERIFICATION_STARTED") {
-    showStatus(msg.source === "text" ? "Se analizează textul..." : "Se încarcă audio...");
+    if (state === "idle" || state === "recording") {
+      transitionTo("processing");
+      processingStatus.textContent =
+        msg.source === "text"
+          ? "Se analizează textul..."
+          : "Se încarcă audio...";
+    }
   }
   if (msg.type === "VERIFICATION_PROGRESS") {
-    showProgress(msg.stage, msg.progress, msg.claim);
+    if (state === "processing") {
+      showProgress(msg.stage, msg.progress, msg.claim);
+    }
   }
   if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims?.[0]) {
     const c = msg.result.claims[0];
     showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
-    setStatus("Verdict primit");
-    resetButtons();
   }
   if (msg.type === "VERIFICATION_FAILED") {
-    verdictSection.style.display = "block";
-    verdictSection.innerHTML = `<div style="text-align:center;padding:12px;color:var(--color-body);">Eroare: ${msg.reason}</div>`;
-    setStatus("Eroare");
-    resetButtons();
+    showInlineError(msg.reason);
   }
   if (msg.type === "START_MIC_CAPTURE") {
     showPermDialog("mic");
   }
 });
+
+void resumePendingJob();

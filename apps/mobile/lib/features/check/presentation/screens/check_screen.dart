@@ -52,7 +52,10 @@ class _CheckScreenState extends State<CheckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rezultat Verificare')),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Text('Rezultat Verificare'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: _buildBody(context),

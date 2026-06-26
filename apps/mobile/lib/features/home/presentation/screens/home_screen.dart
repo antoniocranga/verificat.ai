@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/auth/auth_bloc.dart';
+import '../../../../core/widgets/widgets.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -40,44 +41,65 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Icon(
+                Icons.verified_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(height: 16),
+              Text(
                 'Verificat',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.4,
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
+              const SizedBox(height: 8),
+              Text(
                 'Verifică informațiile cu încredere',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFF8F8F8F),
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              FilledButton(
-                onPressed: () => context.go('/check/e2e00000-0000-0000-0000-000000000003'),
-                child: const Text('Vezi un exemplu'),
+              SizedBox(
+                width: double.infinity,
+                child: AppPrimaryButton(
+                  label: 'Verifică acum',
+                  onPressed: () => context.go('/listen'),
+                ),
               ),
               const SizedBox(height: 12),
-              FilledButton(
-                onPressed: () => context.go('/listen'),
-                child: const Text('Verifică acum'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: () => context.go('/search'),
-                child: const Text('Caută verificări'),
+              SizedBox(
+                width: double.infinity,
+                child: AppGhostButton(
+                  label: 'Caută verificări',
+                  onPressed: () => context.go('/search'),
+                ),
               ),
               const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => context.go('/saved'),
-                child: const Text('Verificări salvate'),
+              SizedBox(
+                width: double.infinity,
+                child: AppSecondaryButton(
+                  label: 'Vezi un exemplu',
+                  onPressed: () => context.go('/check/e2e00000-0000-0000-0000-000000000003'),
+                ),
               ),
               const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => context.go('/settings'),
-                child: const Text('Setări'),
+              SizedBox(
+                width: double.infinity,
+                child: AppSecondaryButton(
+                  label: 'Verificări salvate',
+                  onPressed: () => context.go('/saved'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: AppSecondaryButton(
+                  label: 'Setări',
+                  onPressed: () => context.go('/settings'),
+                ),
               ),
             ],
           ),

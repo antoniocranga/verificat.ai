@@ -10,7 +10,10 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Setări')),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Text('Setări'),
+      ),
       body: ListView(
         children: [
           const SizedBox(height: 16),

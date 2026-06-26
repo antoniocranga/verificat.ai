@@ -24,8 +24,18 @@ class HistoryScreen extends StatelessWidget {
           }
           if (state.checks.isEmpty) {
             return Center(
-              child: Text('Nicio verificare salvată.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.bookmark_border, size: 48, color: Color(0xFF8F8F8F)),
+                  const SizedBox(height: 12),
+                  Text('Nicio verificare salvată.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                  const SizedBox(height: 4),
+                  Text('Verifică o afirmație și salveaz-o aici.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF8F8F8F))),
+                ],
+              ),
             );
           }
           return ListView.builder(
