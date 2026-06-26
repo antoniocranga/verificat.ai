@@ -121,9 +121,10 @@ export async function consumeVerdictStream(
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
 
-      for (const line of lines) {
+      for (const rawLine of lines) {
+        const line = rawLine.trimEnd();
         if (line.startsWith("event: ")) {
-          lastEventType = line.slice(7);
+          lastEventType = line.slice(7).trim();
           continue;
         }
         if (line.startsWith("data: ")) {

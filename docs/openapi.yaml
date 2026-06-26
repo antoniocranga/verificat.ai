@@ -144,8 +144,8 @@ paths:
           description: ''
       tags: *ref_4
 info:
-  title: Verificat API
-  description: Verificat fact-checking platform API
+  title: verificat.xyz API
+  description: verificat.xyz fact-checking platform API
   version: 0.1.0
   contact: {}
 tags: []

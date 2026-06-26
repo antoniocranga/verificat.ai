@@ -9,7 +9,9 @@ class JobApiService {
 
   JobApiService({String? baseUrl, HttpClient? client})
       : _baseUrl = baseUrl ?? AppEnv.apiUrl,
-        _client = client ?? HttpClient();
+        _client = (client ?? HttpClient())
+          ..connectionTimeout = const Duration(seconds: 10)
+          ..idleTimeout = const Duration(seconds: 30);
 
   Future<Map<String, dynamic>> uploadAudio(File audioFile) async {
     final uri = Uri.parse('$_baseUrl/jobs/upload');
@@ -22,7 +24,7 @@ class JobApiService {
     request.add(audioBytes);
     await request.close();
 
-    final response = await request.done;
+    final response = await request.done.timeout(const Duration(seconds: 30));
     final body = await response.transform(utf8.decoder).join();
 
     if (response.statusCode != 202) {
@@ -43,8 +45,14 @@ class JobApiService {
       final response = await request.close();
 
       String lastEventType = '';
+      String dataBuffer = '';
       await for (final chunk in response.transform(utf8.decoder)) {
-        for (final line in chunk.split('\n')) {
+        dataBuffer += chunk;
+        while (dataBuffer.contains('\n')) {
+          final idx = dataBuffer.indexOf('\n');
+          final line = dataBuffer.substring(0, idx).trimRight();
+          dataBuffer = dataBuffer.substring(idx + 1);
+
           if (line.startsWith('event: ')) {
             lastEventType = line.substring(7).trim();
           } else if (line.startsWith('data: ')) {
@@ -59,6 +67,8 @@ class JobApiService {
                 yield {'type': 'progress', ...parsed};
               }
             } catch (_) {}
+          } else if (line.isEmpty && lastEventType == 'completed') {
+            // Handle case where completed is followed by data in next event
           }
         }
       }

@@ -31,8 +31,8 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
-    .setTitle('Verificat API')
-    .setDescription('Verificat fact-checking platform API')
+    .setTitle('verificat.xyz API')
+    .setDescription('verificat.xyz fact-checking platform API')
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();

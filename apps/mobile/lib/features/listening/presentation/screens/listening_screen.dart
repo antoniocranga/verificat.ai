@@ -131,7 +131,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Spinning progress indicator using accent colour
         const SizedBox(
           width: 40,
           height: 40,

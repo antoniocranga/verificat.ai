@@ -17,7 +17,8 @@ class VerificatApp extends StatefulWidget {
   State<VerificatApp> createState() => _VerificatAppState();
 }
 
-class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver {
+class _VerificatAppState extends State<VerificatApp>
+    with WidgetsBindingObserver {
   late bool _consented;
   bool? _onboardingComplete;
 
@@ -73,7 +74,7 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
   Widget build(BuildContext context) {
     if (!_consented) {
       return MaterialApp(
-        title: 'Verificat',
+        title: 'verificat.xyz',
         theme: appTheme,
         debugShowCheckedModeBanner: false,
         home: ConsentScreen(onAccept: _acceptConsent),
@@ -82,7 +83,7 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
 
     if (_onboardingComplete == false) {
       return MaterialApp(
-        title: 'Verificat',
+        title: 'verificat.xyz',
         theme: appTheme,
         debugShowCheckedModeBanner: false,
         home: OnboardingScreen(onComplete: _completeOnboarding),
@@ -92,7 +93,7 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
     return BlocProvider<AuthBloc>(
       create: (_) => AuthBloc()..add(AuthCheckRequested()),
       child: MaterialApp.router(
-        title: 'Verificat',
+        title: 'verificat.xyz',
         theme: appTheme,
         routerConfig: router,
         debugShowCheckedModeBanner: false,

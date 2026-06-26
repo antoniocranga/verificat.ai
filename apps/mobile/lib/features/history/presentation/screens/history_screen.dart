@@ -27,13 +27,20 @@ class HistoryScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.bookmark_border, size: 48, color: Color(0xFF8F8F8F)),
+                  const Icon(Icons.bookmark_border,
+                      size: 48, color: Color(0xFF8F8F8F)),
                   const SizedBox(height: 12),
                   Text('Nicio verificare salvată.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: const Color(0xFF4D4D4D))),
                   const SizedBox(height: 4),
                   Text('Verifică o afirmație și salveaz-o aici.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF8F8F8F))),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: const Color(0xFF8F8F8F))),
                 ],
               ),
             );
@@ -43,7 +50,8 @@ class HistoryScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final check = state.checks[index];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Dismissible(
                   key: ValueKey(check.id),
                   direction: DismissDirection.endToStart,
@@ -58,7 +66,7 @@ class HistoryScreen extends StatelessWidget {
                   ),
                   child: AppFeatureCard(
                     child: InkWell(
-                      onTap: () => context.go('/check/${check.id}'),
+                      onTap: () => context.push('/check/${check.id}'),
                       child: Row(
                         children: [
                           Expanded(
@@ -66,7 +74,8 @@ class HistoryScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  check.claimText ?? 'Verificare #${check.id.substring(0, 8)}',
+                                  check.claimText ??
+                                      'Verificare #${check.id.substring(0, 8)}',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 4),
@@ -74,7 +83,11 @@ class HistoryScreen extends StatelessWidget {
                                   check.verdict != null
                                       ? '${check.verdict} · ${check.confidenceScore?.toStringAsFixed(0) ?? "-"}/100'
                                       : 'Salvată ${check.savedAt.substring(0, 10)}',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF8F8F8F)),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: const Color(0xFF8F8F8F)),
                                 ),
                               ],
                             ),

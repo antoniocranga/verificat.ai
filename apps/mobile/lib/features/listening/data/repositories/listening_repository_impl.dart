@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:verificat_mobile/core/api/job_api_service.dart';
 import 'package:verificat_mobile/core/audio/audio_recorder_service.dart';
 import 'package:verificat_mobile/core/audio/audio_session_service.dart';
@@ -49,9 +50,14 @@ class ListeningRepositoryImpl implements ListeningRepository {
 
   @override
   Future<String?> uploadAndVerify() async {
-    if (_audioFile == null) return null;
+    if (_audioFile == null) {
+      debugPrint('[ListeningRepo] uploadAndVerify: _audioFile is null');
+      return null;
+    }
+    debugPrint('[ListeningRepo] uploadAndVerify: file=${_audioFile!.path}, size=${_audioFile!.lengthSync()}');
     final result = await _api.uploadAudio(_audioFile!);
     _audioFile = null;
+    debugPrint('[ListeningRepo] uploadAndVerify: result=$result');
     return result['jobId'] as String?;
   }
 

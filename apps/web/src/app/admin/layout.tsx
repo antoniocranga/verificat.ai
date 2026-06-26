@@ -49,7 +49,7 @@ export default async function AdminLayout({
               letterSpacing: "-0.4px",
             }}
           >
-            Verificat Admin
+            verificat.xyz Admin
           </a>
           <nav style={{ display: "flex", gap: 16 }}>
             <a

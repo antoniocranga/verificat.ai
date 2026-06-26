@@ -19,7 +19,7 @@ class SearchScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.bookmark),
             tooltip: 'Verificări salvate',
-            onPressed: () => context.go('/saved'),
+            onPressed: () => context.push('/saved'),
           ),
         ],
       ),
@@ -41,34 +41,44 @@ class SearchScreen extends StatelessWidget {
               }
               if (state.error != null) {
                 return Center(
-                  child: Text(state.error!, style: const TextStyle(color: Color(0xFFEE0000))),
+                  child: Text(state.error!,
+                      style: const TextStyle(color: Color(0xFFEE0000))),
                 );
               }
               if (state.results.isEmpty && state.query.isNotEmpty) {
                 return Center(
                   child: Text('Niciun rezultat găsit.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: const Color(0xFF4D4D4D))),
                 );
               }
               if (state.results.isEmpty) {
                 return Center(
                   child: Text('Introduceți un termen de căutare.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D))),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: const Color(0xFF4D4D4D))),
                 );
               }
               return NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
                   if (notification is ScrollEndNotification &&
-                      notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
+                      notification.metrics.pixels >=
+                          notification.metrics.maxScrollExtent - 200) {
                     context.read<SearchBloc>().add(const SearchLoadMore());
                   }
                   return false;
                 },
                 child: ListView.builder(
-                  itemCount: state.results.length + (state.isLoadingMore ? 1 : 0),
+                  itemCount:
+                      state.results.length + (state.isLoadingMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index >= state.results.length) {
-                      return const Center(child: Padding(
+                      return const Center(
+                          child: Padding(
                         padding: EdgeInsets.all(16),
                         child: CircularProgressIndicator(),
                       ));
@@ -106,7 +116,11 @@ class _ResultCardState extends State<_ResultCard> {
 
   Future<void> _checkSaved() async {
     final saved = await _repo.isSaved(verdictId: widget.result.id);
-    if (mounted) setState(() { _isSaved = saved; _loadingSaved = false; });
+    if (mounted)
+      setState(() {
+        _isSaved = saved;
+        _loadingSaved = false;
+      });
   }
 
   Future<void> _toggleSave() async {
@@ -124,7 +138,7 @@ class _ResultCardState extends State<_ResultCard> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: AppFeatureCard(
         child: InkWell(
-          onTap: () => context.go('/check/${widget.result.id}'),
+          onTap: () => context.push('/check/${widget.result.id}'),
           child: Row(
             children: [
               Expanded(
@@ -132,20 +146,25 @@ class _ResultCardState extends State<_ResultCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.result.claimText ?? 'Verificare #${widget.result.id.substring(0, 8)}',
+                      widget.result.claimText ??
+                          'Verificare #${widget.result.id.substring(0, 8)}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${widget.result.verdict} · ${widget.result.confidenceScore.toStringAsFixed(0)}/100',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF8F8F8F)),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: const Color(0xFF8F8F8F)),
                     ),
                   ],
                 ),
               ),
               if (!_loadingSaved)
                 IconButton(
-                  icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border, size: 20),
+                  icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      size: 20),
                   onPressed: _toggleSave,
                 ),
               const Icon(Icons.chevron_right, size: 20),

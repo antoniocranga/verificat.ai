@@ -1,6 +1,6 @@
 import { Injectable, Inject, OnModuleDestroy, Logger } from '@nestjs/common';
-import { QueueEvents } from 'bullmq';
-import { Observable, Subject } from 'rxjs';
+import { Queue, QueueEvents } from 'bullmq';
+import { Observable, Subject, finalize } from 'rxjs';
 
 interface SseMessageEvent {
   data: string;
@@ -15,9 +15,36 @@ export class JobsEventService implements OnModuleDestroy {
 
   constructor(
     @Inject('QUEUE_EVENTS') private readonly queueEvents: QueueEvents,
+    @Inject('QUEUE') private readonly queue: Queue,
   ) {}
 
-  watchJob(jobId: string): Observable<SseMessageEvent> {
+  async watchJob(jobId: string): Promise<Observable<SseMessageEvent>> {
+    // Check if job already completed/failed before subscribing to events
+    const job = await this.queue.getJob(jobId);
+    if (job) {
+      const state = await job.getState();
+      if (state === 'completed') {
+        this.logger.log(`Job ${jobId} already completed`);
+        return new Observable((subscriber) => {
+          subscriber.next({
+            data: JSON.stringify(job.returnvalue),
+            type: 'completed',
+          });
+          subscriber.complete();
+        });
+      }
+      if (state === 'failed') {
+        this.logger.log(`Job ${jobId} already failed`);
+        return new Observable((subscriber) => {
+          subscriber.next({
+            data: job.failedReason ?? 'Unknown error',
+            type: 'failed',
+          });
+          subscriber.complete();
+        });
+      }
+    }
+
     const subject = new Subject<SseMessageEvent>();
 
     const onCompleted = (event: { jobId: string; returnvalue: string }) => {
@@ -47,7 +74,13 @@ export class JobsEventService implements OnModuleDestroy {
     this.queueEvents.on('failed', onFailed);
     this.queueEvents.on('progress', onProgress);
 
-    return subject.asObservable();
+    return subject.pipe(
+      finalize(() => {
+        this.queueEvents.off('completed', onCompleted);
+        this.queueEvents.off('failed', onFailed);
+        this.queueEvents.off('progress', onProgress);
+      }),
+    );
   }
 
   onModuleDestroy() {

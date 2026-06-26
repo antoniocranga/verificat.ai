@@ -1,4 +1,4 @@
-# AGENT.md — Verificat Operational Reference
+# AGENT.md — verificat.xyz Operational Reference
 
 ## 1. Repo Structure
 

@@ -1,4 +1,4 @@
-# Verificat Browser Extension
+# verificat.xyz Browser Extension
 
 ## Prerequisites
 

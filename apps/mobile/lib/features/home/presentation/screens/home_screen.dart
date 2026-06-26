@@ -14,8 +14,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Verificat'),
-        centerTitle: true,
+        leading: null,
         actions: [
           BlocBuilder<AuthBloc, AuthStatus>(
             builder: (context, authStatus) {
@@ -25,14 +24,14 @@ class HomeScreen extends StatelessWidget {
                   tooltip: 'Deconectare',
                   onPressed: () {
                     context.read<AuthBloc>().add(AuthSignOutRequested());
-                    context.go('/login');
+                    context.push('/login');
                   },
                 );
               }
               return IconButton(
                 icon: const Icon(Icons.login_rounded),
                 tooltip: 'Autentificare',
-                onPressed: () => context.go('/login'),
+                onPressed: () => context.push('/login'),
               );
             },
           ),
@@ -59,7 +58,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Verificat',
+                'verificat.xyz',
                 style: AppTextStyles.headingSection,
               ),
               const SizedBox(height: 8),
@@ -75,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Verifică acum',
                   variant: AppButtonVariant.accent,
                   width: double.infinity,
-                  onPressed: () => context.go('/listen'),
+                  onPressed: () => context.push('/listen'),
                 ),
               ),
               const SizedBox(height: 10),
@@ -84,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                 child: AppButton.secondary(
                   label: 'Caută verificări',
                   width: double.infinity,
-                  onPressed: () => context.go('/search'),
+                  onPressed: () => context.push('/search'),
                 ),
               ),
               const SizedBox(height: 10),
@@ -93,7 +92,8 @@ class HomeScreen extends StatelessWidget {
                 child: AppButton.ghost(
                   label: 'Vezi un exemplu',
                   width: double.infinity,
-                  onPressed: () => context.go('/check/e2e00000-0000-0000-0000-000000000003'),
+                  onPressed: () => context
+                      .push('/check/e2e00000-0000-0000-0000-000000000003'),
                 ),
               ),
               const SizedBox(height: 10),
@@ -102,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                 child: AppButton.ghost(
                   label: 'Verificări salvate',
                   width: double.infinity,
-                  onPressed: () => context.go('/saved'),
+                  onPressed: () => context.push('/saved'),
                 ),
               ),
               const SizedBox(height: 10),
@@ -111,7 +111,7 @@ class HomeScreen extends StatelessWidget {
                 child: AppButton.ghost(
                   label: 'Setări',
                   width: double.infinity,
-                  onPressed: () => context.go('/settings'),
+                  onPressed: () => context.push('/settings'),
                 ),
               ),
             ],

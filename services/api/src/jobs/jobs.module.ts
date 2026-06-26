@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { QueueEvents } from 'bullmq';
+import { Queue, QueueEvents } from 'bullmq';
 import { JobsController } from './jobs.controller';
 import { JobsService } from './jobs.service';
 import { JobsConsumer } from './jobs.consumer';
@@ -41,6 +41,19 @@ import { SourcesModule } from '../sources/sources.module';
           console.error('QueueEvents error:', err);
         });
         return events;
+      },
+    },
+    {
+      provide: 'QUEUE',
+      useFactory: () => {
+        const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+        const match = redisUrl.match(/redis:\/\/([^:]+):(\d+)/);
+        return new Queue('fact-verification', {
+          connection: {
+            host: match?.[1] || '127.0.0.1',
+            port: parseInt(match?.[2] || '6379', 10),
+          },
+        });
       },
     },
   ],
