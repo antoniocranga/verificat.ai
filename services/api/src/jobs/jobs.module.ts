@@ -10,6 +10,7 @@ import { JobsEventService } from './jobs-event.service';
 import { SpeechModule } from '../speech/speech.module';
 import { FactChecksModule } from '../fact-checks/fact-checks.module';
 import { SourcesModule } from '../sources/sources.module';
+import { SupabaseModule } from '../supabase/supabase.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SourcesModule } from '../sources/sources.module';
     SpeechModule,
     FactChecksModule,
     SourcesModule,
+    SupabaseModule,
   ],
   controllers: [JobsController],
   providers: [

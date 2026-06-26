@@ -58,7 +58,7 @@ class ListeningRepositoryImpl implements ListeningRepository {
     final result = await _api.uploadAudio(_audioFile!);
     _audioFile = null;
     debugPrint('[ListeningRepo] uploadAndVerify: result=$result');
-    return result['jobId'] as String?;
+    return result['jobId']?.toString();
   }
 
   @override

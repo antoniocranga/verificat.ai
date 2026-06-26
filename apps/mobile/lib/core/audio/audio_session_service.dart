@@ -34,7 +34,11 @@ class AudioSessionService {
   }
 
   Future<void> setCategoryPlayAndRecord() async {
-    await _channel.invokeMethod('setCategoryPlayAndRecord');
+    try {
+      await _channel.invokeMethod('setCategoryPlayAndRecord');
+    } on MissingPluginException {
+      // Ignored on platforms without native implementation (e.g. Android)
+    } catch (_) {}
   }
 
   void dispose() {

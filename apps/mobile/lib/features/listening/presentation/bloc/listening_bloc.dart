@@ -186,10 +186,8 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
       _jobStreamSub = _repository.streamJobEvents(jobId).listen(
             (event) {
           if (event['type'] == 'completed') {
-            final claims = event['claims'] as List<dynamic>?;
-            if (claims != null && claims.isNotEmpty) {
-              add(VerdictReady(claims.cast<Map<String, dynamic>>()));
-            }
+            final claims = event['claims'] as List<dynamic>? ?? [];
+            add(VerdictReady(claims.cast<Map<String, dynamic>>()));
           } else if (event['type'] == 'failed') {
             add(const ListeningFailed('Procesarea a eșuat.'));
           }
