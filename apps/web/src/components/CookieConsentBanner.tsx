@@ -20,37 +20,13 @@ export function CookieConsentBanner() {
   if (!visible) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        backgroundColor: "#0d1120",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
-        padding: "16px 24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 16,
-        flexWrap: "wrap",
-        color: "#e2e8f0",
-        fontFamily: "Inter, sans-serif",
-        fontSize: 14,
-      }}
-    >
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between gap-4 flex-wrap p-4 bg-white border-t border-[#ebebeb] text-[#4d4d4d] font-sans text-sm">
       <span>
         Folosim cookie-uri esențiale pentru funcționarea site-ului.
-        {}
         <a
           href="/privacy"
           target="_blank"
-          style={{
-            color: "#3b82f6",
-            marginLeft: 4,
-            textDecoration: "underline",
-          }}
+          className="ml-1 text-[#0070f3] underline"
         >
           Află mai multe
         </a>
@@ -58,17 +34,7 @@ export function CookieConsentBanner() {
       </span>
       <button
         onClick={accept}
-        style={{
-          backgroundColor: "#3b82f6",
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "8px 20px",
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-        }}
+        className="bg-[#171717] text-white border-none rounded-[6px] px-5 py-2 text-sm font-semibold cursor-pointer whitespace-nowrap"
       >
         Accept
       </button>
