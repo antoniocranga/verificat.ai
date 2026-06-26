@@ -109,7 +109,7 @@ class _CheckScreenState extends State<CheckScreen> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: accentColor.withOpacity(0.25)),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.25)),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

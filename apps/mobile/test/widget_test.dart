@@ -3,11 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verificat_mobile/app/app.dart';
 
 void main() {
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-  });
-
   testWidgets('Shows consent screen on first launch', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const VerificatApp(initialConsented: false));
     await tester.pumpAndSettle();
 
@@ -15,7 +12,8 @@ void main() {
     expect(find.text('Am înțeles. Continuați'), findsOneWidget);
   });
 
-  testWidgets('Consent acceptance transitions to main app', (WidgetTester tester) async {
+  testWidgets('Consent acceptance transitions to onboarding', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const VerificatApp(initialConsented: false));
     await tester.pumpAndSettle();
 
@@ -25,24 +23,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('CONFIDENȚIALITATEA DATELOR'), findsNothing);
-    expect(find.text('Vezi un exemplu'), findsOneWidget);
+    expect(find.text('Verifică informațiile\ncu încredere'), findsOneWidget);
   });
 
-  testWidgets('App renders home screen when consented', (WidgetTester tester) async {
+  testWidgets('App renders home screen when consented and onboarded', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({'onboarding-complete': true});
     await tester.pumpWidget(const VerificatApp(initialConsented: true));
     await tester.pumpAndSettle();
 
     expect(find.text('Verificat'), findsWidgets);
-    expect(find.text('Vezi un exemplu'), findsOneWidget);
+    expect(find.text('Verifică acum'), findsOneWidget);
   });
 
   testWidgets('Navigation to check screen works', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({'onboarding-complete': true});
     await tester.pumpWidget(const VerificatApp(initialConsented: true));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Vezi un exemplu'));
+    await tester.tap(find.text('Verifică acum'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Rezultat Verificare'), findsOneWidget);
+    expect(find.text('Verificare Audio'), findsOneWidget);
   });
 }

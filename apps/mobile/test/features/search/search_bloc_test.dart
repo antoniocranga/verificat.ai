@@ -34,9 +34,14 @@ void main() {
 
     test('empty query clears results', () async {
       final bloc = SearchBloc(repository: MockSearchRepository());
+      final states = <SearchState>[];
+      bloc.stream.listen((s) => states.add(s));
+
       bloc.add(const SearchQueryChanged('test'));
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 10));
       bloc.add(const SearchQueryChanged(''));
+      await Future.delayed(const Duration(milliseconds: 10));
+
       expect(bloc.state.query, '');
       expect(bloc.state.results, isEmpty);
       expect(bloc.state.isLoading, isFalse);

@@ -123,7 +123,7 @@ void main() {
       bloc.close();
     });
 
-    test('VerdictReceived stores verdict id', () async {
+    test('VerdictReady stores claims data', () async {
       final bloc = ListeningBloc(
         repository: MockListeningRepository(grantPermission: true),
       );
@@ -132,12 +132,15 @@ void main() {
 
       bloc.add(const StartListening());
       await Future.delayed(Duration.zero);
-      bloc.add(const VerdictReceived('v-789'));
+      bloc.add(const VerdictReady([
+        {'verdict': 'True', 'confidenceScore': 95, 'explanation': 'OK', 'assertion': 'Test'},
+      ]));
       await Future.delayed(Duration.zero);
 
       expect(states.length, 2);
       expect(states[1].status, ListeningStatus.verdictReady);
-      expect(states[1].verdictId, 'v-789');
+      expect(states[1].claimsData, isNotNull);
+      expect(states[1].claimsData!.length, 1);
       bloc.close();
     });
 
@@ -168,6 +171,7 @@ void main() {
       expect(bloc.state.status, ListeningStatus.listening);
 
       bloc.reset();
+      await Future.delayed(Duration.zero);
       expect(bloc.state.status, ListeningStatus.idle);
       expect(bloc.state.verdictId, isNull);
       expect(bloc.state.errorMessage, isNull);
@@ -249,11 +253,13 @@ void main() {
       expect(states.any((s) => s.status == ListeningStatus.listening), isTrue);
       expect(states.any((s) => s.status == ListeningStatus.processing), isTrue);
 
-      controller.add({'type': 'verdict', 'verdictId': 'v-final'});
+      controller.add({'type': 'completed', 'success': true, 'claims': [
+        {'verdict': 'False', 'confidenceScore': 85, 'explanation': 'Test', 'assertion': 'Test claim'},
+      ]});
       await Future.delayed(Duration.zero);
 
       expect(states.any((s) => s.status == ListeningStatus.verdictReady), isTrue);
-      expect(states.lastWhere((s) => s.status == ListeningStatus.verdictReady).verdictId, 'v-final');
+      expect(states.lastWhere((s) => s.status == ListeningStatus.verdictReady).claimsData, isNotNull);
 
       await controller.close();
       bloc.close();

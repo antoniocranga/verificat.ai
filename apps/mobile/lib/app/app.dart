@@ -51,11 +51,16 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
   void _acceptConsent() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('privacy-consent', true);
-    if (mounted) setState(() => _consented = true);
+    final onboarded = prefs.getBool('onboarding-complete') ?? false;
+    if (mounted) {
+      setState(() {
+        _consented = true;
+        _onboardingComplete = onboarded;
+      });
+    }
     final sessionService = AudioSessionService();
     await sessionService.setCategoryPlayAndRecord();
     sessionService.dispose();
-    await _checkOnboarding();
   }
 
   void _completeOnboarding() async {

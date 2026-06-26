@@ -58,21 +58,18 @@ class _SoundWaveIndicatorState extends State<SoundWaveIndicator>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: heights.map((baseHeight) {
-                final animValue = widget.active
-                    ? (0.5 + 0.5 * _controller.value)
-                    : 0.5;
-                final h = baseHeight * animValue;
-                return Container(
-                  width: barWidth,
-                  height: h,
-                  margin: const EdgeInsets.only(right: gap),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(2),
+              children: [
+                for (var i = 0; i < heights.length; i++)
+                  Container(
+                    width: barWidth,
+                    height: heights[i] * (widget.active ? (0.5 + 0.5 * _controller.value) : 0.5),
+                    margin: EdgeInsets.only(right: i < heights.length - 1 ? gap : 0),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                );
-              }).toList(),
+              ],
             ),
           );
         },
