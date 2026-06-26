@@ -15,6 +15,7 @@ import { Request } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as os from 'os';
 import { Public } from '../auth/public.decorator';
 import { JobsService } from './jobs.service';
 import { JobsEventService } from './jobs-event.service';
@@ -59,7 +60,7 @@ export class JobsController {
     }
     const audioBuffer = Buffer.concat(rawChunks);
 
-    const tmpDir = path.join(process.cwd(), 'tmp', 'uploads');
+    const tmpDir = path.join(os.tmpdir(), 'verificat-uploads');
     fs.mkdirSync(tmpDir, { recursive: true });
     const tmpFile = path.join(tmpDir, `${crypto.randomUUID()}.webm`);
     fs.writeFileSync(tmpFile, audioBuffer);
