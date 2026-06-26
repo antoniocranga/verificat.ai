@@ -22,7 +22,7 @@
     "generate:spec": "cross-env WRITE_OPENAPI_SPEC=true nest start -- --fast-exit 2>/dev/null; echo 'Spec generation complete'"
   },
   "dependencies": {
-    "@bull-board/api": "^6.5.0",
+    "@bull-board/api": "^8.0.1",
     "@bull-board/express": "^6.5.0",
     "@bull-board/nestjs": "^6.5.0",
     "@nestjs/bullmq": "^11.0.1",
