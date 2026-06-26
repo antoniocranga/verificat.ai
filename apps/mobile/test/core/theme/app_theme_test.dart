@@ -4,113 +4,114 @@ import 'package:verificat_mobile/core/theme/app_theme.dart';
 import 'package:verificat_mobile/core/theme/app_spacing.dart';
 import 'package:verificat_mobile/core/theme/app_radius.dart';
 import 'package:verificat_mobile/core/theme/app_text_styles.dart';
+import 'package:verificat_mobile/core/theme/app_colors.dart';
 
 void main() {
   group('AppTheme', () {
-    test('colorScheme surface is #FAFAFA', () {
-      expect(appTheme.colorScheme.surface, const Color(0xFFFAFAFA));
+    test('colorScheme surface is white', () {
+      expect(appTheme.colorScheme.surface, AppColors.surfaceRaised);
     });
 
-    test('colorScheme onSurface is #171717', () {
-      expect(appTheme.colorScheme.onSurface, const Color(0xFF171717));
+    test('colorScheme onSurface is ink', () {
+      expect(appTheme.colorScheme.onSurface, AppColors.ink);
     });
 
-    test('colorScheme outline is #EBEBEB', () {
-      expect(appTheme.colorScheme.outline, const Color(0xFFEBEBEB));
+    test('colorScheme outline is subtle', () {
+      expect(appTheme.colorScheme.outline, AppColors.subtle);
     });
 
-    test('colorScheme secondary is #4D4D4D', () {
-      expect(appTheme.colorScheme.secondary, const Color(0xFF4D4D4D));
+    test('colorScheme secondary is accent', () {
+      expect(appTheme.colorScheme.secondary, AppColors.accent);
     });
 
-    test('colorScheme primary is #171717', () {
-      expect(appTheme.colorScheme.primary, const Color(0xFF171717));
+    test('colorScheme primary is ink', () {
+      expect(appTheme.colorScheme.primary, AppColors.ink);
     });
 
-    test('colorScheme onPrimary is #FFFFFF', () {
-      expect(appTheme.colorScheme.onPrimary, const Color(0xFFFFFFFF));
+    test('colorScheme onPrimary is surfaceRaised', () {
+      expect(appTheme.colorScheme.onPrimary, AppColors.surfaceRaised);
     });
 
-    test('colorScheme error is #EE0000', () {
-      expect(appTheme.colorScheme.error, const Color(0xFFEE0000));
+    test('colorScheme error matches AppColors.error', () {
+      expect(appTheme.colorScheme.error, AppColors.error);
     });
 
-    test('scaffoldBackgroundColor is #FAFAFA', () {
-      expect(appTheme.scaffoldBackgroundColor, const Color(0xFFFAFAFA));
+    test('scaffoldBackgroundColor is canvas', () {
+      expect(appTheme.scaffoldBackgroundColor, AppColors.canvas);
     });
   });
 
   group('TextTheme', () {
-    test('displayLarge uses Inter 600 48px h:48 ls:-2.4', () {
+    test('displayLarge uses Poppins 700 48px h:1.1 ls:-1.92', () {
       final style = appTheme.textTheme.displayLarge!;
-      expect(style.fontFamily, 'Inter');
-      expect(style.fontWeight, FontWeight.w600);
+      expect(style.fontFamily, 'Poppins');
+      expect(style.fontWeight, FontWeight.w700);
       expect(style.fontSize, 48);
-      expect(style.height, 1.0);
-      expect(style.letterSpacing, -2.4);
+      expect(style.height, 1.1);
+      expect(style.letterSpacing, -1.92);
     });
 
-    test('headlineLarge uses Inter 600 32px h:40 ls:-1.28', () {
+    test('headlineLarge uses Poppins 600 32px h:1.2 ls:-0.8', () {
       final style = appTheme.textTheme.headlineLarge!;
-      expect(style.fontFamily, 'Inter');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w600);
       expect(style.fontSize, 32);
-      expect(style.height, 1.25);
-      expect(style.letterSpacing, -1.28);
+      expect(style.height, 1.2);
+      expect(style.letterSpacing, -0.8);
     });
 
-    test('headlineMedium uses Inter 600 20px h:28 ls:-0.4', () {
+    test('headlineMedium uses Poppins 600 24px h:1.25 ls:-0.48', () {
       final style = appTheme.textTheme.headlineMedium!;
-      expect(style.fontFamily, 'Inter');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w600);
-      expect(style.fontSize, 20);
-      expect(style.height, 1.4);
-      expect(style.letterSpacing, -0.4);
+      expect(style.fontSize, 24);
+      expect(style.height, 1.25);
+      expect(style.letterSpacing, -0.48);
     });
 
-    test('labelLarge uses Inter 500 14px h:20 ls:-0.28', () {
+    test('labelLarge uses Poppins 600 15px h:1.0 ls:-0.2', () {
       final style = appTheme.textTheme.labelLarge!;
-      expect(style.fontFamily, 'Inter');
-      expect(style.fontWeight, FontWeight.w500);
-      expect(style.fontSize, 14);
-      expect(style.height, 20 / 14);
-      expect(style.letterSpacing, -0.28);
+      expect(style.fontFamily, 'Poppins');
+      expect(style.fontWeight, FontWeight.w600);
+      expect(style.fontSize, 15);
+      expect(style.height, 1.0);
+      expect(style.letterSpacing, -0.2);
     });
 
-    test('bodyLarge uses Inter 400 16px h:24 ls:0', () {
+    test('bodyLarge uses Lora 400 16px h:1.75 ls:0', () {
       final style = appTheme.textTheme.bodyLarge!;
-      expect(style.fontFamily, 'Inter');
+      expect(style.fontFamily, 'Lora');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 16);
-      expect(style.height, 24 / 16);
+      expect(style.height, 1.75);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodyMedium uses Inter 400 14px h:20 ls:0', () {
+    test('bodyMedium uses Lora 400 14px h:1.65 ls:0', () {
       final style = appTheme.textTheme.bodyMedium!;
-      expect(style.fontFamily, 'Inter');
+      expect(style.fontFamily, 'Lora');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 14);
-      expect(style.height, 20 / 14);
+      expect(style.height, 1.65);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodySmall uses Inter 400 12px h:16 ls:0', () {
+    test('bodySmall uses Lora 400 12px h:1.6 ls:0', () {
       final style = appTheme.textTheme.bodySmall!;
-      expect(style.fontFamily, 'Inter');
+      expect(style.fontFamily, 'Lora');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 12);
-      expect(style.height, 16 / 12);
+      expect(style.height, 1.6);
       expect(style.letterSpacing, 0);
     });
   });
 
   group('AppTextStyles', () {
-    test('monoEyebrow uses JetBrains Mono 500 12px ls:0', () {
+    test('monoEyebrow uses JetBrains Mono 500 12px ls:0.96', () {
       expect(AppTextStyles.monoEyebrow.fontFamily, 'JetBrains Mono');
       expect(AppTextStyles.monoEyebrow.fontWeight, FontWeight.w500);
       expect(AppTextStyles.monoEyebrow.fontSize, 12);
-      expect(AppTextStyles.monoEyebrow.letterSpacing, 0);
+      expect(AppTextStyles.monoEyebrow.letterSpacing, 0.96);
     });
   });
 

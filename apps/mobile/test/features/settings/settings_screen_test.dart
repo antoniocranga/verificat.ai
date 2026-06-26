@@ -15,8 +15,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Setări'), findsOneWidget);
-    expect(find.text('Cont'), findsOneWidget);
-    expect(find.text('Despre'), findsOneWidget);
+    expect(find.text('CONT'), findsOneWidget);
+    expect(find.text('DESPRE'), findsOneWidget);
     expect(find.text('Versiune'), findsOneWidget);
     expect(find.text('1.0.0'), findsOneWidget);
   });
