@@ -46,8 +46,7 @@ void main() {
       final bloc = ListeningBloc(repository: MockRepository());
       await tester.pumpWidget(createTestWidget(bloc));
 
-      expect(find.text('Apăsați butonul pentru a începe verificarea'),
-          findsOneWidget);
+      expect(find.text('Pregătit pentru verificare'), findsOneWidget);
       expect(find.text('Începe Verificarea'), findsOneWidget);
       bloc.close();
     });
@@ -91,7 +90,7 @@ void main() {
 
       expect(find.text('Rezultatul este gata!'), findsOneWidget);
       expect(find.text('Verifică din nou'), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       bloc.close();
     });
 
@@ -108,7 +107,7 @@ void main() {
       expect(find.text('Permisiunea pentru microfon a fost refuzată.'),
           findsOneWidget);
       expect(find.text('Încearcă din Nou'), findsOneWidget);
-      expect(find.byIcon(Icons.error), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
       bloc.close();
     });
   });
