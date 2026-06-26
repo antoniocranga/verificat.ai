@@ -65,9 +65,17 @@ export default defineBackground(() => {
     })();
   });
 
+  let activeTabRecorder: MediaRecorder | null = null;
+  let activeTabStream: MediaStream | null = null;
+
   chrome.runtime.onMessage.addListener(
     (msg: { type: string }, _sender, sendResponse) => {
       if (msg.type === "START_TAB_CAPTURE") {
+        if (activeTabRecorder) {
+          sendResponse({ error: "Captura audio este deja activă." });
+          return;
+        }
+
         const browserTc = (
           browser as unknown as { tabCapture?: typeof chrome.tabCapture }
         ).tabCapture;
@@ -94,9 +102,11 @@ export default defineBackground(() => {
               return;
             }
 
+            activeTabStream = stream;
             const recorder = new MediaRecorder(stream, {
               mimeType: "audio/webm",
             });
+            activeTabRecorder = recorder;
             const chunks: Blob[] = [];
 
             recorder.ondataavailable = (e) => {
@@ -104,7 +114,11 @@ export default defineBackground(() => {
             };
 
             recorder.onstop = () => {
-              stream.getTracks().forEach((t) => t.stop());
+              activeTabRecorder = null;
+              if (activeTabStream) {
+                activeTabStream.getTracks().forEach((t) => t.stop());
+                activeTabStream = null;
+              }
               const audioBlob = new Blob(chunks, { type: "audio/webm" });
 
               void (async () => {
@@ -114,6 +128,7 @@ export default defineBackground(() => {
                   void chrome.runtime.sendMessage({
                     type: "VERIFICATION_STARTED",
                     jobId,
+                    source: "audio",
                   });
 
                   await consumeVerdictStream(
@@ -148,17 +163,6 @@ export default defineBackground(() => {
               })();
             };
 
-            chrome.runtime.onMessage.addListener(
-              (stopMsg: { type: string }) => {
-                if (
-                  stopMsg.type === "STOP_CAPTURE" &&
-                  recorder.state === "recording"
-                ) {
-                  recorder.stop();
-                }
-              },
-            );
-
             void chrome.runtime.sendMessage({
               type: "CAPTURE_STARTED",
               captureType: "tab",
@@ -167,6 +171,16 @@ export default defineBackground(() => {
           },
         );
         return true;
+      }
+
+      if (msg.type === "STOP_TAB_CAPTURE") {
+        if (activeTabRecorder && activeTabRecorder.state === "recording") {
+          activeTabRecorder.stop();
+          sendResponse({ ok: true });
+        } else {
+          sendResponse({ error: "Nicio captură audio activă." });
+        }
+        return;
       }
 
       if (msg.type === "GET_STATUS") {

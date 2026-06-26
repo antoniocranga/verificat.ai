@@ -71,6 +71,11 @@
         margin-bottom: 6px;
       }
       #status-text { font-size: 12px; color: var(--color-mute); margin-bottom: var(--spacing-xs); }
+      .timer-text {
+        font-size: 20px; font-weight: 600; color: var(--color-ink);
+        text-align: center; letter-spacing: -0.4px;
+        font-variant-numeric: tabular-nums; margin: 4px 0;
+      }
       #consent-screen { padding: var(--spacing-xs) 4px; }
       #consent-screen p { font-size: 12px; line-height: 1.5; color: var(--color-body); margin: 0 0 var(--spacing-sm) 0; }
       #consent-screen a { color: var(--color-primary); }
@@ -91,6 +96,7 @@
     </div>
     <div id="main-ui">
       <div id="status-text">Pregătit</div>
+      <div id="timer-text" class="timer-text" style="display:none;">00:00</div>
       <button id="btn-start" class="btn-primary-small">Începe Ascultarea</button>
       <button id="btn-stop" class="btn-ghost-small" style="display:none;">Oprește</button>
       <button id="btn-open" class="btn-ghost-small">Deschide Panoul Lateral</button>

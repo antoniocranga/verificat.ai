@@ -59,7 +59,8 @@ export async function resumePendingJob(): Promise<void> {
   void chrome.runtime.sendMessage({ type: "VERIFICATION_RESUMING", jobId });
   await consumeVerdictStream(
     jobId,
-    (_p: ProgressPayload) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (_progress: ProgressPayload) => {},
     (result) => {
       void chrome.runtime.sendMessage({
         type: "VERIFICATION_COMPLETED",
@@ -160,84 +161,31 @@ export async function consumeVerdictStream(
   }
 }
 
-export function captureAndVerifyMic(): Promise<void> {
+export async function dispatchAndWait(
+  audioBlob: Blob,
+  onProgress: (p: ProgressPayload) => void,
+): Promise<unknown> {
+  const jobId = await uploadAudio(audioBlob);
+  await storage.setItem(SESSION_KEY, jobId);
+
+  void chrome.runtime.sendMessage({
+    type: "VERIFICATION_STARTED",
+    jobId,
+    source: "audio",
+  });
+
   return new Promise((resolve, reject) => {
-    navigator.mediaDevices
-      .getUserMedia({ audio: true, video: false })
-      .then((stream) => {
-        const recorder = new MediaRecorder(stream, {
-          mimeType: "audio/webm",
-        });
-        const chunks: Blob[] = [];
-
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) chunks.push(e.data);
-        };
-
-        recorder.onstop = async () => {
-          stream.getTracks().forEach((t) => t.stop());
-          const audioBlob = new Blob(chunks, { type: "audio/webm" });
-
-          try {
-            const jobId = await uploadAudio(audioBlob);
-            await storage.setItem(SESSION_KEY, jobId);
-            void chrome.runtime.sendMessage({
-              type: "VERIFICATION_STARTED",
-              jobId,
-            });
-
-            await consumeVerdictStream(
-              jobId,
-              (p) => {
-                void chrome.runtime.sendMessage({
-                  type: "VERIFICATION_PROGRESS",
-                  stage: p.stage,
-                  progress: p.progress,
-                  claim: p.claim,
-                });
-              },
-              (result) => {
-                void chrome.runtime.sendMessage({
-                  type: "VERIFICATION_COMPLETED",
-                  result,
-                });
-              },
-              (reason) => {
-                void chrome.runtime.sendMessage({
-                  type: "VERIFICATION_FAILED",
-                  reason,
-                });
-              },
-            );
-            resolve();
-          } catch (err) {
-            void chrome.runtime.sendMessage({
-              type: "VERIFICATION_FAILED",
-              reason: String(err),
-            });
-            resolve();
-          }
-        };
-
-        recorder.start(1000);
-
-        chrome.runtime.onMessage.addListener((msg: { type: string }) => {
-          if (msg.type === "STOP_CAPTURE") {
-            if (recorder.state === "recording") recorder.stop();
-          }
-        });
-
-        void chrome.runtime.sendMessage({
-          type: "CAPTURE_STARTED",
-          captureType: "mic",
-        });
-      })
-      .catch((err: unknown) => {
-        if (err instanceof Error) {
-          reject(err);
-        } else {
-          reject(new Error(String(err)));
-        }
-      });
+    void consumeVerdictStream(
+      jobId,
+      onProgress,
+      (result) => {
+        void storage.removeItem(SESSION_KEY);
+        resolve(result);
+      },
+      (reason) => {
+        void storage.removeItem(SESSION_KEY);
+        reject(new Error(reason));
+      },
+    );
   });
 }

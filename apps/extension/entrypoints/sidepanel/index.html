@@ -25,16 +25,10 @@
         color: var(--color-body);
         background: var(--color-canvas);
       }
-      body {
-        margin: 0;
-        padding: var(--spacing-sm);
-      }
+      body { margin: 0; padding: var(--spacing-sm); }
       h2 {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 var(--spacing-md) 0;
-        color: var(--color-ink);
-        letter-spacing: -0.4px;
+        font-size: 18px; font-weight: 600; margin: 0 0 var(--spacing-md) 0;
+        color: var(--color-ink); letter-spacing: -0.4px;
       }
       .capture-card {
         background: var(--color-elevated);
@@ -44,71 +38,52 @@
         margin-bottom: var(--spacing-sm);
       }
       .capture-card h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 4px 0;
-        color: var(--color-ink);
-        letter-spacing: -0.4px;
+        font-size: 16px; font-weight: 600; margin: 0 0 4px 0;
+        color: var(--color-ink); letter-spacing: -0.4px;
       }
       .capture-card p {
-        font-size: 13px;
-        margin: 0 0 var(--spacing-sm) 0;
-        line-height: 1.4;
+        font-size: 13px; margin: 0 0 var(--spacing-sm) 0; line-height: 1.4;
       }
-      .capture-card .icon {
-        font-size: 22px;
-        margin-bottom: 4px;
-      }
+      .capture-card .icon { font-size: 22px; margin-bottom: 4px; }
       .btn-capture {
-        display: block;
-        width: 100%;
-        height: 36px;
-        padding: 0 var(--spacing-sm);
-        border-radius: var(--rounded-sm);
-        border: none;
-        background: var(--color-ink);
-        color: var(--color-elevated);
-        font-family: inherit;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        box-sizing: border-box;
+        display: block; width: 100%; height: 36px; padding: 0 var(--spacing-sm);
+        border-radius: var(--rounded-sm); border: none;
+        background: var(--color-ink); color: var(--color-elevated);
+        font-family: inherit; font-size: 14px; font-weight: 500;
+        cursor: pointer; box-sizing: border-box;
       }
-      .btn-capture:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
+      .btn-capture:disabled { opacity: 0.4; cursor: not-allowed; }
+      .btn-stop-capture {
+        display: block; width: 100%; height: 36px; padding: 0 var(--spacing-sm);
+        border-radius: var(--rounded-sm); border: 1px solid var(--color-danger);
+        background: var(--color-elevated); color: var(--color-danger);
+        font-family: inherit; font-size: 14px; font-weight: 500;
+        cursor: pointer; box-sizing: border-box;
       }
-      #status {
-        font-size: 13px;
-        color: var(--color-mute);
-        padding: var(--spacing-xs) 0;
+      #status { font-size: 13px; color: var(--color-mute); padding: var(--spacing-xs) 0; }
+      #verdict-section { margin-top: var(--spacing-sm); }
+      .timer-display {
+        font-size: 36px; font-weight: 600; color: var(--color-ink);
+        text-align: center; letter-spacing: -0.4px;
+        padding: var(--spacing-md) 0 var(--spacing-xs) 0;
+        font-variant-numeric: tabular-nums;
       }
-      #verdict-section {
-        margin-top: var(--spacing-sm);
+      .timer-label { font-size: 12px; color: var(--color-mute); text-align: center; margin-bottom: var(--spacing-sm); }
+      .recording-active { text-align: center; padding: var(--spacing-md); }
+      .processing-state { text-align: center; padding: var(--spacing-lg); }
+      .spinner {
+        width: 32px; height: 32px; border: 3px solid var(--color-hairline);
+        border-top-color: var(--color-ink); border-radius: 50%;
+        animation: spin 0.8s linear infinite; margin: 0 auto var(--spacing-sm) auto;
       }
+      @keyframes spin { to { transform: rotate(360deg); } }
       .verdict-label {
-        font-size: 32px;
-        font-weight: 600;
-        color: var(--color-ink);
-        letter-spacing: -0.4px;
-        margin: 0 0 var(--spacing-xs) 0;
+        font-size: 32px; font-weight: 600; color: var(--color-ink);
+        letter-spacing: -0.4px; margin: 0 0 var(--spacing-xs) 0;
       }
-      .verdict-confidence {
-        font-size: 16px;
-        color: var(--color-body);
-        margin: 4px 0;
-      }
-      .verdict-explanation {
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--color-body);
-        margin: var(--spacing-xs) 0;
-      }
-      .evidence-item {
-        font-size: 13px;
-        padding: var(--spacing-xs) 0;
-        border-bottom: 1px solid var(--color-hairline);
-      }
+      .verdict-confidence { font-size: 16px; color: var(--color-body); margin: 4px 0; }
+      .verdict-explanation { font-size: 14px; line-height: 1.6; color: var(--color-body); margin: var(--spacing-xs) 0; }
+      .evidence-item { font-size: 13px; padding: var(--spacing-xs) 0; border-bottom: 1px solid var(--color-hairline); }
       .evidence-item:last-child { border-bottom: none; }
       .evidence-item a { color: var(--color-primary); text-decoration: none; }
       .evidence-item a:hover { text-decoration: underline; }
@@ -116,121 +91,93 @@
       .evidence-url { font-size: 12px; color: var(--color-mute); word-break: break-all; }
       .stage-text { font-size: 13px; color: var(--color-mute); }
       .progress-bar-track {
-        width: 100%;
-        height: 6px;
-        background: var(--color-hairline);
-        border-radius: 3px;
-        overflow: hidden;
-        margin: 6px 0;
+        width: 100%; height: 6px; background: var(--color-hairline);
+        border-radius: 3px; overflow: hidden; margin: 6px 0;
       }
-      .progress-bar-fill {
-        height: 100%;
-        background: var(--color-primary);
-        border-radius: 3px;
-        transition: width 0.3s ease;
+      .progress-bar-fill { height: 100%; background: var(--color-primary); border-radius: 3px; transition: width 0.3s ease; }
+      .progress-claim { font-size: 12px; color: var(--color-mute); font-style: italic; margin-top: 2px; }
+      .btn-new-check {
+        display: block; width: 100%; height: 36px; margin-top: var(--spacing-sm);
+        padding: 0 var(--spacing-sm); border-radius: var(--rounded-sm); border: none;
+        background: var(--color-ink); color: var(--color-elevated);
+        font-family: inherit; font-size: 14px; font-weight: 500;
+        cursor: pointer; box-sizing: border-box;
       }
-      .progress-claim {
-        font-size: 12px;
-        color: var(--color-mute);
-        font-style: italic;
-        margin-top: 2px;
+      .inline-error {
+        font-size: 13px; color: var(--color-danger); text-align: center;
+        padding: var(--spacing-sm); line-height: 1.4;
       }
-
-      /* Permission dialog overlay */
-      #perm-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.35);
-        z-index: 100;
-        align-items: center;
-        justify-content: center;
-        padding: var(--spacing-md);
-        box-sizing: border-box;
-      }
+      #perm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: var(--spacing-md); box-sizing: border-box; }
       #perm-overlay.open { display: flex; }
-      #perm-dialog {
-        background: var(--color-elevated);
-        border-radius: var(--rounded-md);
-        padding: var(--spacing-lg);
-        max-width: 300px;
-        width: 100%;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-      }
-      #perm-dialog h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 var(--spacing-xs) 0;
-        color: var(--color-ink);
-        letter-spacing: -0.4px;
-      }
-      #perm-dialog p {
-        font-size: 13px;
-        line-height: 1.5;
-        margin: 0 0 var(--spacing-md) 0;
-      }
-      #perm-dialog .perm-actions {
-        display: flex;
-        gap: var(--spacing-xs);
-      }
-      #perm-dialog .perm-actions button {
-        flex: 1;
-        height: 36px;
-        border-radius: var(--rounded-sm);
-        font-family: inherit;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-      }
-      .btn-allow {
-        border: none;
-        background: var(--color-ink);
-        color: var(--color-elevated);
-      }
-      .btn-cancel {
-        border: 1px solid var(--color-hairline);
-        background: var(--color-elevated);
-        color: var(--color-body);
-      }
-      .privacy-link {
-        font-size: 11px;
-        color: var(--color-mute);
-        line-height: 1.4;
-        margin-top: var(--spacing-sm);
-      }
-      .privacy-link a {
-        color: var(--color-primary);
-        text-decoration: none;
-      }
+      #perm-dialog { background: var(--color-elevated); border-radius: var(--rounded-md); padding: var(--spacing-lg); max-width: 300px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+      #perm-dialog h3 { font-size: 16px; font-weight: 600; margin: 0 0 var(--spacing-xs) 0; color: var(--color-ink); letter-spacing: -0.4px; }
+      #perm-dialog p { font-size: 13px; line-height: 1.5; margin: 0 0 var(--spacing-md) 0; }
+      #perm-dialog .perm-actions { display: flex; gap: var(--spacing-xs); }
+      #perm-dialog .perm-actions button { flex: 1; height: 36px; border-radius: var(--rounded-sm); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+      .btn-allow { border: none; background: var(--color-ink); color: var(--color-elevated); }
+      .btn-cancel { border: 1px solid var(--color-hairline); background: var(--color-elevated); color: var(--color-body); }
+      .privacy-link { font-size: 11px; color: var(--color-mute); line-height: 1.4; margin-top: var(--spacing-sm); }
+      .privacy-link a { color: var(--color-primary); text-decoration: none; }
       .privacy-link a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
     <h2>Verificat</h2>
 
-    <div class="capture-card">
-      <div class="icon">&#x1F5A5;&#xFE0F;</div>
-      <h3>Captură Audio din Filă</h3>
-      <p>Înregistrează sunetul din fila activă pentru a verifica afirmațiile.</p>
-      <button id="btn-tab-record" class="btn-capture">Captură Filă</button>
+    <div id="idle-ui">
+      <div class="capture-card">
+        <div class="icon">&#x1F5A5;&#xFE0F;</div>
+        <h3>Captură Audio din Filă</h3>
+        <p>Înregistrează sunetul din fila activă pentru a verifica afirmațiile.</p>
+        <button id="btn-tab-record" class="btn-capture">Captură Filă</button>
+      </div>
+      <div class="capture-card">
+        <div class="icon">&#x1F3A4;</div>
+        <h3>Captură Microfon</h3>
+        <p>Înregistrează audio de la microfon pentru a verifica afirmațiile.</p>
+        <button id="btn-mic-record" class="btn-capture">Captură Microfon</button>
+      </div>
     </div>
 
-    <div class="capture-card">
-      <div class="icon">&#x1F3A4;</div>
-      <h3>Captură Microfon</h3>
-      <p>Înregistrează audio de la microfon pentru a verifica afirmațiile.</p>
-      <button id="btn-mic-record" class="btn-capture">Captură Microfon</button>
+    <div id="preparing-ui" style="display:none">
+      <div class="processing-state">
+        <div class="spinner"></div>
+        <div class="stage-text" id="preparing-text">Se inițializează...</div>
+      </div>
+    </div>
+
+    <div id="recording-ui" style="display:none">
+      <div class="recording-active">
+        <div class="timer-display" id="timer-display">00:00</div>
+        <div class="timer-label" id="recording-label">Se înregistrează...</div>
+        <button id="btn-stop-recording" class="btn-stop-capture">Oprește</button>
+      </div>
+    </div>
+
+    <div id="processing-ui" style="display:none">
+      <div class="processing-state">
+        <div class="spinner"></div>
+        <div id="processing-status" class="stage-text">Se procesează...</div>
+      </div>
+      <div id="progress-detail"></div>
+    </div>
+
+    <div id="result-ui" style="display:none">
+      <div id="verdict-section"></div>
+      <button id="btn-new-check" class="btn-new-check">Noua Verificare</button>
+    </div>
+
+    <div id="error-ui" style="display:none">
+      <div class="inline-error" id="error-text"></div>
+      <button id="btn-error-retry" class="btn-new-check">Încearcă din Nou</button>
     </div>
 
     <div id="status">Stare: Pregătit</div>
-
-    <div id="verdict-section"></div>
 
     <div class="privacy-link">
       Prin utilizarea capturii audio, acceptați <a href="%VITE_WEB_HOST%/privacy" target="_blank" rel="noopener">Politica de Confidențialitate</a>.
     </div>
 
-    <!-- Permission dialog -->
     <div id="perm-overlay">
       <div id="perm-dialog">
         <h3 id="perm-title">Permisiune necesară</h3>
