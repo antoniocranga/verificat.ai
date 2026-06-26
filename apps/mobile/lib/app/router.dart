@@ -14,6 +14,7 @@ import '../features/search/presentation/screens/search_screen.dart';
 import '../features/history/presentation/bloc/saved_checks_bloc.dart';
 import '../features/history/presentation/screens/history_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
+import 'transitions.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -48,30 +49,41 @@ final router = GoRouter(
         GoRoute(
           path: '/',
           name: 'home',
-          builder: (context, state) => const HomeScreen(),
+          pageBuilder: (context, state) =>
+              buildPage(const HomeScreen(), state),
         ),
         GoRoute(
           path: '/listen',
           name: 'listen',
-          builder: (context, state) => BlocProvider<ListeningBloc>(
-            create: (_) => ListeningBloc(),
-            child: const ListeningScreen(),
+          pageBuilder: (context, state) => buildPage(
+            BlocProvider<ListeningBloc>(
+              create: (_) => ListeningBloc(),
+              child: const ListeningScreen(),
+            ),
+            state,
           ),
         ),
         GoRoute(
           path: '/search',
           name: 'search',
-          builder: (context, state) => BlocProvider<SearchBloc>(
-            create: (_) => SearchBloc(),
-            child: const SearchScreen(),
+          pageBuilder: (context, state) => buildPage(
+            BlocProvider<SearchBloc>(
+              create: (_) => SearchBloc(),
+              child: const SearchScreen(),
+            ),
+            state,
           ),
         ),
         GoRoute(
           path: '/saved',
           name: 'saved',
-          builder: (context, state) => BlocProvider<SavedChecksBloc>(
-            create: (_) => SavedChecksBloc()..add(const SavedChecksLoaded()),
-            child: const HistoryScreen(),
+          pageBuilder: (context, state) => buildPage(
+            BlocProvider<SavedChecksBloc>(
+              create: (_) =>
+                  SavedChecksBloc()..add(const SavedChecksLoaded()),
+              child: const HistoryScreen(),
+            ),
+            state,
           ),
         ),
       ],
@@ -79,31 +91,32 @@ final router = GoRouter(
     GoRoute(
       path: '/login',
       name: 'login',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final error = state.uri.queryParameters['error'];
-        return LoginScreen(error: error);
+        return buildPage(LoginScreen(error: error), state);
       },
     ),
     GoRoute(
       path: '/check/:id',
       name: 'check',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
-        return CheckScreen(verdictId: id);
+        return buildPage(CheckScreen(verdictId: id), state);
       },
     ),
     GoRoute(
       path: '/handoff/:token',
       name: 'handoff',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final token = state.pathParameters['token'] ?? '';
-        return HandoffScreen(token: token);
+        return buildPage(HandoffScreen(token: token), state);
       },
     ),
     GoRoute(
       path: '/settings',
       name: 'settings',
-      builder: (context, state) => const SettingsScreen(),
+      pageBuilder: (context, state) =>
+          buildPage(const SettingsScreen(), state),
     ),
   ],
 );

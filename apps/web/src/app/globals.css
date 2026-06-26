@@ -1,45 +1,203 @@
 @import "tailwindcss";
 
+/* ============================================================
+   DESIGN TOKENS — warm palette
+   Source of truth: packages/ui/tokens.css
+   ============================================================ */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  /* Font families */
+  --font-display: 'Poppins', Arial, sans-serif;
+  --font-body:    'Lora', Georgia, serif;
+  --font-sans:    var(--font-poppins), 'Poppins', Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
 
-  --color-glass-bg: rgba(13, 17, 28, 0.7);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-accent-blue: #3b82f6;
-  --color-accent-purple: #8b5cf6;
+  /* Core palette */
+  --color-canvas:  #faf9f5;
+  --color-ink:     #141413;
+  --color-mid:     #b0aea5;
+  --color-subtle:  #e8e6dc;
+  --color-accent:  #d97757;
+  --color-blue:    #6a9bcc;
+  --color-green:   #788c5d;
+
+  /* Surface stack */
+  --color-surface-base:    #faf9f5;
+  --color-surface-raised:  #ffffff;
+  --color-surface-overlay: #ffffff;
+  --color-surface-inset:   #f0ede6;
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.15;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.25;
-    transform: scale(1.05);
-  }
+/* ============================================================
+   CSS CUSTOM PROPERTIES (non-Tailwind usage)
+   ============================================================ */
+:root {
+  /* Shadows — warm-tinted */
+  --shadow-sm:     0 1px 2px rgba(20, 20, 19, 0.06);
+  --shadow-md:     0 4px 12px rgba(20, 20, 19, 0.08), 0 1px 3px rgba(20, 20, 19, 0.06);
+  --shadow-lg:     0 16px 48px rgba(20, 20, 19, 0.12), 0 4px 12px rgba(20, 20, 19, 0.08);
+  --shadow-accent: 0 4px 16px rgba(217, 119, 87, 0.24);
+
+  /* Transitions */
+  --transition-fast:   all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 8s ease-in-out infinite;
+/* ============================================================
+   TYPOGRAPHY CLASSES — apply via className, never per-component
+   ============================================================ */
+
+/* Display / hero heading — Poppins 700, tight tracking */
+.heading-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #141413;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background-color: var(--color-glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--color-glass-border);
+/* Section heading — Poppins 600 */
+.heading-section {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #141413;
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* Sub-section heading */
+.heading-sub {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: #141413;
 }
 
-.glass-panel-hover:hover {
-  background-color: rgba(20, 26, 42, 0.85);
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+/* Body copy — Lora, generous leading */
+.body-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.75;
+  color: #141413;
+}
+
+/* Muted body — same as above but mid colour */
+.body-text-muted {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.75;
+  color: #b0aea5;
+}
+
+/* UI labels — Poppins 500, slight wide tracking */
+.label-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.75rem;    /* 12px */
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b0aea5;
+}
+
+/* ============================================================
+   SURFACE SYSTEM
+   ============================================================ */
+.surface-base    { background-color: #faf9f5; }
+.surface-raised  { background-color: #ffffff; }
+.surface-inset   { background-color: #f0ede6; }
+.surface-overlay {
+  background-color: #ffffff;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   CARD HOVER — lift + shadow
+   ============================================================ */
+.card {
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+.card:hover {
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   INPUT FOCUS RING — consistent across all inputs
+   ============================================================ */
+.input {
+  border: 1.5px solid #e8e6dc;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  outline: none;
+}
+.input::placeholder { color: #b0aea5; }
+.input:focus {
+  border-color: #d97757;
+  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+}
+.input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.input[data-error="true"] {
+  border-color: #c94040;
+  box-shadow: 0 0 0 3px rgba(201, 64, 64, 0.10);
+}
+
+/* ============================================================
+   GRAIN OVERLAY — subtle film grain on the canvas (Anthropic style)
+   Apply 'grain-overlay' class to <body>
+   ============================================================ */
+.grain-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.028;
+  z-index: 9999;
+}
+
+/* ============================================================
+   SHIMMER SKELETON ANIMATION
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    #e8e6dc 25%,
+    #f0ede6 50%,
+    #e8e6dc 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ============================================================
+   BASE RESETS
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: #faf9f5;
+  color: #141413;
+  font-family: var(--font-body);
 }

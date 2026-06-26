@@ -1,97 +1,240 @@
+/* ============================================================
+   verificat.xyz Extension Popup — Design System
+   Tokens mirror packages/ui/tokens.css
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Core palette */
+  --color-canvas:  #faf9f5;
+  --color-ink:     #141413;
+  --color-mid:     #b0aea5;
+  --color-subtle:  #e8e6dc;
+  --color-accent:  #d97757;
+  --color-blue:    #6a9bcc;
+  --color-green:   #788c5d;
+  --color-error:   #c94040;
+
+  /* Surface */
+  --surface-raised:  #ffffff;
+  --surface-inset:   #f0ede6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(20, 20, 19, 0.06);
+  --shadow-md: 0 4px 12px rgba(20, 20, 19, 0.08), 0 1px 3px rgba(20, 20, 19, 0.06);
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+
+  /* Radius */
+  --radius-sm:  6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Typography */
+  font-family: 'Poppins', Inter, Arial, sans-serif;
+  font-size: 13px;
   line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  color: var(--color-ink);
+  background: var(--color-canvas);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: var(--space-sm);
+  width: 320px;
+  background: var(--color-canvas);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ── Typography ─────────────────────────────────────────────── */
+h3 {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.3px;
+  line-height: 1.25;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-mid);
+  margin: 0 0 var(--space-sm) 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+a {
+  color: var(--color-blue);
+  text-decoration: none;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #54bc4ae0);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #3178c6aa);
-}
+a:hover { text-decoration: underline; }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+/* ── Status text ─────────────────────────────────────────────── */
+#status-text {
+  font-size: 11px;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-mid);
+  margin-bottom: var(--space-xs);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* ── Timer ───────────────────────────────────────────────────── */
+.timer-text {
+  font-family: 'Poppins', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+  letter-spacing: -0.44px;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 var(--space-sm) 0;
+}
+
+/* ── Buttons — 5 states each ─────────────────────────────────── */
+
+/* Primary — ink on canvas */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-ink);
+  color: var(--surface-raised);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
+  user-select: none;
+  margin-bottom: 6px;
+  outline: none;
+}
+.btn-primary:hover        { background: #2a2a28; box-shadow: var(--shadow-md); }
+.btn-primary:active       { transform: scale(0.97); box-shadow: none; }
+.btn-primary:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px var(--color-accent);
+}
+.btn-primary:disabled,
+.btn-primary[data-loading="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Ghost — bordered, white bg */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-subtle);
+  background: var(--surface-raised);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background 150ms ease-out, transform 150ms ease-out;
+  user-select: none;
+  margin-bottom: 6px;
+  outline: none;
+}
+.btn-ghost:hover        { border-color: var(--color-mid); background: var(--color-canvas); }
+.btn-ghost:active       { transform: scale(0.97); }
+.btn-ghost:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px var(--color-accent);
+}
+.btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Accent — terracotta CTA */
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(217, 119, 87, 0.24);
+  transition: background 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
+  user-select: none;
+  margin-bottom: 6px;
+  outline: none;
+}
+.btn-accent:hover        { background: #c5694a; }
+.btn-accent:active       { transform: scale(0.97); box-shadow: none; }
+.btn-accent:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px var(--color-accent);
+}
+.btn-accent:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Legacy class name aliases (for backwards compat) ────────── */
+.btn-primary-small { composes: btn-primary; }
+.btn-ghost-small   { composes: btn-ghost; }
+
+/* ── Consent screen ──────────────────────────────────────────── */
+#consent-screen {
+  padding: var(--space-xs) 4px;
+}
+
+/* ── Main UI ─────────────────────────────────────────────────── */
+#main-ui { display: none; }
+
+/* ── Verdict badge ───────────────────────────────────────────── */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  border: 1.5px solid transparent;
+}
+
+/* ── Loading spinner ─────────────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
