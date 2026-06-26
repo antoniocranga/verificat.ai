@@ -19,6 +19,8 @@ const ColorScheme _colorScheme = ColorScheme(
   onSecondaryContainer: _secondary,
   surface: _surface,
   onSurface: _onSurface,
+  background: _surface,
+  onBackground: _onSurface,
   error: _error,
   onError: _onPrimary,
   errorContainer: _onPrimary,

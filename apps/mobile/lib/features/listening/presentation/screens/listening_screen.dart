@@ -236,7 +236,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: color.withValues(alpha: 0.25)),
+              border: Border.all(color: color.withOpacity(0.25)),
               borderRadius: BorderRadius.circular(6),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
