@@ -8,8 +8,8 @@ class JobApiService {
   final HttpClient _client;
 
   JobApiService({String? baseUrl, HttpClient? client})
-    : _baseUrl = baseUrl ?? AppEnv.apiUrl,
-      _client = client ?? HttpClient();
+      : _baseUrl = baseUrl ?? AppEnv.apiUrl,
+        _client = client ?? HttpClient();
 
   Future<Map<String, dynamic>> uploadAudio(File audioFile) async {
     final uri = Uri.parse('$_baseUrl/jobs/upload');
@@ -35,33 +35,33 @@ class JobApiService {
     return jsonDecode(body) as Map<String, dynamic>;
   }
 
-  Stream<Map<String, dynamic>> streamJobEvents(String jobId) {
+  Stream<Map<String, dynamic>> streamJobEvents(String jobId) async* {
     final uri = Uri.parse('$_baseUrl/jobs/$jobId/stream');
-    final controller = StreamController<Map<String, dynamic>>();
-
-    _client.getUrl(uri).then((request) {
+    try {
+      final request = await _client.getUrl(uri);
       request.headers.set('Accept', 'text/event-stream');
-      return request.close();
-    }).then((response) {
-      response
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen(
-          (line) {
-            if (line.startsWith('data: ')) {
-              try {
-                final data = jsonDecode(line.substring(6)) as Map<String, dynamic>;
-                controller.add(data);
-              } catch (_) {}
-            }
-          },
-          onError: (error) => controller.addError(error),
-          onDone: () => controller.close(),
-        );
-    }).catchError((error) {
-      controller.addError(error);
-    });
+      final response = await request.close();
 
-    return controller.stream;
+      String lastEventType = '';
+      await for (final chunk in response.transform(utf8.decoder)) {
+        for (final line in chunk.split('\n')) {
+          if (line.startsWith('event: ')) {
+            lastEventType = line.substring(7).trim();
+          } else if (line.startsWith('data: ')) {
+            final data = line.substring(6);
+            try {
+              final parsed = jsonDecode(data) as Map<String, dynamic>;
+              if (lastEventType == 'completed') {
+                yield {'type': 'completed', ...parsed};
+              } else if (lastEventType == 'failed') {
+                yield {'type': 'failed', 'message': data};
+              } else if (lastEventType == 'progress') {
+                yield {'type': 'progress', ...parsed};
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
   }
 }
