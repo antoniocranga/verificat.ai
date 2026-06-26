@@ -118,7 +118,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildPulsingDot(context),
+        const SoundWaveIndicator(active: true),
         const SizedBox(height: 24),
         Text(
           _formatTime(_displaySeconds),
@@ -347,25 +347,4 @@ class _ListeningScreenState extends State<ListeningScreen> {
     );
   }
 
-  Widget _buildPulsingDot(BuildContext context) {
-    return SizedBox(
-      width: 16,
-      height: 16,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 1000),
-        builder: (context, value, child) {
-          return Opacity(
-            opacity: 0.3 + (0.7 * value),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF171717),
-                shape: BoxShape.circle,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }

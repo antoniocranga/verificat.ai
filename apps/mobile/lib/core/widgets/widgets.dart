@@ -5,3 +5,4 @@ export 'app_ghost_button.dart';
 export 'app_feature_card.dart';
 export 'app_text_input.dart';
 export 'mono_eyebrow.dart';
+export 'sound_wave_indicator.dart';
