@@ -19,8 +19,9 @@
     "./tokens.css": "./tokens.css"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "jest"
+    "build": "tsc && node scripts/build.js",
+    "test": "jest",
+    "test:build": "pnpm build && jest --testPathPattern=build-output"
   },
   "peerDependencies": {
     "react": "^19.0.0"
