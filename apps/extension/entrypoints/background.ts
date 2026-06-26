@@ -1,6 +1,5 @@
 import { storage } from "wxt/storage";
 import {
-  uploadAudio,
   verifyText,
   consumeVerdictStream,
   resumePendingJob,
@@ -65,122 +64,55 @@ export default defineBackground(() => {
     })();
   });
 
-  let activeTabRecorder: MediaRecorder | null = null;
-  let activeTabStream: MediaStream | null = null;
-
   chrome.runtime.onMessage.addListener(
     (msg: { type: string }, _sender, sendResponse) => {
-      if (msg.type === "START_TAB_CAPTURE") {
-        if (activeTabRecorder) {
-          sendResponse({ error: "Captura audio este deja activă." });
-          return;
-        }
+      if (msg.type === "GET_TAB_STREAM_ID") {
+        try {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (chrome.runtime.lastError) {
+              sendResponse({ error: chrome.runtime.lastError.message });
+              return;
+            }
+            if (!tabs || tabs.length === 0 || !tabs[0].id) {
+              sendResponse({ error: "Nu s-a găsit fila activă." });
+              return;
+            }
 
-        const browserTc = (
-          browser as unknown as { tabCapture?: typeof chrome.tabCapture }
-        ).tabCapture;
-        const tc =
-          typeof browserTc?.capture === "function"
-            ? browserTc
-            : chrome.tabCapture;
-
-        if (!tc?.capture) {
-          sendResponse({
-            error:
-              "Captura audio a filei nu este disponibilă în acest navigator.",
-          });
-          return;
-        }
-
-        tc.capture(
-          { audio: true, video: false },
-          (stream: MediaStream | null) => {
-            if (!stream) {
+            if (typeof chrome.tabCapture?.getMediaStreamId !== "function") {
               sendResponse({
-                error: "Capturarea audio a filei a eșuat sau a fost refuzată.",
+                error:
+                  "API-ul chrome.tabCapture.getMediaStreamId nu este disponibil.",
               });
               return;
             }
 
-            activeTabStream = stream;
-            const recorder = new MediaRecorder(stream, {
-              mimeType: "audio/webm",
-            });
-            activeTabRecorder = recorder;
-            const chunks: Blob[] = [];
-
-            recorder.ondataavailable = (e) => {
-              if (e.data.size > 0) chunks.push(e.data);
-            };
-
-            recorder.onstop = () => {
-              activeTabRecorder = null;
-              if (activeTabStream) {
-                activeTabStream.getTracks().forEach((t) => t.stop());
-                activeTabStream = null;
-              }
-              const audioBlob = new Blob(chunks, { type: "audio/webm" });
-
-              void (async () => {
-                try {
-                  const jobId = await uploadAudio(audioBlob);
-                  await storage.setItem("local:verification_job_id", jobId);
-                  void chrome.runtime.sendMessage({
-                    type: "VERIFICATION_STARTED",
-                    jobId,
-                    source: "audio",
-                  });
-
-                  await consumeVerdictStream(
-                    jobId,
-                    (p) => {
-                      void chrome.runtime.sendMessage({
-                        type: "VERIFICATION_PROGRESS",
-                        stage: p.stage,
-                        progress: p.progress,
-                        claim: p.claim,
-                      });
-                    },
-                    (result) => {
-                      void chrome.runtime.sendMessage({
-                        type: "VERIFICATION_COMPLETED",
-                        result,
-                      });
-                    },
-                    (reason) => {
-                      void chrome.runtime.sendMessage({
-                        type: "VERIFICATION_FAILED",
-                        reason,
-                      });
-                    },
-                  );
-                } catch (err) {
-                  void chrome.runtime.sendMessage({
-                    type: "VERIFICATION_FAILED",
-                    reason: String(err),
-                  });
-                }
-              })();
-            };
-
-            void chrome.runtime.sendMessage({
-              type: "CAPTURE_STARTED",
-              captureType: "tab",
-            });
-            sendResponse({ ok: true });
-          },
-        );
-        return true;
-      }
-
-      if (msg.type === "STOP_TAB_CAPTURE") {
-        if (activeTabRecorder && activeTabRecorder.state === "recording") {
-          activeTabRecorder.stop();
-          sendResponse({ ok: true });
-        } else {
-          sendResponse({ error: "Nicio captură audio activă." });
+            try {
+              chrome.tabCapture.getMediaStreamId(
+                { targetTabId: tabs[0].id },
+                (streamId) => {
+                  if (chrome.runtime.lastError) {
+                    sendResponse({ error: chrome.runtime.lastError.message });
+                  } else if (!streamId) {
+                    sendResponse({
+                      error: "Nu s-a putut obține ID-ul fluxului.",
+                    });
+                  } else {
+                    sendResponse({ streamId });
+                  }
+                },
+              );
+            } catch (err) {
+              sendResponse({
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          });
+        } catch (err) {
+          sendResponse({
+            error: err instanceof Error ? err.message : String(err),
+          });
         }
-        return;
+        return true;
       }
 
       if (msg.type === "GET_STATUS") {

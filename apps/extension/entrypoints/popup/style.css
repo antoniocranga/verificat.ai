@@ -200,10 +200,7 @@ a:hover { text-decoration: underline; }
   pointer-events: none;
 }
 
-/* ── Legacy class name aliases (for backwards compat) ────────── */
-.btn-primary-small { composes: btn-primary; }
-.btn-ghost-small   { composes: btn-ghost; }
-
+/* ── Legacy class name aliases removed ────────── */
 /* ── Consent screen ──────────────────────────────────────────── */
 #consent-screen {
   padding: var(--space-xs) 4px;
@@ -234,7 +231,7 @@ a:hover { text-decoration: underline; }
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: currentColor;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

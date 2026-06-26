@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Body, Req, UnauthorizedException, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Body,
+  Req,
+  UnauthorizedException,
+  Patch,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { Request } from 'express';
 
@@ -17,7 +25,7 @@ export class AdminController {
     @Body('note') resolutionNote: string,
     @Req() req: Request,
   ) {
-    const userId = (req as any).user?.id;
+    const userId = (req as Request & { user?: { id: string } }).user?.id;
     if (!userId) {
       throw new UnauthorizedException('Admin authentication required');
     }

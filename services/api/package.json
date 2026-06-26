@@ -25,7 +25,6 @@
     "@bull-board/api": "^6.5.0",
     "@bull-board/express": "^6.5.0",
     "@bull-board/nestjs": "^6.5.0",
-    "@infisical/sdk": "^5.0.2",
     "@nestjs/bullmq": "^11.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",

@@ -3,12 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { initConfig } from './config/infisical';
+
 import { initSentry } from './config/sentry';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  await initConfig();
   initSentry();
   const app = await NestFactory.create(AppModule);
 

@@ -62,8 +62,34 @@ class ListeningRepositoryImpl implements ListeningRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> verifyText(String text) async {
+    return _api.verifyText(text);
+  }
+
+  @override
+  Future<String?> transcribeAudio() async {
+    try {
+      if (_audioFile == null) return null;
+      debugPrint('[ListeningRepo] transcribeAudio: file=${_audioFile!.path}');
+
+      final transcript = await _api.transcribeAudio(_audioFile!);
+      _audioFile = null;
+      debugPrint('[ListeningRepo] transcribeAudio done');
+      return transcript;
+    } catch (e, st) {
+      debugPrint('[ListeningRepo] transcribeAudio failed: $e\n$st');
+      rethrow;
+    }
+  }
+
+  @override
   Stream<Map<String, dynamic>> streamJobEvents(String jobId) {
     return _api.streamJobEvents(jobId);
+  }
+
+  @override
+  Stream<dynamic> onAmplitude() {
+    return _recorder.onAmplitude();
   }
 
   @override

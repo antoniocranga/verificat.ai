@@ -16,6 +16,7 @@ class AudioRecorderService {
   Stream<AudioSessionInterruption> get onInterruption => _sessionService.onInterruption;
   Stream<String> get onSessionError => _sessionService.onError;
   Stream<void> get onRouteLost => _sessionService.onRouteLost;
+  Stream<Amplitude> onAmplitude() => _recorder.onAmplitudeChanged(const Duration(milliseconds: 100));
 
   Future<String> startRecording() async {
     final dir = await getTemporaryDirectory();

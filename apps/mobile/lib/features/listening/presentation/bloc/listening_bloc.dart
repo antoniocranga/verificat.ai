@@ -5,12 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/listening_repository_impl.dart';
 import '../../domain/repositories/listening_repository.dart';
 
-enum ListeningStatus { idle, listening, processing, verdictReady, error }
+enum ListeningStatus { idle, listening, processing, transcriptionReady, verdictReady, error }
 
 class ListeningState extends Equatable {
   final ListeningStatus status;
   final int elapsedSeconds;
   final String? verdictId;
+  final String? transcript;
   final List<Map<String, dynamic>>? claimsData;
   final String? errorMessage;
 
@@ -18,6 +19,7 @@ class ListeningState extends Equatable {
     this.status = ListeningStatus.idle,
     this.elapsedSeconds = 0,
     this.verdictId,
+    this.transcript,
     this.claimsData,
     this.errorMessage,
   });
@@ -26,6 +28,7 @@ class ListeningState extends Equatable {
     ListeningStatus? status,
     int? elapsedSeconds,
     String? verdictId,
+    String? transcript,
     List<Map<String, dynamic>>? claimsData,
     String? errorMessage,
   }) {
@@ -33,13 +36,14 @@ class ListeningState extends Equatable {
       status: status ?? this.status,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       verdictId: verdictId ?? this.verdictId,
+      transcript: transcript ?? this.transcript,
       claimsData: claimsData ?? this.claimsData,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, elapsedSeconds, verdictId, claimsData, errorMessage];
+  List<Object?> get props => [status, elapsedSeconds, verdictId, transcript, claimsData, errorMessage];
 }
 
 sealed class ListeningEvent {
@@ -52,6 +56,16 @@ class StartListening extends ListeningEvent {
 
 class StopListening extends ListeningEvent {
   const StopListening();
+}
+
+class TranscriptionReady extends ListeningEvent {
+  final String transcript;
+  const TranscriptionReady(this.transcript);
+}
+
+class SubmitTranscription extends ListeningEvent {
+  final String text;
+  const SubmitTranscription(this.text);
 }
 
 class VerdictReady extends ListeningEvent {
@@ -87,11 +101,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   StreamSubscription<void>? _interruptionEndedSub;
   Timer? _elapsedTimer;
 
+  Stream<dynamic> get amplitudeStream => _repository.onAmplitude();
+
   ListeningBloc({ListeningRepository? repository})
       : _repository = repository ?? ListeningRepositoryImpl(),
         super(const ListeningState()) {
     on<StartListening>(_onStartListening);
     on<StopListening>(_onStopListening);
+    on<TranscriptionReady>(_onTranscriptionReady);
+    on<SubmitTranscription>(_onSubmitTranscription);
     on<VerdictReady>(_onVerdictReady);
     on<ListeningFailed>(_onListeningFailed);
     on<InterruptionBegan>(_onInterruptionBegan);
@@ -170,21 +188,69 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     try {
       debugPrint('[ListeningBloc] stop: calling stopRecording');
       await _repository.stopRecording();
-      debugPrint('[ListeningBloc] stop: stopRecording done, calling uploadAndVerify');
-      final jobId = await _repository
-          .uploadAndVerify()
+      debugPrint('[ListeningBloc] stop: stopRecording done, calling transcribeAudio');
+      
+      final transcript = await _repository
+          .transcribeAudio()
           .timeout(const Duration(seconds: 35));
 
+      if (transcript == null || transcript.trim().isEmpty) {
+        emit(state.copyWith(
+          status: ListeningStatus.error,
+          errorMessage: 'Nu a fost detectată voce.',
+        ));
+        return;
+      }
+
+      add(TranscriptionReady(transcript));
+    } on TimeoutException {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Conexiunea cu serverul a expirat.',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Eroare la procesare.',
+      ));
+    }
+  }
+
+  void _onTranscriptionReady(
+      TranscriptionReady event, Emitter<ListeningState> emit) {
+    emit(state.copyWith(
+      status: ListeningStatus.transcriptionReady,
+      transcript: event.transcript,
+    ));
+  }
+
+  Future<void> _onSubmitTranscription(
+      SubmitTranscription event, Emitter<ListeningState> emit) async {
+    final text = event.text.trim();
+    if (text.isEmpty) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Textul nu poate fi gol.',
+      ));
+      return;
+    }
+
+    emit(state.copyWith(status: ListeningStatus.processing));
+
+    try {
+      final result = await _repository.verifyText(text);
+      final jobId = result['jobId']?.toString();
+      
       if (jobId == null) {
         emit(state.copyWith(
           status: ListeningStatus.error,
-          errorMessage: 'Eroare la încărcarea înregistrării.',
+          errorMessage: 'Eroare la pornirea verificării.',
         ));
         return;
       }
 
       _jobStreamSub = _repository.streamJobEvents(jobId).listen(
-            (event) {
+        (event) {
           if (event['type'] == 'completed') {
             final claims = event['claims'] as List<dynamic>? ?? [];
             add(VerdictReady(claims.cast<Map<String, dynamic>>()));
@@ -196,15 +262,10 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
           add(const ListeningFailed('Eroare la primirea rezultatelor.'));
         },
       );
-    } on TimeoutException {
-      emit(state.copyWith(
-        status: ListeningStatus.error,
-        errorMessage: 'Conexiunea cu serverul a expirat.',
-      ));
     } catch (e) {
       emit(state.copyWith(
         status: ListeningStatus.error,
-        errorMessage: 'Eroare la procesare.',
+        errorMessage: 'Eroare la trimiterea textului.',
       ));
     }
   }

@@ -76,8 +76,9 @@ class _ListeningScreenState extends State<ListeningScreen> {
   Widget _buildBody(BuildContext context, ListeningState state) {
     return switch (state.status) {
       ListeningStatus.idle        => _buildIdle(context),
-      ListeningStatus.listening   => _buildRecording(context),
+      ListeningStatus.listening   => _buildRecording(context, state),
       ListeningStatus.processing  => _buildProcessing(context, state),
+      ListeningStatus.transcriptionReady => _buildTranscriptionEdit(context, state),
       ListeningStatus.verdictReady => _buildVerdict(context, state),
       ListeningStatus.error       => _buildError(context, state),
     };
@@ -95,11 +96,14 @@ class _ListeningScreenState extends State<ListeningScreen> {
     );
   }
 
-  Widget _buildRecording(BuildContext context) {
+  Widget _buildRecording(BuildContext context, ListeningState state) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SoundWaveIndicator(active: true),
+        SoundWaveIndicator(
+          active: true,
+          amplitudeStream: context.read<ListeningBloc>().amplitudeStream,
+        ),
         const SizedBox(height: 24),
         Text(
           _formatTime(_displaySeconds),
@@ -151,6 +155,14 @@ class _ListeningScreenState extends State<ListeningScreen> {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+
+  Widget _buildTranscriptionEdit(BuildContext context, ListeningState state) {
+    return _TranscriptionEditWidget(
+      initialText: state.transcript ?? '',
+      onCancel: () => context.read<ListeningBloc>().add(const ResetListening()),
+      onSubmit: (text) => context.read<ListeningBloc>().add(SubmitTranscription(text)),
     );
   }
 
@@ -334,3 +346,97 @@ class _ListeningScreenState extends State<ListeningScreen> {
     );
   }
 }
+
+class _TranscriptionEditWidget extends StatefulWidget {
+  final String initialText;
+  final VoidCallback onCancel;
+  final ValueChanged<String> onSubmit;
+
+  const _TranscriptionEditWidget({
+    required this.initialText,
+    required this.onCancel,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_TranscriptionEditWidget> createState() => _TranscriptionEditWidgetState();
+}
+
+class _TranscriptionEditWidgetState extends State<_TranscriptionEditWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Verifică textul',
+          style: AppTextStyles.headingSubsection,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Acesta este textul detectat. Îl poți edita înainte de a-l trimite pentru verificare.',
+          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _controller,
+          maxLines: 6,
+          minLines: 3,
+          decoration: InputDecoration(
+            hintText: 'Textul transcris va apărea aici...',
+            filled: true,
+            fillColor: AppColors.surfaceRaised,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.subtle),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.subtle),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.accent),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton.secondary(
+                label: 'Anulează',
+                onPressed: widget.onCancel,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: AppButton.primary(
+                label: 'Trimite',
+                onPressed: () => widget.onSubmit(_controller.text),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+

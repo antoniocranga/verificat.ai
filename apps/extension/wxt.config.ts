@@ -10,6 +10,8 @@ export default defineConfig({
       "activeTab",
       "tabCapture",
       "contextMenus",
+      "offscreen",
+      "audioCapture",
     ],
     host_permissions: [
       "http://localhost:3000/*",
