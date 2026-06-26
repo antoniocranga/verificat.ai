@@ -1,0 +1,98 @@
+/* ============================================================
+   Input System — verificat.ui
+   5 states: default, focus, error, disabled, readonly
+   ============================================================ */
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.input-label {
+  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--color-ink, #141413);
+}
+
+.input-hint {
+  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-mid, #b0aea5);
+}
+
+.input-error-msg {
+  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-error, #c94040);
+}
+
+/* ── Base input ──────────────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--rounded-md, 12px);
+  border: 1.5px solid var(--color-subtle, #e8e6dc);
+  background: var(--surface-raised, #ffffff);
+  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-ink, #141413);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out,
+    background-color 150ms ease-out;
+}
+
+/* 1. Default placeholder */
+.input-field::placeholder {
+  color: var(--color-mid, #b0aea5);
+  font-weight: 400;
+}
+
+/* 2. Hover */
+.input-field:hover:not(:focus):not(:disabled):not([data-error="true"]) {
+  border-color: var(--color-mid, #b0aea5);
+}
+
+/* 3. Focus */
+.input-field:focus {
+  border-color: var(--color-accent, #d97757);
+  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+}
+
+/* 4. Error */
+.input-field[data-error="true"],
+.input-field:invalid:not(:placeholder-shown) {
+  border-color: var(--color-error, #c94040);
+}
+.input-field[data-error="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(201, 64, 64, 0.10);
+}
+
+/* 5. Disabled */
+.input-field:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--surface-inset, #f0ede6);
+}
+
+/* ── Textarea variant ─────────────────────────────────────────── */
+.input-field.input-textarea {
+  height: auto;
+  min-height: 100px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.6;
+}

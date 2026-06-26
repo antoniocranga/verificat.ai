@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/listening_bloc.dart';
 
 class ListeningScreen extends StatefulWidget {
@@ -43,6 +45,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         title: const Text('Verificare Audio'),
         centerTitle: true,
@@ -61,9 +64,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildBody(context, state),
-                ],
+                children: [_buildBody(context, state)],
               ),
             ),
           );
@@ -73,44 +74,24 @@ class _ListeningScreenState extends State<ListeningScreen> {
   }
 
   Widget _buildBody(BuildContext context, ListeningState state) {
-    switch (state.status) {
-      case ListeningStatus.idle:
-        return _buildIdle(context);
-      case ListeningStatus.listening:
-        return _buildRecording(context);
-      case ListeningStatus.processing:
-        return _buildProcessing(context, state);
-      case ListeningStatus.verdictReady:
-        return _buildVerdict(context, state);
-      case ListeningStatus.error:
-        return _buildError(context, state);
-    }
+    return switch (state.status) {
+      ListeningStatus.idle        => _buildIdle(context),
+      ListeningStatus.listening   => _buildRecording(context),
+      ListeningStatus.processing  => _buildProcessing(context, state),
+      ListeningStatus.verdictReady => _buildVerdict(context, state),
+      ListeningStatus.error       => _buildError(context, state),
+    };
   }
 
   Widget _buildIdle(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(
-          width: 64,
-          height: 64,
-          child: Icon(Icons.mic, size: 48, color: Color(0xFF8F8F8F)),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Apăsați butonul pentru a începe verificarea',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF171717),
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        AppSmallPrimaryButton(
-          label: 'Începe Verificarea',
-          onPressed: () => context.read<ListeningBloc>().add(const StartListening()),
-        ),
-      ],
+    return AppEmptyState(
+      icon: Icons.mic_none_rounded,
+      title: 'Pregătit pentru verificare',
+      description:
+          'Apăsați butonul pentru a începe să ascultați și să verificați afirmațiile în timp real.',
+      actionLabel: 'Începe Verificarea',
+      onAction: () =>
+          context.read<ListeningBloc>().add(const StartListening()),
     );
   }
 
@@ -122,24 +103,25 @@ class _ListeningScreenState extends State<ListeningScreen> {
         const SizedBox(height: 24),
         Text(
           _formatTime(_displaySeconds),
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF171717),
-            letterSpacing: -0.4,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 36,
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+            letterSpacing: -0.72,
+            fontFeatures: [FontFeature.tabularFigures()],
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Se înregistrează...',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: const Color(0xFF8F8F8F),
-          ),
+          style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
         ),
         const SizedBox(height: 32),
-        AppSmallPrimaryButton(
+        AppButton.destructive(
           label: 'Oprește',
-          foregroundColor: const Color(0xFFEE0000),
-          onPressed: () => context.read<ListeningBloc>().add(const StopListening()),
+          onPressed: () =>
+              context.read<ListeningBloc>().add(const StopListening()),
         ),
       ],
     );
@@ -149,25 +131,24 @@ class _ListeningScreenState extends State<ListeningScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Spinning progress indicator using accent colour
         const SizedBox(
-          width: 32,
-          height: 32,
-          child: CircularProgressIndicator(strokeWidth: 3),
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+          ),
         ),
         const SizedBox(height: 24),
-        Text(
+        const Text(
           'Se procesează...',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF171717),
-          ),
+          style: AppTextStyles.headingSubsection,
         ),
         const SizedBox(height: 8),
         Text(
           'Audio a fost trimis. Se analizează conținutul.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: const Color(0xFF8F8F8F),
-          ),
+          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
           textAlign: TextAlign.center,
         ),
       ],
@@ -182,127 +163,142 @@ class _ListeningScreenState extends State<ListeningScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle, size: 64, color: Color(0xFF22C55E)),
-          const SizedBox(height: 16),
-          Text(
-            'Rezultatul este gata!',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF171717),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.verdictTrue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 32,
+              color: AppColors.verdictTrue,
             ),
           ),
+          const SizedBox(height: 20),
+          const Text('Rezultatul este gata!', style: AppTextStyles.headingSubsection),
           if (firstClaim != null) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             _buildClaimVerdict(context, firstClaim),
           ],
           if (claims.length > 1) ...[
             const SizedBox(height: 12),
             Text(
               '${claims.length} afirmații verificate',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: const Color(0xFF8F8F8F),
-              ),
+              style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
             ),
           ],
           const SizedBox(height: 24),
-          AppSmallPrimaryButton(
+          AppButton.secondary(
             label: 'Verifică din nou',
-            onPressed: () => context.read<ListeningBloc>().add(const ResetListening()),
+            onPressed: () =>
+                context.read<ListeningBloc>().add(const ResetListening()),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildClaimVerdict(BuildContext context, Map<String, dynamic> claim) {
-    const colors = <String, Color>{
-      'True': Color(0xFF22C55E),
-      'Mostly True': Color(0xFF84CC16),
-      'Partially True': Color(0xFFD97706),
-      'Misleading': Color(0xFFEA580C),
-      'False': Color(0xFFEF4444),
-      'Unverified': Color(0xFF6B7280),
-    };
-
+  Widget _buildClaimVerdict(
+      BuildContext context, Map<String, dynamic> claim) {
     final label = claim['verdict'] as String? ?? 'Unverified';
     final confidence = claim['confidenceScore'] as num? ?? 0;
     final explanation = claim['explanation'] as String? ?? '';
     final evidence = claim['evidence'] as List<dynamic>? ?? [];
-    final color = colors[label] ?? const Color(0xFF171717);
+    final color = AppColors.forVerdict(label);
 
     return AppFeatureCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Verdict badge
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: color.withOpacity(0.25)),
+              color: color.withValues(alpha: 0.08),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
               borderRadius: BorderRadius.circular(6),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             child: Text(
               label,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: AppTextStyles.labelMd.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Nivel de încredere: $confidence / 100',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF4D4D4D),
-            ),
+          const SizedBox(height: 12),
+
+          // Confidence
+          Row(
+            children: [
+              Text(
+                'Nivel de încredere: ',
+                style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
+              ),
+              Text(
+                '$confidence%',
+                style: AppTextStyles.labelMd.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
+
+          // Progress bar
           ClipRRect(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: confidence.toDouble() / 100,
-              backgroundColor: const Color(0xFFEBEBEB),
+              backgroundColor: AppColors.subtle,
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 4,
             ),
           ),
+
+          // Explanation
           if (explanation.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               explanation,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF4D4D4D),
-                height: 1.6,
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.inkSub,
+                height: 1.65,
               ),
             ),
           ],
+
+          // Sources
           if (evidence.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Surse',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: const Color(0xFF171717),
-                fontWeight: FontWeight.w500,
-              ),
+            const SizedBox(height: 20),
+            const Text(
+              'SURSE',
+              style: AppTextStyles.labelCaps,
             ),
             const SizedBox(height: 8),
             ...evidence.take(3).map((e) {
               final eMap = e as Map<String, dynamic>;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       eMap['title'] as String? ?? '',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: const Color(0xFF171717),
+                      style: AppTextStyles.labelMd.copyWith(
+                        color: AppColors.ink,
                       ),
                     ),
                     if (eMap['url'] != null)
                       Text(
                         eMap['url'] as String,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFF0070F3),
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: AppColors.blue,
+                          fontSize: 12,
                         ),
                       ),
                   ],
@@ -316,35 +312,15 @@ class _ListeningScreenState extends State<ListeningScreen> {
   }
 
   Widget _buildError(BuildContext context, ListeningState state) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.error, size: 64, color: Color(0xFFEE0000)),
-        const SizedBox(height: 24),
-        Text(
-          'A apărut o eroare',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF171717),
-          ),
-        ),
-        if (state.errorMessage != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            state.errorMessage!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFFEE0000),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-        const SizedBox(height: 32),
-        AppSmallPrimaryButton(
-          label: 'Încearcă din Nou',
-          onPressed: () => context.read<ListeningBloc>().add(const StartListening()),
-        ),
-      ],
+    return AppEmptyState(
+      type: AppEmptyStateType.error,
+      icon: Icons.error_outline_rounded,
+      title: 'A apărut o eroare',
+      description: state.errorMessage ??
+          'Nu am putut procesa audio-ul. Vă rugăm să încercați din nou.',
+      actionLabel: 'Încearcă din Nou',
+      onAction: () =>
+          context.read<ListeningBloc>().add(const StartListening()),
     );
   }
-
 }

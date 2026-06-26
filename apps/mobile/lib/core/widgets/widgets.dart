@@ -1,7 +1,10 @@
-export 'app_primary_button.dart';
-export 'app_secondary_button.dart';
-export 'app_small_primary_button.dart';
-export 'app_ghost_button.dart';
+// New unified components
+export 'app_button.dart';
+export 'app_button_compat.dart'; // deprecated compat shims for migration
+export 'app_empty_state.dart';
+export 'app_surface.dart';
+
+// Shared components
 export 'app_feature_card.dart';
 export 'app_text_input.dart';
 export 'mono_eyebrow.dart';

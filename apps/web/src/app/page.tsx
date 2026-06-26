@@ -3,8 +3,7 @@ import {
   NavLink,
   HeroBand,
   BodyMd,
-  ButtonPrimary,
-  ButtonSecondary,
+  Button,
   FeatureCard,
   HeadingMd,
   HeadingLg,
@@ -45,9 +44,19 @@ const steps = [
 
 export default function Home() {
   return (
-    <div style={{ background: "#fafafa", minHeight: "100vh" }}>
+    <div
+      style={{ background: "var(--color-canvas, #faf9f5)", minHeight: "100vh" }}
+    >
       <NavBar>
-        <span style={{ fontWeight: 600, fontSize: 20, color: "#171717" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-display, Poppins, Arial, sans-serif)",
+            fontWeight: 700,
+            fontSize: 18,
+            color: "var(--color-ink, #141413)",
+            letterSpacing: "-0.02em",
+          }}
+        >
           verificat.xyz
         </span>
         <div style={{ display: "flex", gap: 4 }}>
@@ -57,6 +66,7 @@ export default function Home() {
         </div>
       </NavBar>
 
+      {/* ── Hero ──────────────────────────────────────────── */}
       <HeroBand>
         <div
           style={{
@@ -66,26 +76,24 @@ export default function Home() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 24,
+            gap: 28,
             padding: "0 24px",
           }}
         >
           <h1
-            style={{
-              fontFamily: "'Geist Sans', Arial, sans-serif",
-              fontSize: 48,
-              fontWeight: 600,
-              lineHeight: 1,
-              letterSpacing: "-2.4px",
-              margin: 0,
-              color: "#171717",
-            }}
+            className="heading-display"
+            style={{ fontSize: "clamp(36px, 6vw, 64px)", margin: 0 }}
           >
             Verifică afirmațiile din media
             <br />
             în timp real
           </h1>
-          <BodyMd style={{ color: "#4d4d4d", maxWidth: 600 }}>
+          <BodyMd
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              maxWidth: 560,
+            }}
+          >
             Un asistent inteligent ce utilizează procesare avansată de limbaj
             natural, căutare semantică și evaluarea încrederii surselor pentru a
             furniza verdicte imediate, clare și bazate pe dovezi.
@@ -99,41 +107,60 @@ export default function Home() {
             }}
           >
             <a href="#descarca" style={{ textDecoration: "none" }}>
-              <ButtonPrimary id="btn-hero-download">
+              <Button id="btn-hero-download" variant="accent" size="lg">
                 Instalează Extensia
-              </ButtonPrimary>
+              </Button>
             </a>
             <a href="#cum-functioneaza" style={{ textDecoration: "none" }}>
-              <ButtonSecondary id="btn-hero-howitworks">
+              <Button id="btn-hero-howitworks" variant="secondary" size="lg">
                 Cum funcționează?
-              </ButtonSecondary>
+              </Button>
             </a>
           </div>
         </div>
       </HeroBand>
 
+      {/* ── Logo strip ────────────────────────────────────── */}
       <LogoStrip>
-        <span style={{ color: "#8f8f8f", fontSize: 14 }}>
+        <span
+          style={{
+            color: "var(--color-mid, #b0aea5)",
+            fontSize: 12,
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+          }}
+        >
           Surse verificate:
         </span>
-        <span style={{ color: "#8f8f8f" }}>INS</span>
-        <span style={{ color: "#8f8f8f" }}>BNR</span>
-        <span style={{ color: "#8f8f8f" }}>Transelectrica</span>
-        <span style={{ color: "#8f8f8f" }}>SEAP</span>
+        <span style={{ color: "var(--color-mid, #b0aea5)", fontWeight: 600 }}>
+          INS
+        </span>
+        <span style={{ color: "var(--color-mid, #b0aea5)", fontWeight: 600 }}>
+          BNR
+        </span>
+        <span style={{ color: "var(--color-mid, #b0aea5)", fontWeight: 600 }}>
+          Transelectrica
+        </span>
+        <span style={{ color: "var(--color-mid, #b0aea5)", fontWeight: 600 }}>
+          SEAP
+        </span>
       </LogoStrip>
 
+      {/* ── Pipeline section ──────────────────────────────── */}
       <section
         id="cum-functioneaza"
-        style={{ background: "#fafafa", padding: "96px 24px" }}
+        style={{
+          background: "var(--color-canvas, #faf9f5)",
+          padding: "96px 24px",
+        }}
       >
         <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
-          <HeadingLg as="h2" style={{ color: "#171717" }}>
-            Pipeline-ul modular de verificare
-          </HeadingLg>
+          <HeadingLg as="h2">Pipeline-ul modular de verificare</HeadingLg>
           <BodyMd
             style={{
-              color: "#4d4d4d",
-              maxWidth: 600,
+              color: "var(--color-mid, #b0aea5)",
+              maxWidth: 560,
               margin: "16px auto 48px",
             }}
           >
@@ -143,20 +170,25 @@ export default function Home() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 24,
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 20,
               textAlign: "left",
             }}
           >
             {steps.map((s, i) => (
-              <FeatureCard key={i}>
-                <MonoEyebrow style={{ color: "#8f8f8f" }}>
+              <FeatureCard key={i} hover>
+                <MonoEyebrow style={{ color: "var(--color-accent, #d97757)" }}>
                   {s.eyebrow}
                 </MonoEyebrow>
-                <HeadingMd as="h3" style={{ color: "#171717", marginTop: 8 }}>
+                <HeadingMd as="h3" style={{ marginTop: 12, fontSize: 18 }}>
                   {s.title}
                 </HeadingMd>
-                <BodyMd style={{ color: "#4d4d4d", marginTop: 8 }}>
+                <BodyMd
+                  style={{
+                    color: "var(--color-mid, #b0aea5)",
+                    marginTop: 8,
+                  }}
+                >
                   {s.desc}
                 </BodyMd>
               </FeatureCard>
@@ -165,18 +197,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Architecture section ───────────────────────────── */}
       <section
         id="arhitectura"
-        style={{ background: "#fafafa", padding: "96px 24px" }}
+        style={{
+          background: "var(--surface-inset, #f0ede6)",
+          padding: "96px 24px",
+        }}
       >
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-          <HeadingLg as="h2" style={{ color: "#171717" }}>
-            Arhitectură deschisă
-          </HeadingLg>
+          <HeadingLg as="h2">Arhitectură deschisă</HeadingLg>
           <BodyMd
             style={{
-              color: "#4d4d4d",
-              maxWidth: 600,
+              color: "var(--color-mid, #b0aea5)",
+              maxWidth: 560,
               margin: "16px auto 32px",
             }}
           >
@@ -199,13 +233,18 @@ verdict = calculate_verdict(claims, evidence, trust_score)`}
         </div>
       </section>
 
+      {/* ── CTA / Download ────────────────────────────────── */}
       <CTABand id="descarca">
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <HeadingLg as="h2" style={{ color: "#171717", marginBottom: 16 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
+          <HeadingLg as="h2" style={{ marginBottom: 16 }}>
             Instalează verificat.xyz
           </HeadingLg>
           <BodyMd
-            style={{ color: "#4d4d4d", maxWidth: 500, margin: "0 auto 24px" }}
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              maxWidth: 480,
+              margin: "0 auto 28px",
+            }}
           >
             Asistentul tău personal de verificare te însoțește oriunde
             navighezi.
@@ -219,19 +258,20 @@ verdict = calculate_verdict(claims, evidence, trust_score)`}
             }}
           >
             <a href="#" style={{ textDecoration: "none" }}>
-              <ButtonPrimary id="btn-download-chrome">
+              <Button id="btn-download-chrome" variant="accent" size="md">
                 Extensia Chrome
-              </ButtonPrimary>
+              </Button>
             </a>
             <a href="#" style={{ textDecoration: "none" }}>
-              <ButtonSecondary id="btn-download-firefox">
+              <Button id="btn-download-firefox" variant="secondary" size="md">
                 Add-on Firefox
-              </ButtonSecondary>
+              </Button>
             </a>
           </div>
         </div>
       </CTABand>
 
+      {/* ── Footer ────────────────────────────────────────── */}
       <FooterBand>
         <div
           style={{
@@ -241,11 +281,19 @@ verdict = calculate_verdict(claims, evidence, trust_score)`}
             minWidth: 160,
           }}
         >
-          <span style={{ fontWeight: 600, color: "#171717", fontSize: 16 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-display, Poppins, Arial, sans-serif)",
+              fontWeight: 700,
+              color: "var(--color-ink, #141413)",
+              fontSize: 15,
+              letterSpacing: "-0.02em",
+            }}
+          >
             verificat.xyz
           </span>
-          <span>
-            &copy; {new Date().getFullYear()} FactCheck.ro. Toate drepturile
+          <span style={{ color: "var(--color-mid, #b0aea5)", fontSize: 13 }}>
+            &copy; {new Date().getFullYear()} verificat.xyz. Toate drepturile
             rezervate.
           </span>
         </div>
@@ -257,14 +305,34 @@ verdict = calculate_verdict(claims, evidence, trust_score)`}
             minWidth: 160,
           }}
         >
-          <span style={{ fontWeight: 500, color: "#171717" }}>Legal</span>
+          <span
+            style={{
+              fontFamily: "var(--font-display, Poppins, Arial, sans-serif)",
+              fontWeight: 600,
+              color: "var(--color-ink, #141413)",
+              fontSize: 13,
+            }}
+          >
+            Legal
+          </span>
           <a
             href="/privacy"
-            style={{ color: "#8f8f8f", textDecoration: "none" }}
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
           >
             Politica de confidențialitate
           </a>
-          <a href="/terms" style={{ color: "#8f8f8f", textDecoration: "none" }}>
+          <a
+            href="/terms"
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
+          >
             Termeni și condiții
           </a>
         </div>
@@ -276,16 +344,33 @@ verdict = calculate_verdict(claims, evidence, trust_score)`}
             minWidth: 160,
           }}
         >
-          <span style={{ fontWeight: 500, color: "#171717" }}>Produs</span>
+          <span
+            style={{
+              fontFamily: "var(--font-display, Poppins, Arial, sans-serif)",
+              fontWeight: 600,
+              color: "var(--color-ink, #141413)",
+              fontSize: 13,
+            }}
+          >
+            Produs
+          </span>
           <a
             href="#descarca"
-            style={{ color: "#8f8f8f", textDecoration: "none" }}
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
           >
             Descarcă extensia
           </a>
           <a
             href="/cum-functioneaza"
-            style={{ color: "#8f8f8f", textDecoration: "none" }}
+            style={{
+              color: "var(--color-mid, #b0aea5)",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
           >
             Cum funcționează
           </a>

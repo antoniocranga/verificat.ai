@@ -1,26 +1,27 @@
 import type { ReactNode } from 'react';
+import './button.css'; // pulls in token vars
 
 interface FeatureCardProps {
   children: ReactNode;
   shadow?: boolean;
   id?: string;
+  hover?: boolean;
 }
 
-const baseStyle: React.CSSProperties = {
-  borderRadius: 12,
-  padding: 24,
-  backgroundColor: '#ffffff',
-  border: '1px solid #ebebeb',
-  fontFamily: "'Geist Sans', Arial, sans-serif",
-};
-
-const shadowStyle: React.CSSProperties = {
-  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-};
-
-export function FeatureCard({ children, shadow, id }: FeatureCardProps) {
+export function FeatureCard({ children, shadow = true, hover = true, id }: FeatureCardProps) {
   return (
-    <div id={id} style={{ ...baseStyle, ...(shadow ? shadowStyle : {}) }}>
+    <div
+      id={id}
+      className={hover ? 'card' : undefined}
+      style={{
+        borderRadius: 'var(--rounded-md, 12px)',
+        padding: 'var(--spacing-lg, 24px)',
+        backgroundColor: 'var(--surface-raised, #ffffff)',
+        border: '1px solid var(--color-subtle, #e8e6dc)',
+        fontFamily: 'var(--font-display, Poppins, Arial, sans-serif)',
+        boxShadow: shadow ? 'var(--shadow-sm)' : undefined,
+      }}
+    >
       {children}
     </div>
   );

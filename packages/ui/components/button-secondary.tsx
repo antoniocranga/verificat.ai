@@ -1,35 +1,18 @@
-import type { ReactNode } from 'react';
+/**
+ * @deprecated Use <Button variant="secondary" /> from './Button' instead.
+ */
+import { Button } from './Button';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-interface ButtonSecondaryProps {
+interface ButtonSecondaryProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  onClick?: () => void;
   id?: string;
 }
 
-const style: Record<string, React.CSSProperties> = {
-  base: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 44,
-    padding: '0 14px',
-    borderRadius: 100,
-    border: '1px solid #ebebeb',
-    backgroundColor: '#ffffff',
-    color: '#171717',
-    fontFamily: "'Geist Sans', Arial, sans-serif",
-    fontSize: 16,
-    fontWeight: 500,
-    lineHeight: '20px',
-    cursor: 'pointer',
-    userSelect: 'none',
-  },
-};
-
-export function ButtonSecondary({ children, onClick, id }: ButtonSecondaryProps) {
+export function ButtonSecondary({ children, id, ...props }: ButtonSecondaryProps) {
   return (
-    <button id={id} style={style.base} onClick={onClick} type="button">
+    <Button variant="secondary" size="md" id={id} {...props}>
       {children}
-    </button>
+    </Button>
   );
 }

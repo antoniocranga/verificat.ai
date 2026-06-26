@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? error;
@@ -41,16 +43,21 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
     } on AuthException catch (e) {
-      setState(() => _error = e.message);
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         leading: const BackButton(),
         title: const Text('Autentificare'),
+        backgroundColor: AppColors.canvas,
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -59,39 +66,64 @@ class _LoginScreenState extends State<LoginScreen> {
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Logo / wordmark
                 Text(
-                  'Verificat',
-                  style: Theme.of(context).textTheme.displayLarge,
+                  'verificat.xyz',
+                  style: AppTextStyles.headingDisplay.copyWith(fontSize: 32),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Autentifică-te pentru a-ți vedea istoricul',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF4D4D4D)),
+                  style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
+
+                // Email field
                 AppTextInput(
                   controller: _emailController,
-                  hintText: 'Email',
-                  onChanged: (_) {},
+                  label: 'Adresă email',
+                  hintText: 'tu@exemplu.ro',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  errorText: null,
                 ),
                 const SizedBox(height: 16),
+
+                // Password field
                 AppTextInput(
                   controller: _passwordController,
-                  hintText: 'Parolă',
+                  label: 'Parolă',
+                  hintText: '••••••••',
                   obscureText: true,
-                  onChanged: (_) {},
+                  textInputAction: TextInputAction.done,
+                  onEditingComplete: _loading ? null : _login,
                 ),
+
+                // Error message
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Color(0xFFEE0000))),
+                  Text(
+                    _error!,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      color: AppColors.error,
+                    ),
+                  ),
                 ],
+
                 const SizedBox(height: 24),
+
+                // Submit button
                 SizedBox(
                   width: double.infinity,
-                  child: AppSmallPrimaryButton(
-                    label: _loading ? 'Se încarcă...' : 'Autentificare',
+                  child: AppButton(
+                    label: 'Autentificare',
                     onPressed: _loading ? null : _login,
+                    loading: _loading,
+                    width: double.infinity,
                   ),
                 ),
               ],

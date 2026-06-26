@@ -51,6 +51,7 @@ describe('Typography primitives', () => {
   it('DisplayXL has correct letter-spacing', () => {
     const { container } = render(<DisplayXL>Test</DisplayXL>);
     const el = container.querySelector('h1')!;
-    expect(el.style.letterSpacing).toBe('-2.4px');
+    // Updated to em-based value matching --letter-spacing-display-xl token
+    expect(el.style.letterSpacing).toBe('-0.04em');
   });
 });
