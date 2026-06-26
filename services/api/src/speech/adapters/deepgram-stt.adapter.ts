@@ -114,13 +114,51 @@ export class DeepgramSttAdapter implements SttAdapter {
     }
   }
 
-  transcribeBuffer(
-    _buffer: Buffer,
-    _config?: SttConfig,
+  async transcribeBuffer(
+    buffer: Buffer,
+    config?: SttConfig,
   ): Promise<{ text: string; confidence: number }> {
-    return Promise.resolve({
-      text: 'Mock transcription from Deepgram batch',
-      confidence: 0.99,
-    });
+    const apiKey = process.env.DEEPGRAM_API_KEY;
+    if (!apiKey) {
+      this.logger.warn('DEEPGRAM_API_KEY is not configured. Falling back to mock STT.');
+      return {
+        text: 'Mock transcription from Deepgram batch',
+        confidence: 0.99,
+      };
+    }
+
+    const language = config?.language || 'ro-RO';
+    const langParam = language.split('-')[0];
+    
+    // We use model=nova-2 which provides high accuracy
+    const url = `https://api.deepgram.com/v1/listen?model=nova-2&language=${langParam}&smart_format=true`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'audio/webm', // Fallback, though Deepgram often auto-detects
+        },
+        body: buffer as any, // Node fetch might complain about Buffer types depending on definitions
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Deepgram API error (${response.status}): ${errText}`);
+      }
+
+      const data = await response.json() as any;
+      const transcript = data.results?.channels?.[0]?.alternatives?.[0]?.transcript || '';
+      const confidence = data.results?.channels?.[0]?.alternatives?.[0]?.confidence || 0;
+
+      return {
+        text: transcript,
+        confidence,
+      };
+    } catch (err) {
+      this.logger.error('Failed to transcribe buffer via Deepgram', err);
+      throw err;
+    }
   }
 }

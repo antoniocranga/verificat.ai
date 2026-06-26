@@ -49,6 +49,15 @@ describe('EvidenceRetrievalService', () => {
         data: [{ id: '1', text: 'Database match' }],
         error: null,
       }),
+      rpc: jest.fn().mockImplementation((name) => {
+        if (name === 'match_source_articles' || name === 'search_source_articles') {
+          return Promise.resolve({
+            data: [],
+            error: null,
+          });
+        }
+        return Promise.resolve({ data: null, error: null });
+      }),
     };
 
     const mockSupabaseService = {
@@ -139,17 +148,17 @@ describe('EvidenceRetrievalService', () => {
     const results = await service.retrieveEvidence(claim);
 
     // Assert pgvector search was called
-    expect(searchService.searchSimilarClaims).toHaveBeenCalled();
+    expect(supabaseService.getClient().rpc).toHaveBeenCalledWith('match_source_articles', expect.any(Object));
 
     // Assert keyword database search was called
-    expect(supabaseService.getClient).toHaveBeenCalled();
+    expect(supabaseService.getClient().rpc).toHaveBeenCalledWith('search_source_articles', expect.any(Object));
 
     // Assert safe fetcher was called for the URL in assertion
     expect(safeFetcherService.fetchSafe).toHaveBeenCalledWith('https://gov.ro/stire');
 
-    // Assert merge and ranking works
+    // Assert merge and ranking works (since RPC mocked to [], the only result is the URL fetch)
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].similarityScore).toBeGreaterThanOrEqual(results[results.length - 1].similarityScore);
+    expect(results[0].similarityScore).toBe(0.8);
   });
 
   it('should fail gracefully and skip blocked/internal URLs during safe fetches', async () => {

@@ -181,6 +181,7 @@ jobs:
             export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
             export SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
             export REDIS_URL="${{ secrets.REDIS_URL }}"
+            export WHISPER_URL="${{ secrets.WHISPER_URL }}"
 
             chmod +x deploy-staging.sh
             ./deploy-staging.sh

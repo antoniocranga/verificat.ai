@@ -9,6 +9,13 @@ const mockSendMessage = jest.fn();
   runtime: {
     sendMessage: mockSendMessage,
   },
+  offscreen: {
+    hasDocument: jest.fn().mockResolvedValue(false),
+    createDocument: jest.fn().mockResolvedValue(undefined),
+    Reason: {
+      USER_MEDIA: "USER_MEDIA",
+    },
+  },
 };
 
 describe("startTabCapture", () => {
@@ -18,12 +25,16 @@ describe("startTabCapture", () => {
 
   it("should send START_TAB_CAPTURE to background", async () => {
     mockSendMessage.mockImplementation((_msg: any, cb: (r: any) => void) => {
-      cb({ ok: true });
+      cb({ streamId: "test-stream-id" });
     });
 
     await startTabCapture();
     expect(mockSendMessage).toHaveBeenCalledWith(
-      { type: "START_TAB_CAPTURE" },
+      {
+        type: "START_OFFSCREEN_RECORDING",
+        target: "tab",
+        streamId: "test-stream-id",
+      },
       expect.any(Function),
     );
   });

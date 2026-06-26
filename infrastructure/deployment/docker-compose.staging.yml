@@ -35,6 +35,7 @@ services:
       - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
       - SENTRY_DSN=${SENTRY_DSN}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WHISPER_URL=${WHISPER_URL}
     depends_on:
       - redis
     networks:

@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 describe('DeepgramSttAdapter', () => {
   let adapter: DeepgramSttAdapter;
   let mockWS: any;
+  let globalFetchMock: jest.Mock;
 
   beforeEach(async () => {
     mockWS = {
@@ -15,6 +16,9 @@ describe('DeepgramSttAdapter', () => {
     };
 
     (globalThis as any).WebSocket = jest.fn().mockImplementation(() => mockWS);
+
+    globalFetchMock = jest.fn();
+    (globalThis as any).fetch = globalFetchMock;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [DeepgramSttAdapter],
@@ -84,5 +88,40 @@ describe('DeepgramSttAdapter', () => {
 
     await session.close();
     expect(mockWS.close).toHaveBeenCalled();
+  });
+
+  describe('transcribeBuffer', () => {
+    it('should return mock transcription if DEEPGRAM_API_KEY is missing', async () => {
+      const res = await adapter.transcribeBuffer(Buffer.alloc(0));
+      expect(res.text).toBe('Mock transcription from Deepgram batch');
+      expect(globalFetchMock).not.toHaveBeenCalled();
+    });
+
+    it('should invoke fetch with correct params when API key is set', async () => {
+      process.env.DEEPGRAM_API_KEY = 'test-key';
+      
+      globalFetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          results: {
+            channels: [{
+              alternatives: [{ transcript: 'fetch test transcript', confidence: 0.95 }]
+            }]
+          }
+        })
+      });
+
+      const res = await adapter.transcribeBuffer(Buffer.alloc(0), { language: 'ro-RO' });
+      expect(res.text).toBe('fetch test transcript');
+      expect(res.confidence).toBe(0.95);
+      
+      expect(globalFetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('api.deepgram.com/v1/listen?model=nova-2&language=ro&smart_format=true'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({ 'Authorization': 'Token test-key' })
+        })
+      );
+    });
   });
 });

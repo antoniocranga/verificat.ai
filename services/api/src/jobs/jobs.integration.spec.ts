@@ -6,6 +6,7 @@ import { ClaimDetectionService } from '../fact-checks/claim-detection.service';
 import { EvidenceRetrievalService } from '../fact-checks/evidence-retrieval.service';
 import { VerdictGenerationService } from '../fact-checks/verdict-generation.service';
 import { SourceTrustService } from '../sources/source-trust.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import { Job } from 'bullmq';
 
 describe('JobsConsumer Integration', () => {
@@ -78,6 +79,18 @@ describe('JobsConsumer Integration', () => {
           useValue: mockVerdictGenerationService,
         },
         { provide: SourceTrustService, useValue: mockSourceTrustService },
+        {
+          provide: SupabaseService,
+          useValue: {
+            getClient: jest.fn().mockReturnValue({
+              from: jest.fn().mockReturnThis(),
+              insert: jest.fn().mockReturnThis(),
+              select: jest.fn().mockReturnThis(),
+              eq: jest.fn().mockReturnThis(),
+              maybeSingle: jest.fn().mockResolvedValue({ data: null }),
+            }),
+          },
+        },
       ],
     }).compile();
 
