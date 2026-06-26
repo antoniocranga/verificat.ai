@@ -13,6 +13,50 @@ class JobApiService {
           ..connectionTimeout = const Duration(seconds: 10)
           ..idleTimeout = const Duration(seconds: 30);
 
+  Future<Map<String, dynamic>> verifyText(String text) async {
+    final uri = Uri.parse('$_baseUrl/jobs/verify-text');
+    final request = await _client.postUrl(uri);
+    request.headers.set('Content-Type', 'application/json');
+    request.add(utf8.encode(jsonEncode({'text': text})));
+    await request.close();
+
+    final response = await request.done.timeout(const Duration(seconds: 30));
+    final body = await response.transform(utf8.decoder).join();
+
+    if (response.statusCode != 202) {
+      throw HttpException(
+        'Verify text failed: ${response.statusCode} $body',
+        uri: uri,
+      );
+    }
+    return jsonDecode(body) as Map<String, dynamic>;
+  }
+
+  Future<String> transcribeAudio(File audioFile) async {
+    final uri = Uri.parse('$_baseUrl/speech/transcribe');
+    final request = await _client.postUrl(uri);
+
+    request.headers.set('Content-Type', 'audio/mp4');
+    request.contentLength = await audioFile.length();
+
+    final audioBytes = await audioFile.readAsBytes();
+    request.add(audioBytes);
+    await request.close();
+
+    final response = await request.done.timeout(const Duration(seconds: 30));
+    final body = await response.transform(utf8.decoder).join();
+
+    if (response.statusCode != 200) {
+      throw HttpException(
+        'Transcription failed: ${response.statusCode} $body',
+        uri: uri,
+      );
+    }
+
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    return data['transcript'] as String;
+  }
+
   Future<Map<String, dynamic>> uploadAudio(File audioFile) async {
     final uri = Uri.parse('$_baseUrl/jobs/upload');
     final request = await _client.postUrl(uri);

@@ -1,8 +1,4 @@
-import {
-  startTabCapture,
-  startMicCapture,
-  collectChunks,
-} from "../../utils/audio-capture";
+import { startTabCapture, startMicCapture } from "../../utils/audio-capture";
 import { resumePendingJob, dispatchAndWait } from "../../utils/api";
 
 type CaptureState =
@@ -15,10 +11,8 @@ type CaptureState =
 type CaptureType = "tab" | "mic";
 
 let state: CaptureState = "idle";
-let captureType: CaptureType | null = null;
-let micRecorder: MediaRecorder | null = null;
-let micStop: (() => void) | null = null;
-let blobReady: Promise<Blob> | null = null;
+
+let micStop: (() => Promise<Blob>) | null = null;
 let elapsedSeconds = 0;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let isTabCapturing = false;
@@ -187,12 +181,13 @@ async function startTabCaptureImpl() {
   if (isTabCapturing) return;
   transitionTo("preparing");
   preparingText.textContent = "Se inițializează capturarea filei...";
-  captureType = "tab";
 
   try {
-    await startTabCapture();
+    const capture = await startTabCapture();
     isTabCapturing = true;
-    captureType = "tab";
+
+    micStop = capture.stop;
+
     recordingLabel.textContent = "Se capturează audio din filă";
     transitionTo("recording");
     startTimer();
@@ -203,20 +198,13 @@ async function startTabCaptureImpl() {
 }
 
 async function startMicCaptureImpl() {
-  if (micRecorder) return;
+  if (micStop) return;
   transitionTo("preparing");
   preparingText.textContent = "Se inițializează microfonul...";
-  captureType = "mic";
 
   try {
     const capture = await startMicCapture();
-    micRecorder = capture.recorder;
     micStop = capture.stop;
-
-    const { onStop } = collectChunks(micRecorder);
-    blobReady = onStop;
-
-    micRecorder.start(1000);
 
     void chrome.runtime.sendMessage({
       type: "CAPTURE_STARTED",
@@ -235,22 +223,16 @@ async function startMicCaptureImpl() {
 async function stopRecording() {
   stopTimer();
 
-  if (captureType === "tab") {
-    void chrome.runtime.sendMessage({ type: "STOP_TAB_CAPTURE" });
-    isTabCapturing = false;
-    transitionTo("processing");
-    processingStatus.textContent = "Se așteaptă verdictul...";
-    setStatus("Procesare");
-  } else if (captureType === "mic" && micRecorder) {
-    micStop?.();
-    micRecorder = null;
+  if (micStop) {
+    const stopFn = micStop;
     micStop = null;
+    isTabCapturing = false;
 
     transitionTo("processing");
-    processingStatus.textContent = "Se încarcă audio...";
+    processingStatus.textContent = "Se procesează audio...";
 
     try {
-      const blob = await blobReady;
+      const blob = await stopFn();
       if (!blob) throw new Error("Captura audio nu a produs date.");
       processingStatus.textContent = "Se analizează...";
       await dispatchAudioAndWait(blob);
@@ -261,13 +243,27 @@ async function stopRecording() {
 }
 
 async function dispatchAudioAndWait(blob: Blob) {
-  const result = await dispatchAndWait(blob, (p) => {
+  const result = (await dispatchAndWait(blob, (p) => {
     showProgress(p.stage, p.progress, p.claim);
-  });
-  
-  if ((result as any)?.claims?.[0]) {
-    const c = (result as any).claims[0];
+  })) as {
+    claims?: {
+      verdict: string;
+      explanation: string;
+      confidenceScore: number;
+      evidence?: { title: string; url: string; snippet: string }[];
+    }[];
+  };
+
+  if (result?.claims && result.claims.length > 0) {
+    const c = result.claims[0];
     showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
+  } else {
+    showVerdict(
+      "Unverified",
+      "Nu s-au găsit afirmații în înregistrare.",
+      0,
+      [],
+    );
   }
 }
 
@@ -382,18 +378,25 @@ chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
   if (msg.type === "VERIFICATION_STARTED") {
     transitionTo("processing");
     processingStatus.textContent =
-      msg.source === "text"
-        ? "Se analizează textul..."
-        : "Se încarcă audio...";
+      msg.source === "text" ? "Se analizează textul..." : "Se încarcă audio...";
   }
   if (msg.type === "VERIFICATION_PROGRESS") {
     if (state === "processing") {
       showProgress(msg.stage, msg.progress, msg.claim);
     }
   }
-  if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims?.[0]) {
-    const c = msg.result.claims[0];
-    showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
+  if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims) {
+    if (msg.result.claims.length > 0) {
+      const c = msg.result.claims[0];
+      showVerdict(
+        c.verdict,
+        c.explanation,
+        c.confidenceScore,
+        c.evidence ?? [],
+      );
+    } else {
+      showVerdict("Unverified", "Nu s-au găsit afirmații.", 0, []);
+    }
   }
   if (msg.type === "VERIFICATION_FAILED") {
     showInlineError(msg.reason);

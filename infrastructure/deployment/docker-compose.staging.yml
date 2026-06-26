@@ -26,10 +26,15 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
-      - REDIS_URL=redis://verificat-redis:6379
-      - SUPABASE_URL=https://wbuiwmwvlwmeyvcbuluw.supabase.co
-      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidWl3bXd2bHdtZXl2Y2J1bHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Njk2OTAsImV4cCI6MjA5NzU0NTY5MH0.L_taj7UKHsWyyk11YOZLK1JfffiQuibaqFFeNNfCJnQ
-      - INFISICAL_TOKEN=${INFISICAL_TOKEN}
+      - REDIS_URL=${REDIS_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     depends_on:
       - redis
     networks:

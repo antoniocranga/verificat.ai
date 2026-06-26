@@ -3,8 +3,10 @@ import { SpeechService } from './speech.service';
 import { DeepgramSttAdapter } from './adapters/deepgram-stt.adapter';
 import { AzureSttAdapter } from './adapters/azure-stt.adapter';
 import { WhisperSttAdapter } from './adapters/whisper-stt.adapter';
+import { SpeechController } from './speech.controller';
 
 @Module({
+  controllers: [SpeechController],
   providers: [
     SpeechService,
     DeepgramSttAdapter,

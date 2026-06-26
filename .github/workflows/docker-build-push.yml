@@ -171,7 +171,16 @@ jobs:
             export VPS_DIR="${{ secrets.VPS_DIR }}"
             export SUPABASE_PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
             export SUPABASE_DB_PASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
-            export INFISICAL_TOKEN="${{ secrets.INFISICAL_TOKEN }}"
+            
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+            export DEEPGRAM_API_KEY="${{ secrets.DEEPGRAM_API_KEY }}"
+            export AZURE_SPEECH_KEY="${{ secrets.AZURE_SPEECH_KEY }}"
+            export AZURE_SPEECH_REGION="${{ secrets.AZURE_SPEECH_REGION }}"
+            export SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
+            export SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+            export SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+            export REDIS_URL="${{ secrets.REDIS_URL }}"
 
             chmod +x deploy-staging.sh
             ./deploy-staging.sh

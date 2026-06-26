@@ -54,6 +54,15 @@ class MockListeningRepository implements ListeningRepository {
   @override
   Stream<void> get onInterruptionEnded =>
       interruptionEnded ?? const Stream.empty();
+
+  @override
+  Stream<dynamic> onAmplitude() => const Stream.empty();
+
+  @override
+  Future<String?> transcribeAudio() async => 'Test transcript';
+
+  @override
+  Future<Map<String, dynamic>> verifyText(String text) async => {'jobId': jobId};
 }
 
 void main() {

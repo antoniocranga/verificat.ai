@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Get,
@@ -63,8 +64,8 @@ export class FactChecksController {
     if (!reason || typeof reason !== 'string') {
       throw new BadRequestException('Reason is required');
     }
-    
-    // For public endpoints, userId is not guaranteed. 
+
+    // For public endpoints, userId is not guaranteed.
     // If the endpoint is protected, you can extract it from req.user
     return this.factChecksService.reportVerdict(id, reason, description || '');
   }
