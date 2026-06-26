@@ -94,7 +94,7 @@ class ConsentScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Politica completă de confidențialitate',
-                    style: TextStyle(color: Color(0xFF3B82F6)),
+                    style: TextStyle(color: Color(0xFF0070F3)),
                   ),
                 ),
               ),
