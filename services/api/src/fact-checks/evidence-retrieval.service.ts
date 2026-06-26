@@ -243,7 +243,11 @@ export class EvidenceRetrievalService {
     const payload = JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'Tradu textul din română în engleză. Păstrează sensul exact. Nu adăuga explicații.' },
+        {
+          role: 'system',
+          content:
+            'Tradu textul din română în engleză. Păstrează sensul exact. Nu adăuga explicații.',
+        },
         { role: 'user', content: text },
       ],
       temperature: 0,
@@ -264,15 +268,24 @@ export class EvidenceRetrievalService {
     return new Promise<string>((resolve) => {
       const req = https.request(options, (res) => {
         let body = '';
-        res.on('data', (chunk: Buffer | string) => { body += chunk.toString(); });
+        res.on('data', (chunk: Buffer | string) => {
+          body += chunk.toString();
+        });
         res.on('end', () => {
           try {
-            const parsed = JSON.parse(body) as { choices?: Array<{ message?: { content?: string } }> };
+            const parsed = JSON.parse(body) as {
+              choices?: Array<{ message?: { content?: string } }>;
+            };
             resolve(parsed.choices?.[0]?.message?.content?.trim() || text);
-          } catch { resolve(text); }
+          } catch {
+            resolve(text);
+          }
         });
       });
-      req.setTimeout(8000, () => { req.destroy(); resolve(text); });
+      req.setTimeout(8000, () => {
+        req.destroy();
+        resolve(text);
+      });
       req.on('error', () => resolve(text));
       req.write(payload);
       req.end();
