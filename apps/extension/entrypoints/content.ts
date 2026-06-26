@@ -3,6 +3,24 @@ export default defineContentScript({
   main() {
     const OVERLAY_ID = "verificat-verdict-overlay";
 
+    const verdictColors: Record<string, string> = {
+      True: "#22c55e",
+      "Mostly True": "#84cc16",
+      "Partially True": "#d97706",
+      Misleading: "#ea580c",
+      False: "#ef4444",
+      Unverified: "#6b7280",
+    };
+
+    const verdictTranslations: Record<string, string> = {
+      True: "Adevărat",
+      "Mostly True": "În mare parte adevărat",
+      "Partially True": "Parțial adevărat",
+      Misleading: "Înșelător",
+      False: "Fals",
+      Unverified: "Neverificat",
+    };
+
     function createOverlay(): HTMLDivElement {
       const existing = document.getElementById(OVERLAY_ID);
       if (existing) return existing as HTMLDivElement;
@@ -53,13 +71,26 @@ export default defineContentScript({
             height: 100%;
             border-radius: 2px;
             transition: width 0.3s ease;
-            background: #171717;
           }
           .status-text {
             font-size: 12px;
             color: #8f8f8f;
             text-align: center;
             padding: 4px 0;
+          }
+          .evidence-item {
+            font-size: 11px;
+            padding: 6px 0 0 0;
+            border-top: 1px solid #ebebeb;
+            margin-top: 6px;
+          }
+          .evidence-title {
+            font-weight: 500;
+            color: #171717;
+          }
+          .evidence-url {
+            color: #0070f3;
+            word-break: break-all;
           }
         </style>
         <div class="card" id="card">
@@ -106,19 +137,11 @@ export default defineContentScript({
       card.innerHTML = `<div class="status-text">${labels[stage] || "Procesare..."}</div>`;
     }
 
-    const verdictTranslations: Record<string, string> = {
-      True: "Adevărat",
-      "Mostly True": "În mare parte adevărat",
-      "Partially True": "Parțial adevărat",
-      Misleading: "Înșelător",
-      False: "Fals",
-      Unverified: "Neverificat",
-    };
-
     function showVerdict(
       verdict: string,
       explanation: string,
       confidence: number,
+      evidence?: Array<{ title: string; url: string; snippet?: string }>,
     ) {
       const host = document.getElementById(OVERLAY_ID);
       if (!host) return;
@@ -126,13 +149,30 @@ export default defineContentScript({
       if (!shadow) return;
       const card = shadow.getElementById("card");
       if (!card) return;
+
+      const labelColor = verdictColors[verdict] || "#171717";
+      let evidenceHtml = "";
+      if (evidence && evidence.length > 0) {
+        evidenceHtml = evidence
+          .slice(0, 2)
+          .map(
+            (e) =>
+              `<div class="evidence-item">
+                <div class="evidence-title">${e.title}</div>
+                <div class="evidence-url">${e.url}</div>
+              </div>`,
+          )
+          .join("");
+      }
+
       card.innerHTML = `
-        <div class="verdict-label">${verdictTranslations[verdict] || verdict}</div>
+        <div class="verdict-label" style="color:${labelColor};">${verdictTranslations[verdict] || verdict}</div>
         <div style="font-size:12px;color:#8f8f8f;margin:2px 0;">${confidence} / 100</div>
-        <div style="margin:4px 0;color:#4d4d4d;">${explanation}</div>
+        <div style="font-size:12px;margin:4px 0;color:#4d4d4d;">${explanation}</div>
         <div class="confidence-bar">
-          <div class="confidence-fill" style="width: ${confidence}%;"></div>
+          <div class="confidence-fill" style="width: ${confidence}%;background:${labelColor};"></div>
         </div>
+        ${evidenceHtml}
       `;
     }
 
@@ -157,6 +197,11 @@ export default defineContentScript({
               verdict: string;
               explanation: string;
               confidenceScore: number;
+              evidence?: Array<{
+                title: string;
+                url: string;
+                snippet?: string;
+              }>;
             }>;
           };
         }
@@ -180,7 +225,12 @@ export default defineContentScript({
       if (m.type === "VERIFICATION_COMPLETED" && m.result) {
         const claim = m.result.claims?.[0];
         if (claim) {
-          showVerdict(claim.verdict, claim.explanation, claim.confidenceScore);
+          showVerdict(
+            claim.verdict,
+            claim.explanation,
+            claim.confidenceScore,
+            claim.evidence,
+          );
         }
       }
       if (m.type === "VERIFICATION_FAILED") {

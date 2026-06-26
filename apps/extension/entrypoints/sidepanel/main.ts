@@ -292,6 +292,15 @@ const verdictTranslations: Record<string, string> = {
   Unverified: "Neverificat",
 };
 
+const verdictColors: Record<string, string> = {
+  True: "#22c55e",
+  "Mostly True": "#84cc16",
+  "Partially True": "#d97706",
+  Misleading: "#ea580c",
+  False: "#ef4444",
+  Unverified: "#6b7280",
+};
+
 function showVerdict(
   verdict: string,
   explanation: string,
@@ -312,11 +321,16 @@ function showVerdict(
       .join("");
   }
 
+  const accentColor = verdictColors[verdict] || "#171717";
+
   verdictSection.innerHTML = `
-    <div class="verdict-label">${verdictTranslations[verdict] || verdict}</div>
+    <div class="verdict-label" style="color:${accentColor};">${verdictTranslations[verdict] || verdict}</div>
     <div class="verdict-confidence">${confidence} / 100</div>
     <div class="verdict-explanation">${explanation}</div>
     ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}
+    <div class="progress-bar-track" style="margin-top:12px;">
+      <div class="progress-bar-fill" style="width:${confidence}%;background:${accentColor};"></div>
+    </div>
   `;
   transitionTo("result");
 }
