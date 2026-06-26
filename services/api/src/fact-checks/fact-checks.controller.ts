@@ -7,6 +7,8 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { Public } from '../auth/public.decorator';
 import { FactChecksService } from './fact-checks.service';
@@ -46,5 +48,24 @@ export class FactChecksController {
   @Get()
   getLatestChecks() {
     return this.factChecksService.getLatestChecks();
+  }
+
+  @Post(':id/report')
+  @HttpCode(HttpStatus.CREATED)
+  async reportVerdict(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Body('description') description: string,
+  ) {
+    if (!UUID_RE.test(id)) {
+      throw new BadRequestException('Invalid verdict ID format');
+    }
+    if (!reason || typeof reason !== 'string') {
+      throw new BadRequestException('Reason is required');
+    }
+    
+    // For public endpoints, userId is not guaranteed. 
+    // If the endpoint is protected, you can extract it from req.user
+    return this.factChecksService.reportVerdict(id, reason, description || '');
   }
 }

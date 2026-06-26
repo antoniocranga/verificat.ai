@@ -176,7 +176,18 @@ class _ListeningScreenState extends State<ListeningScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Rezultatul este gata!', style: AppTextStyles.headingSubsection),
+          Text(
+            claims.isEmpty ? 'Nicio afirmație găsită' : 'Rezultatul este gata!', 
+            style: AppTextStyles.headingSubsection,
+          ),
+          if (claims.isEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Nu am identificat nicio afirmație care să poată fi verificată.',
+              style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
+              textAlign: TextAlign.center,
+            ),
+          ],
           if (firstClaim != null) ...[
             const SizedBox(height: 24),
             _buildClaimVerdict(context, firstClaim),

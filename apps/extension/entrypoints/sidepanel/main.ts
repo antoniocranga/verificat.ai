@@ -261,9 +261,14 @@ async function stopRecording() {
 }
 
 async function dispatchAudioAndWait(blob: Blob) {
-  await dispatchAndWait(blob, (p) => {
+  const result = await dispatchAndWait(blob, (p) => {
     showProgress(p.stage, p.progress, p.claim);
   });
+  
+  if ((result as any)?.claims?.[0]) {
+    const c = (result as any).claims[0];
+    showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
+  }
 }
 
 function showProgress(stage: string, pct: number, claim?: string) {
@@ -375,13 +380,11 @@ type SidepanelMessage =
 
 chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
   if (msg.type === "VERIFICATION_STARTED") {
-    if (state === "idle" || state === "recording") {
-      transitionTo("processing");
-      processingStatus.textContent =
-        msg.source === "text"
-          ? "Se analizează textul..."
-          : "Se încarcă audio...";
-    }
+    transitionTo("processing");
+    processingStatus.textContent =
+      msg.source === "text"
+        ? "Se analizează textul..."
+        : "Se încarcă audio...";
   }
   if (msg.type === "VERIFICATION_PROGRESS") {
     if (state === "processing") {

@@ -21,13 +21,18 @@ class _VerificatAppState extends State<VerificatApp>
     with WidgetsBindingObserver {
   late bool _consented;
   bool? _onboardingComplete;
+  late final AuthBloc _authBloc;
 
   @override
   void initState() {
     super.initState();
     _consented = widget.initialConsented;
+    _authBloc = AuthBloc();
     WidgetsBinding.instance.addObserver(this);
-    if (_consented) _checkOnboarding();
+    if (_consented) {
+      _authBloc.add(AuthCheckRequested());
+      _checkOnboarding();
+    }
   }
 
   Future<void> _checkOnboarding() async {
@@ -39,13 +44,14 @@ class _VerificatAppState extends State<VerificatApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _authBloc.close();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _consented) {
-      if (mounted) context.read<AuthBloc>().add(AuthSessionCheckRequested());
+      _authBloc.add(AuthSessionCheckRequested());
     }
   }
 
@@ -58,6 +64,7 @@ class _VerificatAppState extends State<VerificatApp>
         _consented = true;
         _onboardingComplete = onboarded;
       });
+      _authBloc.add(AuthCheckRequested());
     }
     final sessionService = AudioSessionService();
     await sessionService.setCategoryPlayAndRecord();
@@ -90,8 +97,8 @@ class _VerificatAppState extends State<VerificatApp>
       );
     }
 
-    return BlocProvider<AuthBloc>(
-      create: (_) => AuthBloc()..add(AuthCheckRequested()),
+    return BlocProvider<AuthBloc>.value(
+      value: _authBloc,
       child: MaterialApp.router(
         title: 'verificat.xyz',
         theme: appTheme,

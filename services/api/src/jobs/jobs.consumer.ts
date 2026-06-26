@@ -12,7 +12,9 @@ import {
   VerdictValue,
 } from '../fact-checks/verdict-generation.service';
 import { SourceTrustService } from '../sources/source-trust.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 
 export interface FactVerificationJobData {
   claimId: string;
@@ -55,6 +57,7 @@ export class JobsConsumer extends WorkerHost {
     private readonly evidenceRetrievalService: EvidenceRetrievalService,
     private readonly verdictGenerationService: VerdictGenerationService,
     private readonly sourceTrustService: SourceTrustService,
+    private readonly supabaseService: SupabaseService,
   ) {
     super();
   }
@@ -62,6 +65,7 @@ export class JobsConsumer extends WorkerHost {
   async process(
     job: Job<FactVerificationJobData>,
   ): Promise<FactVerificationJobResult> {
+    const startTime = Date.now();
     this.logger.log(`Processing job ${job.id} for claimId ${job.data.claimId}`);
 
     let textToAnalyze = job.data.text || '';
@@ -175,6 +179,91 @@ export class JobsConsumer extends WorkerHost {
           publishedAt: e.publishedAt,
         })),
       });
+    }
+
+    // Save to Supabase
+    try {
+      const supabase = this.supabaseService.getClient();
+      for (let i = 0; i < claimsResults.length; i++) {
+        const claimResult = claimsResults[i];
+        
+        // Ensure first claim uses the job's predefined claimId if available
+        const claimId = (i === 0 && job.data.claimId) ? job.data.claimId : crypto.randomUUID();
+        
+        // 1. Insert claim
+        await supabase.from('claims').insert({
+          id: claimId,
+          text: claimResult.assertion,
+          language: 'ro'
+        } as any);
+
+        // 2. Insert fact check
+        const factCheckId = crypto.randomUUID();
+        await supabase.from('fact_checks').insert({
+          id: factCheckId,
+          claim_id: claimId,
+          status: 'completed'
+        } as any);
+
+        // 3. Insert verdict
+        const verdictId = crypto.randomUUID();
+        await supabase.from('verdicts').insert({
+          id: verdictId,
+          fact_check_id: factCheckId,
+          verdict: claimResult.verdict,
+          confidence_score: claimResult.confidenceScore,
+          explanation: claimResult.explanation
+        } as any);
+
+        // 4. Insert sources and verdict_sources
+        for (const evidence of claimResult.evidence) {
+          if (!evidence.url) continue;
+          
+          let sourceId = evidence.sourceId;
+          if (!sourceId) {
+            // Check if source exists by URL
+            const { data: existingSource } = await (supabase
+              .from('sources')
+              .select('id')
+              .eq('url', evidence.url)
+              .maybeSingle() as any);
+              
+            if (existingSource) {
+              sourceId = existingSource.id;
+            } else {
+              sourceId = crypto.randomUUID();
+              await supabase.from('sources').insert({
+                id: sourceId,
+                name: evidence.sourceName || evidence.source || 'Unknown',
+                url: evidence.url,
+                trust_score: evidence.trustScore || null
+              } as any);
+            }
+          }
+
+          // Link verdict and source
+          await supabase.from('verdict_sources').insert({
+            verdict_id: verdictId,
+            source_id: sourceId
+          } as any).select().maybeSingle(); // Ignore errors if already exists
+        }
+      }
+
+      // 5. Insert usage log
+      const durationMs = Date.now() - startTime;
+      await supabase.from('usage_logs').insert({
+        service: job.data.audioPath ? 'audio_fact_verification' : 'text_fact_verification',
+        duration_ms: durationMs,
+        metadata: {
+          jobId: job.id,
+          claimsCount: claimsResults.length,
+          engine: job.data.preferredEngine
+        }
+      } as any);
+
+    } catch (dbErr) {
+      this.logger.error(`Failed to save results to database: ${String(dbErr)}`);
+      // Do not throw, return the results to user anyway
     }
 
     return {

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseService } from '../supabase/supabase.service';
 
@@ -125,5 +125,34 @@ export class FactChecksService {
 
   getLatestChecks() {
     return this.searchVerdicts('', 1, 10);
+  }
+
+  async reportVerdict(verdictId: string, reason: string, description: string, userId?: string) {
+    const { data: verdict, error: verdictError } = await this.client
+      .from('verdicts')
+      .select('fact_checks(claim_id)')
+      .eq('id', verdictId)
+      .single();
+
+    if (verdictError || !verdict) {
+      throw new NotFoundException('Verdict not found');
+    }
+
+    const claimId = (verdict.fact_checks as Record<string, any>)?.claim_id;
+
+    const { data, error } = await this.client.from('reports').insert({
+      verdict_id: verdictId,
+      claim_id: claimId,
+      reason,
+      description,
+      reported_by: userId || null,
+      status: 'open',
+    } as any).select().single();
+
+    if (error) {
+      throw new InternalServerErrorException(error.message || 'Failed to submit report');
+    }
+
+    return data;
   }
 }

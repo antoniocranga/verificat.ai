@@ -116,11 +116,12 @@ class _ResultCardState extends State<_ResultCard> {
 
   Future<void> _checkSaved() async {
     final saved = await _repo.isSaved(verdictId: widget.result.id);
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isSaved = saved;
         _loadingSaved = false;
       });
+    }
   }
 
   Future<void> _toggleSave() async {
