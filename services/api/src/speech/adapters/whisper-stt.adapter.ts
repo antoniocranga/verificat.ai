@@ -5,27 +5,7 @@ import * as http from 'http';
 import { SttAdapter, SttConfig } from '../interfaces/stt-adapter.interface';
 import { SttSession, SttTranscriptEvent } from '../interfaces/stt-session.interface';
 
-class MockWhisperSession implements SttSession {
-  private readonly transcript$ = new Subject<SttTranscriptEvent>();
 
-  sendAudio(chunk: Buffer): void {
-    this.transcript$.next({
-      text: 'Mock transcription from Whisper stream',
-      isFinal: true,
-      confidence: 0.90,
-      language: 'ro-RO',
-    });
-  }
-
-  close(): Promise<void> {
-    this.transcript$.complete();
-    return Promise.resolve();
-  }
-
-  getTranscript$(): Observable<SttTranscriptEvent> {
-    return this.transcript$.asObservable();
-  }
-}
 
 @Injectable()
 export class WhisperSttAdapter implements SttAdapter {
@@ -33,20 +13,14 @@ export class WhisperSttAdapter implements SttAdapter {
   readonly engineName = 'whisper';
 
   startStream(config?: SttConfig): Promise<SttSession> {
-    return Promise.resolve(new MockWhisperSession());
+    return Promise.reject(new Error('Whisper adapter does not support streaming natively. Use transcribeBuffer for batch transcription.'));
   }
 
   transcribeBuffer(
     buffer: Buffer,
     config?: SttConfig,
   ): Promise<{ text: string; confidence: number }> {
-    if (process.env.NODE_ENV === 'test') {
-      this.logger.warn('Running in test environment. Falling back to mock Whisper transcription.');
-      return Promise.resolve({
-        text: 'Mock transcription from Whisper batch',
-        confidence: 0.90,
-      });
-    }
+
 
     const whisperUrl = process.env.WHISPER_URL || 'http://verificat-whisper:9000';
     const language = config?.language || 'ro-RO';

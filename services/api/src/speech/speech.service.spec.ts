@@ -81,20 +81,11 @@ describe('SpeechService', () => {
       await session.close();
     });
 
-    it('should emit Whisper transcripts on audio stream', async () => {
+    it('should reject Whisper transcripts on audio stream since it is unsupported natively', async () => {
       const adapter = service.getAdapter('whisper');
-      const session = await adapter.startStream();
-
-      const transcriptPromise = firstValueFrom(session.getTranscript$());
-      session.sendAudio(Buffer.alloc(0));
-
-      const event = await transcriptPromise;
-      expect(event.text).toBe('Mock transcription from Whisper stream');
-      expect(event.isFinal).toBe(true);
-      expect(event.confidence).toBe(0.9);
-      expect(event.language).toBe('ro-RO');
-
-      await session.close();
+      await expect(adapter.startStream()).rejects.toThrow(
+        'Whisper adapter does not support streaming',
+      );
     });
   });
 
@@ -114,6 +105,10 @@ describe('SpeechService', () => {
       );
       expect(azureRes.confidence).toBe(0.95);
 
+      jest.spyOn(whisper, 'transcribeBuffer').mockResolvedValue({
+        text: 'Mock transcription from Whisper batch',
+        confidence: 0.9,
+      });
       const whisperRes = await whisper.transcribeBuffer(Buffer.alloc(0));
       expect(whisperRes.text).toBe('Mock transcription from Whisper batch');
       expect(whisperRes.confidence).toBe(0.9);
