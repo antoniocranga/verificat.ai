@@ -5,6 +5,7 @@ import '../core/audio/audio_session_service.dart';
 import '../core/auth/auth_bloc.dart';
 import '../core/theme/app_theme.dart';
 import '../features/consent/presentation/screens/consent_screen.dart';
+import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'router.dart';
 
 class VerificatApp extends StatefulWidget {
@@ -18,12 +19,20 @@ class VerificatApp extends StatefulWidget {
 
 class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver {
   late bool _consented;
+  bool? _onboardingComplete;
 
   @override
   void initState() {
     super.initState();
     _consented = widget.initialConsented;
     WidgetsBinding.instance.addObserver(this);
+    if (_consented) _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final complete = prefs.getBool('onboarding-complete') ?? false;
+    if (mounted) setState(() => _onboardingComplete = complete);
   }
 
   @override
@@ -46,6 +55,13 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
     final sessionService = AudioSessionService();
     await sessionService.setCategoryPlayAndRecord();
     sessionService.dispose();
+    await _checkOnboarding();
+  }
+
+  void _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding-complete', true);
+    if (mounted) setState(() => _onboardingComplete = true);
   }
 
   @override
@@ -56,6 +72,15 @@ class _VerificatAppState extends State<VerificatApp> with WidgetsBindingObserver
         theme: appTheme,
         debugShowCheckedModeBanner: false,
         home: ConsentScreen(onAccept: _acceptConsent),
+      );
+    }
+
+    if (_onboardingComplete == false) {
+      return MaterialApp(
+        title: 'Verificat',
+        theme: appTheme,
+        debugShowCheckedModeBanner: false,
+        home: OnboardingScreen(onComplete: _completeOnboarding),
       );
     }
 
