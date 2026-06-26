@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'audio_session_service.dart';
@@ -32,7 +33,9 @@ class AudioRecorderService {
   }
 
   Future<File?> stopRecording() async {
+    debugPrint('[AudioRecorder] stopRecording: calling stop');
     final path = await _recorder.stop();
+    debugPrint('[AudioRecorder] stopRecording: path=$path');
     if (path == null) return null;
     return File(path);
   }

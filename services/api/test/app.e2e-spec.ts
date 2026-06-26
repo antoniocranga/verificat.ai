@@ -79,7 +79,7 @@ describe('API Integration (e2e)', () => {
                   {
                     id: randomUUID(),
                     claim_id: claimAId,
-                    text: 'Verificat fact check A: Coffee prevents fatigue.',
+                    text: 'verificat.xyz fact check A: Coffee prevents fatigue.',
                     similarity: 0.95,
                   },
                 ],
@@ -298,7 +298,9 @@ describe('API Integration (e2e)', () => {
       // 1. Insert two claims via direct DB client
       const { data: claimA, error: errA } = await dbClient
         .from('claims')
-        .insert({ text: 'Verificat fact check A: Coffee prevents fatigue.' })
+        .insert({
+          text: 'verificat.xyz fact check A: Coffee prevents fatigue.',
+        })
         .select()
         .single();
       expect(errA).toBeNull();
@@ -306,7 +308,7 @@ describe('API Integration (e2e)', () => {
 
       const { data: claimB, error: errB } = await dbClient
         .from('claims')
-        .insert({ text: 'Verificat fact check B: The sky is violet.' })
+        .insert({ text: 'verificat.xyz fact check B: The sky is violet.' })
         .select()
         .single();
       expect(errB).toBeNull();

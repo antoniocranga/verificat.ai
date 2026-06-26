@@ -72,7 +72,9 @@ export class JobsController {
 
   @Get(':jobId/stream')
   @Sse()
-  streamJob(@Param('jobId') jobId: string): Observable<SseMessageEvent> {
+  async streamJob(
+    @Param('jobId') jobId: string,
+  ): Promise<Observable<SseMessageEvent>> {
     this.logger.log(`SSE subscription for job ${jobId}`);
     return this.jobsEventService.watchJob(jobId);
   }

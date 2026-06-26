@@ -117,7 +117,7 @@ export default function HandoffPage() {
             </div>
             <p style={{ fontSize: 12, color: "#8f8f8f", margin: 0 }}>
               Sau scanează codul QR de pe telefonul mobil. Poți folosi aplicația
-              Verificat pentru a scana direct.
+              verificat.xyz pentru a scana direct.
             </p>
           </div>
         )}

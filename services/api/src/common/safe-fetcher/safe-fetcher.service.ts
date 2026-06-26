@@ -78,7 +78,7 @@ export class SafeFetcherService {
       method: 'GET',
       headers: {
         Host: url.hostname,
-        'User-Agent': 'Verificat-SafeFetcher/1.0',
+        'User-Agent': 'verificat.xyz-SafeFetcher/1.0',
       },
       lookup: (hostname, lookupOptions, callback) => {
         dns.lookup(hostname, lookupOptions, (err, address, family) => {

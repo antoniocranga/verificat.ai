@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.verified_outlined,
       title: 'Verifică informațiile\ncu încredere',
       body:
-          'Verificat te ajută să identifici afirmațiile false sau înșelătoare în timp real. Analizăm surse de încredere pentru a-ți oferi un verdict rapid și documentat.',
+          'verificat.xyz te ajută să identifici afirmațiile false sau înșelătoare în timp real. Analizăm surse de încredere pentru a-ți oferi un verdict rapid și documentat.',
     ),
     _OnboardingPage(
       icon: Icons.mic_rounded,

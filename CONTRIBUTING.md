@@ -1,4 +1,4 @@
-# Contributing to Verificat
+# Contributing to verificat.xyz
 
 ## Getting Started
 

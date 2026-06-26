@@ -10,7 +10,7 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const MAX_CONTENT_CHARS = 8000;
 const FETCH_HEADERS = {
   "User-Agent":
-    "Mozilla/5.0 (compatible; Verificat-Bot/1.0; +https://verificat.xyz/bot)",
+    "Mozilla/5.0 (compatible; verificat.xyz-Bot/1.0; +https://verificat.xyz/bot)",
   Accept:
     "application/rss+xml, application/atom+xml, application/json, text/xml, */*",
 };

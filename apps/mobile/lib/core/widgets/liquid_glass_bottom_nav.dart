@@ -1,5 +1,7 @@
-import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../theme/app_colors.dart';
 
 class NavTab {
   final String label;
@@ -23,86 +25,44 @@ const navTabs = [
 ];
 
 class LiquidGlassBottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  const LiquidGlassBottomNav({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const LiquidGlassBottomNav({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          height: 72 + MediaQuery.of(context).padding.bottom,
-          padding: EdgeInsets.only(
-            left: 8,
-            right: 8,
-            top: 8,
-            bottom: 8 + MediaQuery.of(context).padding.bottom,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              children: List.generate(navTabs.length, (i) {
-                final tab = navTabs[i];
-                final selected = i == currentIndex;
-                return Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onTap(i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            selected ? tab.activeIcon : tab.icon,
-                            size: 22,
-                            color: selected
-                                ? Theme.of(context).colorScheme.onSurface
-                                : const Color(0xFF8F8F8F),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            tab.label,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                              color: selected
-                                  ? Theme.of(context).colorScheme.onSurface
-                                  : const Color(0xFF8F8F8F),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
-      ),
+    final location = GoRouterState.of(context).matchedLocation;
+    final currentIndex = navTabs.indexWhere((t) => t.route == location);
+    final index = currentIndex >= 0 ? currentIndex : 0;
+
+    final platform = Theme.of(context).platform;
+    if (platform == TargetPlatform.iOS) {
+      return CupertinoTabBar(
+        currentIndex: index,
+        onTap: (i) => context.go(navTabs[i].route),
+        activeColor: AppColors.accent,
+        inactiveColor: const Color(0xFF8F8F8F),
+        backgroundColor: const Color(0xE6FFFFFF),
+        items: navTabs.map((tab) => BottomNavigationBarItem(
+          icon: Icon(tab.icon),
+          activeIcon: Icon(tab.activeIcon),
+          label: tab.label,
+        )).toList(),
+      );
+    }
+    return NavigationBar(
+      key: ValueKey(index),
+      selectedIndex: index,
+      onDestinationSelected: (i) => context.go(navTabs[i].route),
+      backgroundColor: const Color(0xE6FFFFFF),
+      indicatorColor: AppColors.accent.withValues(alpha: 0.3),
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      animationDuration: const Duration(milliseconds: 100),
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      destinations: navTabs.map((tab) => NavigationDestination(
+        icon: Icon(tab.icon),
+        selectedIcon: Icon(tab.activeIcon),
+        label: tab.label,
+      )).toList(),
     );
   }
 }

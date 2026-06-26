@@ -1,4 +1,4 @@
-# Fastlane Pipeline — Verificat Mobile
+# Fastlane Pipeline — verificat.xyz Mobile
 
 ## Prerequisites
 

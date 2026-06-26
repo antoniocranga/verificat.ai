@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../core/auth/auth_bloc.dart';
 import '../core/widgets/main_shell.dart';
-import '../core/widgets/liquid_glass_bottom_nav.dart';
+
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/check/presentation/screens/check_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
@@ -38,12 +38,7 @@ final router = GoRouter(
   routes: [
     ShellRoute(
       builder: (context, state, child) {
-        final location = state.matchedLocation;
-        final index = navTabs.indexWhere((t) => t.route == location);
-        return MainShell(
-          currentIndex: index >= 0 ? index : 0,
-          child: child,
-        );
+        return MainShell(child: child);
       },
       routes: [
         GoRoute(

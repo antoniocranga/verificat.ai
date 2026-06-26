@@ -146,11 +146,11 @@ function showPermDialog(type: CaptureType) {
   if (type === "tab") {
     permTitle.textContent = "Permisiune pentru captura audio";
     permDesc.textContent =
-      "Verificat are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
+      "verificat.xyz are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
   } else {
     permTitle.textContent = "Permisiune pentru microfon";
     permDesc.textContent =
-      "Verificat are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
+      "verificat.xyz are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
   }
   permOverlay.classList.add("open");
 }

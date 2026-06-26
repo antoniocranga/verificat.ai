@@ -10,7 +10,7 @@ export default defineBackground(() => {
   chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
       id: "verify-selection",
-      title: "Verifică cu Verificat",
+      title: "Verifică cu verificat.xyz",
       contexts: ["selection"],
     });
   });

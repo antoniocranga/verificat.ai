@@ -42,14 +42,14 @@ class SettingsScreen extends StatelessWidget {
                             context
                                 .read<AuthBloc>()
                                 .add(AuthSignOutRequested());
-                            context.go('/login');
+                            context.push('/login');
                           },
                         );
                       }
                       return AppButton(
                         label: 'Autentificare',
                         size: AppButtonSize.sm,
-                        onPressed: () => context.go('/login'),
+                        onPressed: () => context.push('/login'),
                       );
                     },
                   ),
@@ -114,10 +114,11 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTextStyles.labelLg.copyWith(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                )),
+                Text(title,
+                    style: AppTextStyles.labelLg.copyWith(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    )),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(

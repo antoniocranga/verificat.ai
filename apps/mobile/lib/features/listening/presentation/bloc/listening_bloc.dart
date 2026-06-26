@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/listening_repository_impl.dart';
 import '../../domain/repositories/listening_repository.dart';
@@ -153,48 +154,60 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     }
   }
 
-  void _onStopListening(
+  Future<void> _onStopListening(
       StopListening event, Emitter<ListeningState> emit) async {
     _stopElapsedTimer();
 
-    if (state.status == ListeningStatus.listening) {
-      emit(state.copyWith(status: ListeningStatus.processing));
+    if (state.status != ListeningStatus.listening) {
+      debugPrint('[ListeningBloc] stop: state is ${state.status}, resetting');
+      emit(const ListeningState());
+      return;
+    }
 
-      try {
-        await _repository.stopRecording();
-        final jobId = await _repository.uploadAndVerify();
+    emit(state.copyWith(status: ListeningStatus.processing));
+    debugPrint('[ListeningBloc] stop: emitted processing');
 
-        if (jobId == null) {
-          emit(state.copyWith(
-            status: ListeningStatus.error,
-            errorMessage: 'Eroare la încărcarea înregistrării.',
-          ));
-          return;
-        }
+    try {
+      debugPrint('[ListeningBloc] stop: calling stopRecording');
+      await _repository.stopRecording();
+      debugPrint('[ListeningBloc] stop: stopRecording done, calling uploadAndVerify');
+      final jobId = await _repository
+          .uploadAndVerify()
+          .timeout(const Duration(seconds: 35));
 
-        _jobStreamSub = _repository.streamJobEvents(jobId).listen(
-              (event) {
-            if (event['type'] == 'completed') {
-              final claims = event['claims'] as List<dynamic>?;
-              if (claims != null && claims.isNotEmpty) {
-                add(VerdictReady(claims.cast<Map<String, dynamic>>()));
-              }
-            } else if (event['type'] == 'failed') {
-              add(const ListeningFailed('Procesarea a eșuat.'));
-            }
-          },
-          onError: (_) {
-            add(const ListeningFailed('Eroare la primirea rezultatelor.'));
-          },
-        );
-      } catch (e) {
+      if (jobId == null) {
         emit(state.copyWith(
           status: ListeningStatus.error,
-          errorMessage: 'Eroare la procesare.',
+          errorMessage: 'Eroare la încărcarea înregistrării.',
         ));
+        return;
       }
-    } else {
-      emit(const ListeningState());
+
+      _jobStreamSub = _repository.streamJobEvents(jobId).listen(
+            (event) {
+          if (event['type'] == 'completed') {
+            final claims = event['claims'] as List<dynamic>?;
+            if (claims != null && claims.isNotEmpty) {
+              add(VerdictReady(claims.cast<Map<String, dynamic>>()));
+            }
+          } else if (event['type'] == 'failed') {
+            add(const ListeningFailed('Procesarea a eșuat.'));
+          }
+        },
+        onError: (_) {
+          add(const ListeningFailed('Eroare la primirea rezultatelor.'));
+        },
+      );
+    } on TimeoutException {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Conexiunea cu serverul a expirat.',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Eroare la procesare.',
+      ));
     }
   }
 
@@ -222,10 +235,12 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     try {
       await _repository.stopRecording();
     } catch (_) {}
-    emit(state.copyWith(
-      status: ListeningStatus.error,
-      errorMessage: 'Înregistrarea a fost întreruptă.',
-    ));
+    if (!emit.isDone) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Înregistrarea a fost întreruptă.',
+      ));
+    }
   }
 
   Future<void> _onInterruptionEnded(

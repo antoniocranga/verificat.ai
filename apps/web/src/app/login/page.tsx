@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
         {/* Header/Branding */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            Verificat
+            verificat.xyz
           </h1>
           <p className="text-slate-400 mt-2 text-sm font-medium">
             Verificare în timp real cu surse și dovezi

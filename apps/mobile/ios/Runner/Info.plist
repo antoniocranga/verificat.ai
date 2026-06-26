@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Verificat Mobile</string>
+	<string>verificat.xyz Mobile</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -42,7 +42,7 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Verificat are nevoie de acces la microfon pentru a verifica afirmațiile audio în timp real.</string>
+	<string>verificat.xyz are nevoie de acces la microfon pentru a verifica afirmațiile audio în timp real.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
