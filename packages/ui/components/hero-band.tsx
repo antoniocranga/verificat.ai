@@ -1,41 +1,31 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
 
 interface HeroBandProps {
   children: ReactNode;
   id?: string;
+  style?: CSSProperties;
 }
 
-const style: React.CSSProperties = {
-  position: 'relative',
-  padding: '128px 24px',
-  backgroundColor: '#fafafa',
-  fontFamily: "'Geist Sans', Arial, sans-serif",
-  overflow: 'hidden',
-};
+const heroBackground = `
+  radial-gradient(ellipse 60% 50% at 70% 20%, rgba(217,119,87,0.08) 0%, transparent 60%),
+  radial-gradient(ellipse 40% 60% at 20% 80%, rgba(106,155,204,0.06) 0%, transparent 60%),
+  var(--color-canvas, #faf9f5)
+`;
 
-const gradientLayer: React.CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  background: `
-    radial-gradient(600px circle at 20% 50%, rgba(80, 227, 194, 0.12) 0%, transparent 70%),
-    radial-gradient(600px circle at 40% 30%, rgba(0, 124, 240, 0.1) 0%, transparent 70%),
-    radial-gradient(600px circle at 60% 70%, rgba(121, 40, 202, 0.1) 0%, transparent 70%),
-    radial-gradient(600px circle at 75% 40%, rgba(235, 54, 127, 0.1) 0%, transparent 70%),
-    radial-gradient(600px circle at 90% 60%, rgba(249, 203, 40, 0.1) 0%, transparent 70%)
-  `,
-  pointerEvents: 'none',
-};
-
-const contentStyle: React.CSSProperties = {
-  position: 'relative',
-  zIndex: 1,
-};
-
-export function HeroBand({ children, id }: HeroBandProps) {
+export function HeroBand({ children, id, style }: HeroBandProps) {
   return (
-    <section id={id} style={style}>
-      <div style={gradientLayer} />
-      <div style={contentStyle}>{children}</div>
+    <section
+      id={id}
+      style={{
+        position: 'relative',
+        padding: 'var(--space-32, 128px) var(--space-6, 24px) var(--space-24, 96px)',
+        background: heroBackground,
+        fontFamily: 'var(--font-heading, var(--font-display, Poppins, Arial, sans-serif))',
+        overflow: 'hidden',
+        ...style,
+      }}
+    >
+      {children}
     </section>
   );
 }

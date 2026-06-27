@@ -13,6 +13,7 @@ export {
   ButtonGhostSmall,
   ButtonCategoryPill,
   ButtonIconCircular,
+  Logo,
   NavLink,
   FeatureCard,
   PricingCard,

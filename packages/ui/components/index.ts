@@ -13,6 +13,7 @@ export { ButtonCategoryPill } from './button-category-pill';
 export { ButtonIconCircular } from './button-icon-circular';
 
 // Navigation
+export { Logo } from './Logo';
 export { NavLink } from './nav-link';
 export { NavBar } from './nav-bar';
 

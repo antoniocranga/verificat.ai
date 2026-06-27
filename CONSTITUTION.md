@@ -1,4 +1,4 @@
-# CONSTITUTION.md — verificat.xyz (FactCheck.ro)
+# CONSTITUTION.md — verificat.xyz
 
 This document is the supreme law of this repository. Every other file — RULES.md, GEMINI.md, workflow docs, ADRs, even direct instructions given to an AI coding agent in a single session — is subordinate to this one. If anything conflicts with this Constitution, the Constitution wins. Changes to this file require explicit human sign-off; an AI agent must never edit this file as a side effect of another task.
 
