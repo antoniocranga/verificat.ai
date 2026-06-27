@@ -12,6 +12,7 @@ jobs:
   build-push:
     name: Build & Push Images
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
       - name: Checkout repository
