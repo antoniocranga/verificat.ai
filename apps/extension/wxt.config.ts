@@ -17,10 +17,21 @@ export default defineConfig({
       "http://localhost:3000/*",
       "https://api-staging.verificat.xyz/*",
       "https://api.verificat.xyz/*",
+      // WebSocket connections for real-time audio streaming
+      "ws://localhost:3000/*",
+      "wss://api-staging.verificat.xyz/*",
+      "wss://api.verificat.xyz/*",
     ],
     side_panel: {
       default_path: "entrypoints/sidepanel/index.html",
     },
+    // Expose the AudioWorklet processor script to the offscreen document
+    web_accessible_resources: [
+      {
+        resources: ["entrypoints/offscreen/audio-processor.js"],
+        matches: ["<all_urls>"],
+      },
+    ],
   },
   vite: () => ({
     define: {

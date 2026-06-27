@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../features/listening/domain/entities/transcript_segment.dart';
 
 /// Single source of truth for all Color constants.
 /// No raw Color(0xFF...) literals should appear in widget files.
@@ -43,5 +44,31 @@ abstract final class AppColors {
     'Misleading'    => verdictMisleading,
     'False'         => verdictFalse,
     _               => verdictUnverified,
+  };
+
+  // ── Streaming transcript verdict helpers (4-value protocol) ──────
+  /// Background tint for a streaming verdict chip.
+  static Color streamingVerdictBg(StreamingVerdict? v) => switch (v) {
+    StreamingVerdict.verdadero  => verdictTrue.withValues(alpha: 0.12),
+    StreamingVerdict.falso      => verdictFalse.withValues(alpha: 0.12),
+    StreamingVerdict.uncertain  => verdictPartial.withValues(alpha: 0.12),
+    _                           => Colors.transparent,
+  };
+
+  /// Foreground / border colour for a streaming verdict chip.
+  static Color streamingVerdictFg(StreamingVerdict? v) => switch (v) {
+    StreamingVerdict.verdadero  => verdictTrue,
+    StreamingVerdict.falso      => verdictFalse,
+    StreamingVerdict.uncertain  => verdictPartial,
+    _                           => ink,
+  };
+
+  /// Romanian display label for a streaming verdict.
+  static String streamingVerdictLabel(StreamingVerdict? v) => switch (v) {
+    StreamingVerdict.verdadero  => 'ADEVĂRAT',
+    StreamingVerdict.falso      => 'FALS',
+    StreamingVerdict.uncertain  => 'INCERT',
+    StreamingVerdict.unverified => 'NEVERIFICAT',
+    _                           => '',
   };
 }

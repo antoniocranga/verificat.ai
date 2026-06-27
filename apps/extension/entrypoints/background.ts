@@ -5,6 +5,27 @@ import {
   resumePendingJob,
 } from "../utils/api";
 
+// ─── Offscreen document helpers ───────────────────────────────────────────────
+const OFFSCREEN_URL = chrome.runtime.getURL("entrypoints/offscreen/index.html");
+
+async function ensureOffscreen(): Promise<void> {
+  // Chrome 116+ supports hasDocument(); guard for older builds
+  const hasDoc =
+    typeof chrome.offscreen?.hasDocument === "function"
+      ? await chrome.offscreen.hasDocument()
+      : false;
+  if (!hasDoc) {
+    await chrome.offscreen.createDocument({
+      url: OFFSCREEN_URL,
+      reasons: [
+        chrome.offscreen.Reason.USER_MEDIA,
+        chrome.offscreen.Reason.AUDIO_PLAYBACK,
+      ],
+      justification: "Capture audio for real-time fact-checking",
+    });
+  }
+}
+
 export default defineBackground(() => {
   chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
@@ -65,7 +86,12 @@ export default defineBackground(() => {
   });
 
   chrome.runtime.onMessage.addListener(
-    (msg: { type: string }, _sender, sendResponse) => {
+    (
+      msg: { type: string; tabId?: number; streamId?: string },
+      _sender,
+      sendResponse,
+    ) => {
+      // ── Existing tab-stream ID helper ──────────────────────────────────
       if (msg.type === "GET_TAB_STREAM_ID") {
         try {
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -117,6 +143,72 @@ export default defineBackground(() => {
 
       if (msg.type === "GET_STATUS") {
         sendResponse({ ready: true });
+      }
+
+      // ── Real-time streaming controls (new) ─────────────────────────────
+
+      if (msg.type === "START_STREAM_MIC") {
+        ensureOffscreen()
+          .then(() => chrome.runtime.sendMessage({ type: "START_STREAM_MIC" }))
+          .then(() => sendResponse({ ok: true }))
+          .catch((err: unknown) => sendResponse({ error: String(err) }));
+        return true;
+      }
+
+      if (msg.type === "START_STREAM_TAB") {
+        // getMediaStreamId must be called from the service worker, not offscreen
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const tabId = tabs[0]?.id;
+          if (!tabId) {
+            sendResponse({ error: "No active tab found" });
+            return;
+          }
+          chrome.tabCapture.getMediaStreamId(
+            { targetTabId: tabId },
+            (streamId) => {
+              if (!streamId || chrome.runtime.lastError) {
+                sendResponse({
+                  error:
+                    chrome.runtime.lastError?.message ?? "No streamId returned",
+                });
+                return;
+              }
+              ensureOffscreen()
+                .then(() =>
+                  chrome.runtime.sendMessage({
+                    type: "START_STREAM_TAB",
+                    streamId,
+                  }),
+                )
+                .then(() => sendResponse({ ok: true }))
+                .catch((err: unknown) => sendResponse({ error: String(err) }));
+            },
+          );
+        });
+        return true;
+      }
+
+      if (msg.type === "STOP_STREAM") {
+        void chrome.runtime.sendMessage({ type: "STOP_STREAM" });
+        sendResponse({ ok: true });
+      }
+
+      // ── Relay streaming results: offscreen → popup / content scripts ────
+      if (
+        msg.type === "STREAM_FACT_RESULT" ||
+        msg.type === "STREAM_TRANSCRIPT_UPDATE" ||
+        msg.type === "STREAM_ERROR"
+      ) {
+        // Relay to popup / side panel (no receivers = silent fail)
+        void chrome.runtime.sendMessage(msg).catch(() => undefined);
+        // Relay to content scripts in all tabs for overlay display
+        chrome.tabs.query({}, (tabs) => {
+          for (const tab of tabs) {
+            if (tab.id) {
+              chrome.tabs.sendMessage(tab.id, msg).catch(() => undefined);
+            }
+          }
+        });
       }
     },
   );
