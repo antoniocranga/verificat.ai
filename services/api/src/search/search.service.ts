@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { SearchProvider } from './interfaces/search-provider.interface';
+import type { SearchProvider } from './interfaces/search-provider.interface';
 
 export const SEARCH_PROVIDER = 'SEARCH_PROVIDER';
 
