@@ -8,7 +8,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Controller('admin')
 export class AdminController {
