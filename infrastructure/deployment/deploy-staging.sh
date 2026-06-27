@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-STAGING_DIR="${VPS_DIR:-/home/deploy/verificat-staging}"
+STAGING_DIR="${VPS_DIR:-/home/deploy/staging}"
 
 # Login to GHCR
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
