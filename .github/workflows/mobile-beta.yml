@@ -27,7 +27,6 @@ jobs:
 
       - name: Validate dart-defines
         env:
-          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
         run: |
           cd apps/mobile
           bundle exec fastlane validate env:${{ github.event.inputs.env || 'staging' }}
@@ -69,7 +68,6 @@ jobs:
 
       - name: Run Fastlane beta iOS
         env:
-          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_READONLY: 'true'
@@ -124,7 +122,6 @@ jobs:
 
       - name: Run Fastlane beta Android
         env:
-          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           PLAY_STORE_JSON_KEY_PATH: ${{ secrets.PLAY_STORE_JSON_KEY_PATH }}
         run: |
           bundle exec fastlane beta_android env:${{ github.event.inputs.env || 'staging' }}
