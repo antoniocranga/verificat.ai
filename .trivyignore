@@ -19,3 +19,16 @@ CVE-2024-52600
 # Ignore Go stdlib vulnerability in bundled binaries
 # We do not use Go in runtime, but some dev tools/CLI binaries in node_modules bundle Go 1.23.12.
 CVE-2025-68121
+CVE-2025-61726
+CVE-2025-61729
+CVE-2026-25679
+CVE-2026-27145
+CVE-2026-32280
+CVE-2026-32281
+CVE-2026-32283
+CVE-2026-33811
+CVE-2026-33814
+CVE-2026-39820
+CVE-2026-39836
+CVE-2026-42499
+CVE-2026-42504

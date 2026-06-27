@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import type { Verdict } from "@verificat/types";
 import { verdictColors } from "@verificat/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { getApiBase } from "@/lib/api";
 
 const verdictTranslations: Record<string, string> = {
   True: "Adevărat",
@@ -25,7 +25,8 @@ export default function CheckPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`${API_BASE}/fact-checks/${id}`)
+    const apiBase = getApiBase();
+    fetch(`${apiBase}/fact-checks/${id}`)
       .then((res) => {
         if (res.status === 404) throw new Error("Verdict negăsit sau privat");
         if (!res.ok) throw new Error("Eroare la încărcarea verdictului");
