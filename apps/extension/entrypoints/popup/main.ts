@@ -169,3 +169,135 @@ btnOpen.addEventListener("click", () => {
     },
   );
 });
+
+// ─── Real-time streaming controls ────────────────────────────────────────────
+
+const btnStreamMic = document.getElementById(
+  "btn-stream-mic",
+) as HTMLButtonElement;
+const btnStreamTab = document.getElementById(
+  "btn-stream-tab",
+) as HTMLButtonElement;
+const btnStreamStop = document.getElementById(
+  "btn-stream-stop",
+) as HTMLButtonElement;
+const streamStatus = document.getElementById("stream-status") as HTMLDivElement;
+const streamTranscriptEl = document.getElementById(
+  "stream-transcript",
+) as HTMLDivElement;
+
+// segmentId → DOM element for verdict updates
+const streamSegments: Record<string, HTMLDivElement> = {};
+let interimEl: HTMLDivElement | null = null;
+
+function setStreamActive(active: boolean) {
+  btnStreamMic.disabled = active;
+  btnStreamTab.disabled = active;
+  btnStreamStop.disabled = !active;
+  streamStatus.textContent = active ? "⏺ Ascultare activă..." : "Inactiv";
+}
+
+btnStreamMic.addEventListener("click", () => {
+  void chrome.runtime.sendMessage(
+    { type: "START_STREAM_MIC" },
+    (res: { ok?: boolean; error?: string }) => {
+      if (res?.error) {
+        streamStatus.textContent = `Eroare: ${res.error}`;
+        return;
+      }
+      setStreamActive(true);
+    },
+  );
+});
+
+btnStreamTab.addEventListener("click", () => {
+  void chrome.runtime.sendMessage(
+    { type: "START_STREAM_TAB" },
+    (res: { ok?: boolean; error?: string }) => {
+      if (res?.error) {
+        streamStatus.textContent = `Eroare: ${res.error}`;
+        return;
+      }
+      setStreamActive(true);
+    },
+  );
+});
+
+btnStreamStop.addEventListener("click", () => {
+  void chrome.runtime.sendMessage({ type: "STOP_STREAM" });
+  setStreamActive(false);
+});
+
+/**
+ * Infers the original WS message type from payload shape.
+ * The background relay merges the WS message fields into the relayed object,
+ * overwriting the original `type` with the relay action name.
+ */
+function guessWsType(msg: Record<string, unknown>): string {
+  if (msg["segmentId"] && msg["verdict"]) return "result";
+  if (msg["segmentId"] && msg["text"]) return "final";
+  if (msg["text"] && !msg["segmentId"]) return "interim";
+  return "unknown";
+}
+
+chrome.runtime.onMessage.addListener((msg: Record<string, unknown>) => {
+  if (msg.type === "STREAM_TRANSCRIPT_UPDATE") {
+    const text = msg["text"] as string | undefined;
+    const segmentId = msg["segmentId"] as string | undefined;
+    const wsType = guessWsType(msg);
+
+    if (wsType === "interim" && text !== undefined) {
+      if (!interimEl) {
+        interimEl = document.createElement("div");
+        interimEl.className = "interim-text";
+        streamTranscriptEl.appendChild(interimEl);
+      }
+      interimEl.textContent = text;
+    } else if (wsType === "final" && segmentId && text !== undefined) {
+      interimEl?.remove();
+      interimEl = null;
+      const el = document.createElement("div");
+      el.className = "seg";
+      el.textContent = text;
+      streamSegments[segmentId] = el;
+      streamTranscriptEl.appendChild(el);
+      streamTranscriptEl.scrollTop = streamTranscriptEl.scrollHeight;
+    }
+  }
+
+  if (msg.type === "STREAM_FACT_RESULT") {
+    const segmentId = msg["segmentId"] as string | undefined;
+    const verdict = msg["verdict"] as string | undefined;
+    if (!segmentId || !verdict) return;
+    const el = streamSegments[segmentId];
+    if (!el) return;
+
+    const cls =
+      verdict === "TRUE"
+        ? "verdict-true"
+        : verdict === "FALSE"
+          ? "verdict-false"
+          : verdict === "UNCERTAIN"
+            ? "verdict-uncertain"
+            : "";
+    if (cls) {
+      el.className = `seg ${cls}`;
+      const badge = document.createElement("span");
+      badge.className = `badge badge-${cls.replace("verdict-", "")}`;
+      badge.textContent =
+        verdict === "TRUE"
+          ? "ADEVĂRAT"
+          : verdict === "FALSE"
+            ? "FALS"
+            : "INCERT";
+      el.appendChild(badge);
+      el.title = (msg["explanation"] as string) ?? "";
+    }
+    streamTranscriptEl.scrollTop = streamTranscriptEl.scrollHeight;
+  }
+
+  if (msg.type === "STREAM_ERROR") {
+    streamStatus.textContent = `Eroare: ${(msg["message"] as string) ?? "unknown"}`;
+    setStreamActive(false);
+  }
+});

@@ -6,6 +6,28 @@
     <title>verificat.xyz — verificat.xyz</title>
     <meta name="manifest.type" content="browser_action" />
     <link rel="stylesheet" href="./style.css" />
+    <style>
+      /* ── Streaming section additions ─────────────────────────────── */
+      .stream-section { margin-top: 16px; border-top: 1px solid #e8e6dc; padding-top: 16px; }
+      .stream-section h4 { font-family: 'Poppins', Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #b0aea5; text-transform: uppercase; margin: 0 0 10px; }
+      .stream-btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
+      .stream-btn-group button { flex: 1; padding: 8px 6px; border-radius: 8px; border: none; font-family: 'Poppins', Arial, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+      #btn-stream-mic  { background: #6a9bcc; color: #fff; }
+      #btn-stream-tab  { background: #d97757; color: #fff; }
+      #btn-stream-stop { background: #e8e6dc; color: #141413; }
+      button:disabled  { opacity: .4; cursor: default; }
+      #stream-status   { font-size: 11px; color: #b0aea5; margin-bottom: 10px; }
+      #stream-transcript { max-height: 180px; overflow-y: auto; font-family: 'Lora', Georgia, serif; font-size: 13px; line-height: 1.6; background: #f0ede6; border-radius: 8px; padding: 10px; }
+      .seg { margin-bottom: 4px; border-radius: 4px; padding: 3px 8px; }
+      .seg.verdict-true     { background: rgba(120,140,93,.15); border-left: 3px solid #788c5d; }
+      .seg.verdict-false    { background: rgba(185,74,58,.15);  border-left: 3px solid #b94a3a; }
+      .seg.verdict-uncertain{ background: rgba(176,112,48,.15); border-left: 3px solid #b07030; }
+      .interim-text { color: #b0aea5; font-style: italic; }
+      .badge { display: inline-block; font-family: 'Poppins', Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .8px; padding: 1px 6px; border-radius: 24px; color: #fff; margin-left: 6px; }
+      .badge-true { background: #788c5d; }
+      .badge-false { background: #b94a3a; }
+      .badge-uncertain { background: #b07030; }
+    </style>
   </head>
   <body>
     <!-- ── Consent screen ────────────────────────────────────── -->
@@ -27,46 +49,33 @@
 
     <!-- ── Main UI ────────────────────────────────────────────── -->
     <div id="main-ui" role="main" aria-label="Control verificare">
-      <div
-        id="status-text"
-        role="status"
-        aria-live="polite"
-      >Pregătit</div>
+      <div id="status-text" role="status" aria-live="polite">Pregătit</div>
 
-      <div
-        id="timer-text"
-        class="timer-text"
-        aria-label="Durată înregistrare"
-        style="display: none;"
-      >00:00</div>
+      <div id="timer-text" class="timer-text" aria-label="Durată înregistrare" style="display: none;">00:00</div>
 
-      <button
-        id="btn-start"
-        class="btn-primary"
-        type="button"
-        aria-label="Începe ascultarea și verificarea"
-      >
+      <button id="btn-start" class="btn-primary" type="button" aria-label="Începe ascultarea și verificarea">
         Începe Ascultarea
       </button>
 
-      <button
-        id="btn-stop"
-        class="btn-ghost"
-        type="button"
-        style="display: none;"
-        aria-label="Oprește înregistrarea"
-      >
+      <button id="btn-stop" class="btn-ghost" type="button" style="display: none;" aria-label="Oprește înregistrarea">
         Oprește
       </button>
 
-      <button
-        id="btn-open"
-        class="btn-ghost"
-        type="button"
-        aria-label="Deschide panoul lateral cu detalii"
-      >
+      <button id="btn-open" class="btn-ghost" type="button" aria-label="Deschide panoul lateral cu detalii">
         Deschide Panoul Lateral
       </button>
+
+      <!-- ── Real-time streaming section ───────────────────────── -->
+      <div class="stream-section" id="stream-section">
+        <h4>Verificare în Timp Real 🇷🇴</h4>
+        <div class="stream-btn-group">
+          <button id="btn-stream-mic" type="button" aria-label="Pornește verificarea de la microfon">🎤 Microfon</button>
+          <button id="btn-stream-tab" type="button" aria-label="Pornește verificarea audio din tab">🔊 Tab</button>
+          <button id="btn-stream-stop" type="button" disabled aria-label="Oprește streaming-ul">⏹ Stop</button>
+        </div>
+        <div id="stream-status" role="status" aria-live="polite">Inactiv</div>
+        <div id="stream-transcript" aria-label="Transcriere în timp real" aria-live="polite"></div>
+      </div>
     </div>
 
     <script type="module" src="./main.ts"></script>
