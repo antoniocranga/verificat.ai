@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
 
 permissions:
   contents: read
@@ -131,6 +131,7 @@ jobs:
     needs: build-push
     runs-on: ubuntu-latest
     environment: staging
+    if: github.ref == 'refs/heads/staging'
 
     steps:
       - name: Checkout repository
@@ -185,3 +186,64 @@ jobs:
 
             chmod +x deploy-staging.sh
             ./deploy-staging.sh
+
+  deploy-production:
+    name: Deploy to Production VPS
+    needs: build-push
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create production directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mkdir -p ${{ secrets.VPS_DIR }}
+
+      - name: Copy deployment files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "infrastructure/deployment/docker-compose.production.yml, infrastructure/deployment/deploy-production.sh"
+          target: ${{ secrets.VPS_DIR }}
+          strip_components: 2
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            cd "${{ secrets.VPS_DIR }}"
+
+            export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
+            export GITHUB_ACTOR="${{ github.actor }}"
+            export VPS_DIR="${{ secrets.VPS_DIR }}"
+            export SUPABASE_PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
+            export SUPABASE_DB_PASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
+            
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+            export DEEPGRAM_API_KEY="${{ secrets.DEEPGRAM_API_KEY }}"
+            export AZURE_SPEECH_KEY="${{ secrets.AZURE_SPEECH_KEY }}"
+            export AZURE_SPEECH_REGION="${{ secrets.AZURE_SPEECH_REGION }}"
+            export SENTRY_DSN="${{ secrets.SENTRY_DNS }}"
+            export SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+            export SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+            export REDIS_URL="${{ secrets.REDIS_URL }}"
+            export WHISPER_URL="${{ secrets.WHISPER_URL }}"
+
+            chmod +x deploy-production.sh
+            ./deploy-production.sh
