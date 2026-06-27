@@ -7,8 +7,8 @@ STAGING_DIR="${VPS_DIR:-/home/deploy/verificat-staging}"
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 # Pull latest images
-docker pull ghcr.io/antoniocranga/verificat.xyz/web:latest
-docker pull ghcr.io/antoniocranga/verificat.xyz/api:latest
+docker pull ghcr.io/antoniocranga/verificat.ai/web:latest
+docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
 
 # Restart staging stack
 cd "$STAGING_DIR"
