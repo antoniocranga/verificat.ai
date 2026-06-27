@@ -3,6 +3,47 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verificat_mobile/features/listening/data/services/transcript_stream_service.dart';
 import 'package:verificat_mobile/features/listening/domain/entities/transcript_segment.dart';
+import 'package:record/record.dart';
+
+import 'dart:typed_data';
+
+class FakeAudioRecorder implements AudioRecorder {
+  @override
+  Future<void> start(RecordConfig config, {required String path}) async {}
+  @override
+  Future<Stream<Uint8List>> startStream(RecordConfig config) async => const Stream.empty();
+  @override
+  Future<String?> stop() async => null;
+  @override
+  Future<void> cancel() async {}
+  @override
+  Future<void> dispose() async {}
+  @override
+  Future<bool> hasPermission({bool request = true}) async => true;
+  @override
+  Future<bool> isPaused() async => false;
+  @override
+  Future<bool> isRecording() async => false;
+  @override
+  Future<void> pause() async {}
+  @override
+  Future<void> resume() async {}
+  @override
+  Stream<RecordState> onStateChanged() => const Stream.empty();
+  @override
+  Stream<Amplitude> onAmplitudeChanged(Duration interval) => const Stream.empty();
+  @override
+  Future<List<InputDevice>> listInputDevices() async => [];
+  @override
+  Future<void> setOnConfigChanged(void Function(RecordConfig)? callback) async {}
+  @override
+  Future<Amplitude> getAmplitude() async => Amplitude(current: 0.0, max: 0.0);
+  @override
+  RecordIos? get ios => null;
+  @override
+  Future<bool> isEncoderSupported(AudioEncoder encoder) async => true;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -129,7 +170,7 @@ void main() {
     // ── isRecording initial state ─────────────────────────────────────
 
     test('isRecording starts as false', () {
-      final svc = TranscriptStreamService();
+      final svc = TranscriptStreamService(recorder: FakeAudioRecorder());
       expect(svc.isRecording, isFalse);
       svc.dispose();
     });
@@ -137,13 +178,13 @@ void main() {
     // ── segments and interimText initial state ────────────────────────
 
     test('segments starts empty', () {
-      final svc = TranscriptStreamService();
+      final svc = TranscriptStreamService(recorder: FakeAudioRecorder());
       expect(svc.segments, isEmpty);
       svc.dispose();
     });
 
     test('interimText starts empty', () {
-      final svc = TranscriptStreamService();
+      final svc = TranscriptStreamService(recorder: FakeAudioRecorder());
       expect(svc.interimText, isEmpty);
       svc.dispose();
     });
@@ -151,7 +192,7 @@ void main() {
     // ── Notification behaviour ────────────────────────────────────────
 
     test('does not throw on dispose without start', () {
-      final svc = TranscriptStreamService();
+      final svc = TranscriptStreamService(recorder: FakeAudioRecorder());
       expect(() => svc.dispose(), returnsNormally);
     });
   });

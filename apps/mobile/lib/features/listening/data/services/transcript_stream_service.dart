@@ -23,8 +23,8 @@ class TranscriptStreamService extends ChangeNotifier {
   );
   static const int _maxRetries = 5;
 
-  final _recorder = AudioRecorder();
-  final _uuid = const Uuid();
+  final AudioRecorder _recorder;
+  final Uuid _uuid;
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _audioSub;
@@ -34,6 +34,13 @@ class TranscriptStreamService extends ChangeNotifier {
   String _interimText = '';
   bool _isRecording = false;
   int _retryCount = 0;
+  bool _isDisposed = false;
+
+  TranscriptStreamService({
+    AudioRecorder? recorder,
+    Uuid? uuid,
+  })  : _recorder = recorder ?? AudioRecorder(),
+        _uuid = uuid ?? const Uuid();
 
   // ─── Public state ─────────────────────────────────────────────────────────
 
@@ -172,8 +179,17 @@ class TranscriptStreamService extends ChangeNotifier {
   // ─── Cleanup ──────────────────────────────────────────────────────────────
 
   @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
   void dispose() {
+    _isDisposed = true;
     stop();
+    _recorder.dispose();
     super.dispose();
   }
 }

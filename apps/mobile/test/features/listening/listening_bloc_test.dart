@@ -262,6 +262,9 @@ void main() {
       expect(states.any((s) => s.status == ListeningStatus.listening), isTrue);
       expect(states.any((s) => s.status == ListeningStatus.processing), isTrue);
 
+      bloc.add(const SubmitTranscription('Test transcript'));
+      await Future.delayed(const Duration(milliseconds: 10));
+
       controller.add({'type': 'completed', 'success': true, 'claims': [
         {'verdict': 'False', 'confidenceScore': 85, 'explanation': 'Test', 'assertion': 'Test claim'},
       ]});

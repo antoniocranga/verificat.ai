@@ -13,6 +13,8 @@ import { JobsService } from './../src/jobs/jobs.service';
 import { FactChecksService } from './../src/fact-checks/fact-checks.service';
 import { SupabaseService } from './../src/supabase/supabase.service';
 import { MatchClaimResult } from './../src/search/search.service';
+import { WsAdapter } from '@nestjs/platform-ws';
+
 describe('API Integration (e2e)', () => {
   let app: INestApplication<App>;
   let validToken: string;
@@ -100,6 +102,7 @@ describe('API Integration (e2e)', () => {
       }),
     );
     app.useGlobalFilters(new HttpExceptionFilter());
+    app.useWebSocketAdapter(new WsAdapter(app));
     await app.init();
   });
 
@@ -390,5 +393,5 @@ describe('API Integration (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 15000);
 });

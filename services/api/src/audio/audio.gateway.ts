@@ -34,7 +34,7 @@ interface SessionHandle {
  * Until JWT handshake auth is implemented, deploy behind a network boundary
  * that restricts access to authenticated clients only (see open question in impl plan).
  */
-@WebSocketGateway({ path: '/audio', transports: ['websocket'] })
+@WebSocketGateway({ path: '/audio' })
 export class AudioGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
 
