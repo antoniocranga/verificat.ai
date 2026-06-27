@@ -28,7 +28,9 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
       }}
     >
       <div style={{ width: "100%", maxWidth: 400 }}>
-        <div style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}>
+        <div
+          style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}
+        >
           <Link href="/" style={{ textDecoration: "none" }}>
             <span
               style={{
@@ -112,7 +114,11 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
 
           <form
             action={resetPassword}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4, 16px)",
+            }}
           >
             <div>
               <label
@@ -171,7 +177,9 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
             </button>
           </form>
 
-          <div style={{ marginTop: "var(--space-5, 20px)", textAlign: "center" }}>
+          <div
+            style={{ marginTop: "var(--space-5, 20px)", textAlign: "center" }}
+          >
             <Link
               href="/login"
               style={{

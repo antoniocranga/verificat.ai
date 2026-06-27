@@ -26,7 +26,9 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
       }}
     >
       <div style={{ width: "100%", maxWidth: 400 }}>
-        <div style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}>
+        <div
+          style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}
+        >
           <Link href="/" style={{ textDecoration: "none" }}>
             <span
               style={{
@@ -93,7 +95,11 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
 
           <form
             action={updatePassword}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4, 16px)",
+            }}
           >
             <div>
               <label

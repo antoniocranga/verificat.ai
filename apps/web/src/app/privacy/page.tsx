@@ -3,7 +3,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Politica de Confidențialitate — verificat.ai",
-  description: "Politica de confidențialitate verificat.ai — cum colectăm, utilizăm și protejăm datele dumneavoastră.",
+  description:
+    "Politica de confidențialitate verificat.ai — cum colectăm, utilizăm și protejăm datele dumneavoastră.",
 };
 
 const sectionHeadingStyle: React.CSSProperties = {
@@ -43,11 +44,15 @@ export default function PrivacyPage() {
       style={{
         maxWidth: 720,
         margin: "0 auto",
-        padding: "var(--space-24, 96px) var(--space-6, 24px) var(--space-16, 64px)",
+        padding:
+          "var(--space-24, 96px) var(--space-6, 24px) var(--space-16, 64px)",
       }}
     >
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ marginBottom: "var(--space-8, 32px)" }}>
+      <nav
+        aria-label="Breadcrumb"
+        style={{ marginBottom: "var(--space-8, 32px)" }}
+      >
         <Link
           href="/"
           style={{
@@ -171,9 +176,14 @@ export default function PrivacyPage() {
       </section>
 
       {/* Section 2 */}
-      <section id="cum-folosim" style={{ marginBottom: "var(--space-10, 40px)" }}>
+      <section
+        id="cum-folosim"
+        style={{ marginBottom: "var(--space-10, 40px)" }}
+      >
         <h2 style={sectionHeadingStyle}>2. Cum folosim datele</h2>
-        <p style={bodyStyle}>Datele colectate sunt utilizate exclusiv pentru:</p>
+        <p style={bodyStyle}>
+          Datele colectate sunt utilizate exclusiv pentru:
+        </p>
         <ul style={listStyle}>
           <li>Furnizarea serviciului de verificare a afirmațiilor</li>
           <li>Îmbunătățirea acurateții și performanței sistemului</li>

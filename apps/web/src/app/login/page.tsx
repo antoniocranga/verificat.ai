@@ -22,7 +22,8 @@ const inputStyle: React.CSSProperties = {
   color: "var(--color-ink)",
   outline: "none",
   boxSizing: "border-box",
-  transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
+  transition:
+    "border-color var(--transition-fast), box-shadow var(--transition-fast)",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -100,7 +101,9 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
       <div style={{ width: "100%", maxWidth: 440, position: "relative" }}>
         {/* Branding */}
-        <div style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}>
+        <div
+          style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}
+        >
           <Link
             href="/"
             style={{ textDecoration: "none", display: "inline-block" }}
@@ -177,7 +180,13 @@ export default async function LoginPage({ searchParams }: PageProps) {
             </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-8, 32px)" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-8, 32px)",
+            }}
+          >
             {/* Sign in */}
             <div>
               <h2
@@ -203,7 +212,14 @@ export default async function LoginPage({ searchParams }: PageProps) {
                 Conectați-vă la contul dumneavoastră
               </p>
 
-              <form action={login} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}>
+              <form
+                action={login}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-4, 16px)",
+                }}
+              >
                 <div>
                   <label htmlFor="login-email" style={labelStyle}>
                     Email
@@ -227,7 +243,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
                       marginBottom: 6,
                     }}
                   >
-                    <label htmlFor="login-password" style={{ ...labelStyle, marginBottom: 0 }}>
+                    <label
+                      htmlFor="login-password"
+                      style={{ ...labelStyle, marginBottom: 0 }}
+                    >
                       Parolă
                     </label>
                     <Link
@@ -294,7 +313,14 @@ export default async function LoginPage({ searchParams }: PageProps) {
                 Alăturați-vă comunității de verificare
               </p>
 
-              <form action={signup} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}>
+              <form
+                action={signup}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-4, 16px)",
+                }}
+              >
                 <div>
                   <label htmlFor="signup-name" style={labelStyle}>
                     Nume complet

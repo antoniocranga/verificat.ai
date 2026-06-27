@@ -27,9 +27,17 @@ export default async function AdminDashboardPage() {
 
   const stats: StatCard[] = [
     { label: "Utilizatori", value: totalUsers ?? 0, id: "stat-users" },
-    { label: "Afirmații verificate", value: totalVerdicts ?? 0, id: "stat-verdicts" },
+    {
+      label: "Afirmații verificate",
+      value: totalVerdicts ?? 0,
+      id: "stat-verdicts",
+    },
     { label: "Procesări totale", value: totalClaims ?? 0, id: "stat-claims" },
-    { label: "Surse de încredere", value: totalSources ?? 0, id: "stat-sources" },
+    {
+      label: "Surse de încredere",
+      value: totalSources ?? 0,
+      id: "stat-sources",
+    },
   ];
 
   return (
@@ -137,10 +145,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Table header */}
-        <div
-          role="table"
-          aria-label="Activitate recentă"
-        >
+        <div role="table" aria-label="Activitate recentă">
           <div
             role="row"
             style={{

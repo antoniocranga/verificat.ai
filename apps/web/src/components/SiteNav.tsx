@@ -75,11 +75,10 @@ export function SiteNav() {
               fontSize: 14,
               letterSpacing: "-0.01em",
               textDecoration: "none",
-              transition: "background var(--transition-fast), transform var(--transition-fast)",
+              transition:
+                "background var(--transition-fast), transform var(--transition-fast)",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "#2a2a28")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#2a2a28")}
             onMouseLeave={(e) =>
               (e.currentTarget.style.background = "var(--color-ink)")
             }
@@ -161,7 +160,8 @@ export function SiteNav() {
           opacity: menuOpen ? 1 : 0,
           pointerEvents: menuOpen ? "auto" : "none",
           transition: "transform 200ms ease-out, opacity 200ms ease-out",
-          padding: "var(--space-4, 16px) var(--space-6, 24px) var(--space-6, 24px)",
+          padding:
+            "var(--space-4, 16px) var(--space-6, 24px) var(--space-6, 24px)",
           display: "flex",
           flexDirection: "column",
           gap: 4,

@@ -3,15 +3,36 @@ import { redirect } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", id: "admin-nav-dashboard" },
-  { href: "/admin/fact-checks", label: "Fact Checks", id: "admin-nav-fact-checks" },
+  {
+    href: "/admin/fact-checks",
+    label: "Fact Checks",
+    id: "admin-nav-fact-checks",
+  },
   { href: "/admin/sources", label: "Surse", id: "admin-nav-sources" },
-  { href: "/admin/reports", label: "Rapoarte abuzuri", id: "admin-nav-reports" },
-  { href: "/admin/usage", label: "Monitorizare costuri", id: "admin-nav-usage" },
+  {
+    href: "/admin/reports",
+    label: "Rapoarte abuzuri",
+    id: "admin-nav-reports",
+  },
+  {
+    href: "/admin/usage",
+    label: "Monitorizare costuri",
+    id: "admin-nav-usage",
+  },
 ];
 
 const BOTTOM_ITEMS = [
-  { href: "/dashboard", label: "Cont utilizator", id: "admin-nav-user-account" },
-  { href: "/admin/audit-log", label: "Audit", id: "admin-nav-audit", adminOnly: true },
+  {
+    href: "/dashboard",
+    label: "Cont utilizator",
+    id: "admin-nav-user-account",
+  },
+  {
+    href: "/admin/audit-log",
+    label: "Audit",
+    id: "admin-nav-audit",
+    adminOnly: true,
+  },
 ];
 
 export default async function AdminLayout({
@@ -107,7 +128,10 @@ export default async function AdminLayout({
         </div>
 
         {/* Main nav */}
-        <nav aria-label="Navigare admin" style={{ flex: 1, padding: "0 var(--space-3, 12px)" }}>
+        <nav
+          aria-label="Navigare admin"
+          style={{ flex: 1, padding: "0 var(--space-3, 12px)" }}
+        >
           {NAV_ITEMS.map((item) => (
             <AdminNavLink key={item.href} {...item} />
           ))}
@@ -122,12 +146,15 @@ export default async function AdminLayout({
         />
 
         {/* Bottom nav */}
-        <nav aria-label="Navigare secundară" style={{ padding: "0 var(--space-3, 12px)" }}>
-          {BOTTOM_ITEMS.filter(
-            (item) => !item.adminOnly || isAdmin
-          ).map((item) => (
-            <AdminNavLink key={item.href} {...item} />
-          ))}
+        <nav
+          aria-label="Navigare secundară"
+          style={{ padding: "0 var(--space-3, 12px)" }}
+        >
+          {BOTTOM_ITEMS.filter((item) => !item.adminOnly || isAdmin).map(
+            (item) => (
+              <AdminNavLink key={item.href} {...item} />
+            ),
+          )}
 
           {/* Role badge */}
           <div
@@ -166,7 +193,14 @@ export default async function AdminLayout({
       </aside>
 
       {/* ── Main content ────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+        }}
+      >
         {/* Top bar */}
         <header
           style={{
@@ -238,7 +272,8 @@ function AdminNavLink({
         color: "var(--color-ink)",
         textDecoration: "none",
         marginBottom: 2,
-        transition: "background var(--transition-fast), color var(--transition-fast)",
+        transition:
+          "background var(--transition-fast), color var(--transition-fast)",
         borderLeft: "3px solid transparent",
       }}
       onMouseOver={(e) => {

@@ -59,7 +59,8 @@ const oAuthBtnBase: React.CSSProperties = {
   fontWeight: 500,
   fontSize: 14,
   cursor: "pointer",
-  transition: "background var(--transition-fast), border-color var(--transition-fast)",
+  transition:
+    "background var(--transition-fast), border-color var(--transition-fast)",
   border: "1.5px solid var(--color-subtle)",
   boxSizing: "border-box",
 };
@@ -70,7 +71,13 @@ const oAuthBtnBase: React.CSSProperties = {
  */
 export function OAuthButtons() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3, 12px)" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-3, 12px)",
+      }}
+    >
       {/* Divider */}
       <div
         style={{
@@ -110,7 +117,13 @@ export function OAuthButtons() {
       </div>
 
       {/* OAuth provider buttons */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3, 12px)" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "var(--space-3, 12px)",
+        }}
+      >
         <form action={signInWithProvider.bind(null, "google")}>
           <button
             id="btn-oauth-google"

@@ -11,21 +11,22 @@ type ConsentState = {
 
 // Global consent helper — safe to call from anywhere after consent is set
 if (typeof window !== "undefined") {
-  (window as typeof window & { consentGranted: (category: string) => boolean }).consentGranted =
-    (category: string) => {
-      try {
-        const stored = localStorage.getItem(CONSENT_KEY);
-        if (!stored) return false;
-        const parsed = JSON.parse(stored) as ConsentState;
-        if (!parsed) return false;
-        if (category === "essential") return true;
-        if (category === "analytics") return parsed.analytics ?? false;
-        if (category === "marketing") return parsed.marketing ?? false;
-        return false;
-      } catch {
-        return false;
-      }
-    };
+  (
+    window as typeof window & { consentGranted: (category: string) => boolean }
+  ).consentGranted = (category: string) => {
+    try {
+      const stored = localStorage.getItem(CONSENT_KEY);
+      if (!stored) return false;
+      const parsed = JSON.parse(stored) as ConsentState;
+      if (!parsed) return false;
+      if (category === "essential") return true;
+      if (category === "analytics") return parsed.analytics ?? false;
+      if (category === "marketing") return parsed.marketing ?? false;
+      return false;
+    } catch {
+      return false;
+    }
+  };
 }
 
 function Toggle({
@@ -51,9 +52,7 @@ function Toggle({
         height: 24,
         borderRadius: "var(--radius-pill)",
         border: "none",
-        background: checked
-          ? "var(--color-accent)"
-          : "var(--color-subtle)",
+        background: checked ? "var(--color-accent)" : "var(--color-subtle)",
         cursor: disabled ? "not-allowed" : "pointer",
         position: "relative",
         transition: "background var(--transition-base)",
@@ -88,33 +87,37 @@ export function CookieConsentBanner() {
 
   // Read localStorage after mount only
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem(CONSENT_KEY);
-    if (!stored) {
-      setVisible(true);
-    }
+    setTimeout(() => {
+      setMounted(true);
+      const stored = localStorage.getItem(CONSENT_KEY);
+      if (!stored) {
+        setVisible(true);
+      }
+    }, 0);
   }, []);
 
   // Listen for "open cookie settings" event from footer
   useEffect(() => {
     const handler = () => setModalOpen(true);
     window.addEventListener("vcai:open-cookie-settings", handler);
-    return () => window.removeEventListener("vcai:open-cookie-settings", handler);
+    return () =>
+      window.removeEventListener("vcai:open-cookie-settings", handler);
   }, []);
 
   const saveConsent = useCallback(
     (state: { analytics: boolean; marketing: boolean }) => {
       localStorage.setItem(CONSENT_KEY, JSON.stringify(state));
       // Install the global helper with the updated consent
-      (window as typeof window & { consentGranted: (c: string) => boolean }).consentGranted =
-        (category: string) => {
-          if (category === "essential") return true;
-          if (category === "analytics") return state.analytics;
-          if (category === "marketing") return state.marketing;
-          return false;
-        };
+      (
+        window as typeof window & { consentGranted: (c: string) => boolean }
+      ).consentGranted = (category: string) => {
+        if (category === "essential") return true;
+        if (category === "analytics") return state.analytics;
+        if (category === "marketing") return state.marketing;
+        return false;
+      };
     },
-    []
+    [],
   );
 
   const acceptAll = useCallback(() => {
@@ -163,7 +166,8 @@ export function CookieConsentBanner() {
             background: "var(--color-canvas-elevated)",
             borderTop: "1px solid var(--color-subtle)",
             borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
-            boxShadow: "0 -16px 48px rgba(20,20,19,0.12), 0 -4px 12px rgba(20,20,19,0.06)",
+            boxShadow:
+              "0 -16px 48px rgba(20,20,19,0.12), 0 -4px 12px rgba(20,20,19,0.06)",
             padding: "var(--space-6, 24px)",
             transform: visible ? "translateY(0)" : "translateY(110%)",
             opacity: visible ? 1 : 0,
@@ -190,8 +194,8 @@ export function CookieConsentBanner() {
                 lineHeight: 1.6,
               }}
             >
-              Folosim cookie-uri esențiale pentru funcționarea site-ului și,
-              cu acordul dumneavoastră, cookie-uri pentru analiză și marketing.{" "}
+              Folosim cookie-uri esențiale pentru funcționarea site-ului și, cu
+              acordul dumneavoastră, cookie-uri pentru analiză și marketing.{" "}
               <a
                 href="/privacy#cookie"
                 style={{

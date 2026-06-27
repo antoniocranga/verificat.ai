@@ -51,39 +51,41 @@ export function HoverButton({
           cursor: "pointer",
           boxShadow: "var(--shadow-sm)",
           textDecoration: "none",
-          transition: "background var(--transition-fast), transform var(--transition-fast)",
+          transition:
+            "background var(--transition-fast), transform var(--transition-fast)",
         }
       : variant === "secondary"
-      ? {
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: 48,
-          padding: "0 28px",
-          background: "var(--color-canvas-elevated)",
-          color: "var(--color-ink)",
-          borderRadius: "var(--radius-pill)",
-          fontFamily: "var(--font-heading)",
-          fontWeight: 600,
-          fontSize: 15,
-          letterSpacing: "-0.01em",
-          border: "1.5px solid var(--color-subtle)",
-          cursor: "pointer",
-          textDecoration: "none",
-          transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
-        }
-      : {
-          background: "none",
-          border: "none",
-          fontFamily: "var(--font-body)",
-          fontSize: 14,
-          color: "var(--color-mid)",
-          cursor: "pointer",
-          padding: 0,
-          textAlign: "left",
-          textDecoration: "none",
-          transition: "color var(--transition-fast)",
-        };
+        ? {
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 48,
+            padding: "0 28px",
+            background: "var(--color-canvas-elevated)",
+            color: "var(--color-ink)",
+            borderRadius: "var(--radius-pill)",
+            fontFamily: "var(--font-heading)",
+            fontWeight: 600,
+            fontSize: 15,
+            letterSpacing: "-0.01em",
+            border: "1.5px solid var(--color-subtle)",
+            cursor: "pointer",
+            textDecoration: "none",
+            transition:
+              "border-color var(--transition-fast), box-shadow var(--transition-fast)",
+          }
+        : {
+            background: "none",
+            border: "none",
+            fontFamily: "var(--font-body)",
+            fontSize: 14,
+            color: "var(--color-mid)",
+            cursor: "pointer",
+            padding: 0,
+            textAlign: "left",
+            textDecoration: "none",
+            transition: "color var(--transition-fast)",
+          };
 
   const mergedStyle: CSSProperties = { ...defaultStyles, ...style };
 
@@ -104,8 +106,7 @@ export function HoverButton({
     if (hoverBorder)
       e.currentTarget.style.borderColor =
         (mergedStyle.borderColor as string) ?? "var(--color-subtle)";
-    if (variant === "ghost")
-      e.currentTarget.style.color = "var(--color-mid)";
+    if (variant === "ghost") e.currentTarget.style.color = "var(--color-mid)";
     if (variant === "secondary") {
       e.currentTarget.style.borderColor = "var(--color-subtle)";
       e.currentTarget.style.boxShadow = "none";

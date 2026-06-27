@@ -316,7 +316,9 @@ export function DemoVerdictCard() {
               gap: 4,
             }}
           >
-            <span aria-hidden="true" style={{ fontSize: 10 }}>↗</span>
+            <span aria-hidden="true" style={{ fontSize: 10 }}>
+              ↗
+            </span>
             {source.title}
           </a>
         ))}

@@ -3,7 +3,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Termeni și Condiții — verificat.ai",
-  description: "Termenii și condițiile de utilizare a serviciului verificat.ai.",
+  description:
+    "Termenii și condițiile de utilizare a serviciului verificat.ai.",
 };
 
 const sectionHeadingStyle: React.CSSProperties = {
@@ -43,11 +44,15 @@ export default function TermsPage() {
       style={{
         maxWidth: 720,
         margin: "0 auto",
-        padding: "var(--space-24, 96px) var(--space-6, 24px) var(--space-16, 64px)",
+        padding:
+          "var(--space-24, 96px) var(--space-6, 24px) var(--space-16, 64px)",
       }}
     >
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ marginBottom: "var(--space-8, 32px)" }}>
+      <nav
+        aria-label="Breadcrumb"
+        style={{ marginBottom: "var(--space-8, 32px)" }}
+      >
         <Link
           href="/"
           style={{
@@ -159,7 +164,9 @@ export default function TermsPage() {
       {/* Section 2 */}
       <section id="utilizare" style={{ marginBottom: "var(--space-10, 40px)" }}>
         <h2 style={sectionHeadingStyle}>2. Utilizarea serviciului</h2>
-        <p style={bodyStyle}>Prin utilizarea serviciului, sunteți de acord să:</p>
+        <p style={bodyStyle}>
+          Prin utilizarea serviciului, sunteți de acord să:
+        </p>
         <ul style={listStyle}>
           <li>
             Nu încărcați conținut ilegal sau care încalcă drepturile terților
@@ -172,7 +179,10 @@ export default function TermsPage() {
       </section>
 
       {/* Section 3 */}
-      <section id="raspundere" style={{ marginBottom: "var(--space-10, 40px)" }}>
+      <section
+        id="raspundere"
+        style={{ marginBottom: "var(--space-10, 40px)" }}
+      >
         <h2 style={sectionHeadingStyle}>3. Limitarea răspunderii</h2>
         <p style={bodyStyle}>
           Verdictele furnizate de verificat.ai sunt generate automat și nu
@@ -183,7 +193,10 @@ export default function TermsPage() {
       </section>
 
       {/* Section 4 */}
-      <section id="proprietate" style={{ marginBottom: "var(--space-10, 40px)" }}>
+      <section
+        id="proprietate"
+        style={{ marginBottom: "var(--space-10, 40px)" }}
+      >
         <h2 style={sectionHeadingStyle}>4. Proprietatea intelectuală</h2>
         <p style={bodyStyle}>
           Toate drepturile de proprietate intelectuală asupra platformei

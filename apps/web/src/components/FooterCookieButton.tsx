@@ -22,12 +22,8 @@ export function FooterCookieButton() {
         textAlign: "left",
         transition: "color var(--transition-fast)",
       }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.color = "var(--color-ink)")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.color = "var(--color-mid)")
-      }
+      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-ink)")}
+      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-mid)")}
     >
       Setări cookie-uri
     </button>
