@@ -1,6 +1,6 @@
 services:
   web:
-    image: verificat-web:${VERSION}
+    image: ghcr.io/antoniocranga/verificat.ai/web:latest
     container_name: verificat-web
     restart: always
     environment:
@@ -28,12 +28,14 @@ services:
       - "traefik.http.services.web-prod.loadbalancer.server.port=3000"
 
   api:
-    image: verificat-api:${VERSION}
+    image: ghcr.io/antoniocranga/verificat.ai/api:latest
     container_name: verificat-api
     restart: always
     environment:
       - PORT=3000
       - NODE_ENV=production
+    depends_on:
+      - redis
     networks:
       - traefik_default
     deploy:
@@ -55,6 +57,16 @@ services:
       - "traefik.http.middlewares.api-ratelimit.ratelimit.average=150"
       - "traefik.http.middlewares.api-ratelimit.ratelimit.burst=30"
 
+  redis:
+    image: redis:7-alpine
+    container_name: verificat-redis
+    restart: always
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    networks:
+      - traefik_default
+
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
     container_name: verificat-whisper
@@ -72,6 +84,9 @@ services:
           memory: 2048M
     networks:
       - traefik_default
+
+volumes:
+  redis_data:
 
 networks:
   traefik_default:
