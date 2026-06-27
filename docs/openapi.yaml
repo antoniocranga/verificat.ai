@@ -34,29 +34,15 @@ paths:
         '200':
           description: ''
       tags: *ref_0
-  /users/profile:
-    get:
-      operationId: UsersController_getProfile
+  /speech/transcribe:
+    post:
+      operationId: SpeechController_transcribeAudio
       parameters: []
       responses:
         '200':
           description: ''
-      tags: &ref_1
-        - Users
-  /users/test-validation:
-    post:
-      operationId: UsersController_testValidation
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TestUserDto'
-      responses:
-        '201':
-          description: ''
-      tags: *ref_1
+      tags:
+        - Speech
   /fact-checks/search:
     get:
       operationId: FactChecksController_searchVerdicts
@@ -64,8 +50,21 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_2
+      tags: &ref_1
         - FactChecks
+  /fact-checks/{id}:
+    get:
+      operationId: FactChecksController_getVerdictById
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
   /fact-checks:
     get:
       operationId: FactChecksController_getLatestChecks
@@ -73,7 +72,20 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_2
+      tags: *ref_1
+  /fact-checks/{id}/report:
+    post:
+      operationId: FactChecksController_reportVerdict
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+      tags: *ref_1
   /search/claims:
     post:
       operationId: SearchController_searchClaims
@@ -87,7 +99,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_3
+      tags: &ref_2
         - Search
   /search/embeddings:
     post:
@@ -99,6 +111,29 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SaveEmbeddingDto'
+      responses:
+        '201':
+          description: ''
+      tags: *ref_2
+  /users/profile:
+    get:
+      operationId: UsersController_getProfile
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: &ref_3
+        - Users
+  /users/test-validation:
+    post:
+      operationId: UsersController_testValidation
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestUserDto'
       responses:
         '201':
           description: ''
@@ -119,8 +154,30 @@ paths:
       responses:
         '200':
           description: ''
-      tags:
+      tags: &ref_4
         - Admin
+  /admin/reports/{id}/resolve:
+    patch:
+      operationId: AdminController_resolveReport
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_4
+  /jobs/verify-text:
+    post:
+      operationId: JobsController_verifyText
+      parameters: []
+      responses:
+        '202':
+          description: ''
+      tags: &ref_5
+        - Jobs
   /jobs/upload:
     post:
       operationId: JobsController_uploadAudio
@@ -128,8 +185,7 @@ paths:
       responses:
         '202':
           description: ''
-      tags: &ref_4
-        - Jobs
+      tags: *ref_5
   /jobs/{jobId}/stream:
     get:
       operationId: JobsController_streamJob
@@ -142,7 +198,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_4
+      tags: *ref_5
 info:
   title: verificat.xyz API
   description: verificat.xyz fact-checking platform API
@@ -157,12 +213,12 @@ components:
       bearerFormat: JWT
       type: http
   schemas:
-    TestUserDto:
-      type: object
-      properties: {}
     SearchClaimsDto:
       type: object
       properties: {}
     SaveEmbeddingDto:
+      type: object
+      properties: {}
+    TestUserDto:
       type: object
       properties: {}

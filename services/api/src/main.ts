@@ -43,10 +43,14 @@ async function bootstrap() {
   if (process.env.WRITE_OPENAPI_SPEC === 'true') {
     const fs = await import('fs');
     const path = await import('path');
-    const outputPath = path.resolve(process.cwd(), 'docs/openapi.yaml');
+    const outputPath = path.resolve(process.cwd(), '../../docs/openapi.yaml');
     const yaml = await import('js-yaml');
     fs.writeFileSync(outputPath, yaml.dump(document), 'utf-8');
     console.log(`OpenAPI spec written to ${outputPath}`);
+  }
+
+  if (process.argv.includes('--fast-exit')) {
+    process.exit(0);
   }
 
   await app.listen(process.env.PORT ?? 3000);

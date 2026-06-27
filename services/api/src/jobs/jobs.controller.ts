@@ -11,7 +11,7 @@ import {
   UnprocessableEntityException,
   Body,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
