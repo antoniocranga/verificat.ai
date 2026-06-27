@@ -1,0 +1,44 @@
+name: CI Build
+
+on:
+  pull_request:
+    branches: [main, staging, development]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+
+    env:
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.1.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run build (affected packages only)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            pnpm turbo run build --filter=...[origin/${{ github.base_ref }}]
+          else
+            pnpm turbo run build
+          fi
