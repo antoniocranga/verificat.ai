@@ -24,7 +24,7 @@ jobs:
 
     env:
       INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DNS }}
       REDIS_URL: ${{ secrets.REDIS_URL }}
 
     steps:

@@ -176,7 +176,7 @@ jobs:
             export DEEPGRAM_API_KEY="${{ secrets.DEEPGRAM_API_KEY }}"
             export AZURE_SPEECH_KEY="${{ secrets.AZURE_SPEECH_KEY }}"
             export AZURE_SPEECH_REGION="${{ secrets.AZURE_SPEECH_REGION }}"
-            export SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
+            export SENTRY_DSN="${{ secrets.SENTRY_DNS }}"
             export SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
             export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
             export SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
