@@ -1,4 +1,10 @@
 import { resetPassword } from "@/app/auth/actions";
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Resetare parolă — verificat.ai",
+};
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -11,59 +17,172 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
     typeof params.message === "string" ? params.message : undefined;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-violet-900/25 blur-3xl" />
-
-      <div className="w-full max-w-md z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">
-            Reset Password
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "var(--color-canvas)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-6, 24px)",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}>
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontWeight: 700,
+                fontSize: 28,
+                letterSpacing: "-0.04em",
+                color: "var(--color-ink)",
+              }}
+            >
+              verificat<span style={{ color: "var(--color-accent)" }}>.ai</span>
+            </span>
+          </Link>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontWeight: 600,
+              fontSize: 20,
+              letterSpacing: "-0.02em",
+              color: "var(--color-ink)",
+              margin: "var(--space-4, 16px) 0 var(--space-2, 8px)",
+            }}
+          >
+            Resetare parolă
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">
-            Enter your email to receive a recovery link
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              color: "var(--color-mid)",
+              margin: 0,
+            }}
+          >
+            Introduceți emailul pentru a primi un link de recuperare
           </p>
         </div>
 
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8">
+        <div
+          style={{
+            background: "var(--color-canvas-elevated)",
+            border: "1px solid var(--color-subtle)",
+            borderRadius: "var(--radius-lg)",
+            boxShadow: "var(--shadow-md)",
+            padding: "var(--space-8, 32px)",
+          }}
+        >
           {error && (
-            <div className="mb-6 p-4 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-sm">
+            <div
+              role="alert"
+              style={{
+                marginBottom: "var(--space-5, 20px)",
+                padding: "var(--space-4, 16px)",
+                borderRadius: "var(--radius-sm)",
+                background: "rgba(192,57,43,0.08)",
+                border: "1px solid rgba(192,57,43,0.20)",
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                color: "#c0392b",
+              }}
+            >
               {error}
             </div>
           )}
           {message && (
-            <div className="mb-6 p-4 rounded-lg bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-sm">
+            <div
+              role="status"
+              style={{
+                marginBottom: "var(--space-5, 20px)",
+                padding: "var(--space-4, 16px)",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--color-green-soft)",
+                border: "1px solid rgba(120,140,93,0.25)",
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                color: "var(--color-green)",
+              }}
+            >
               {message}
             </div>
           )}
 
-          <form action={resetPassword} className="space-y-4">
+          <form
+            action={resetPassword}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}
+          >
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Email Address
+              <label
+                htmlFor="reset-email"
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 500,
+                  fontSize: 12,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--color-mid)",
+                  marginBottom: 6,
+                }}
+              >
+                Adresă de email
               </label>
               <input
+                id="reset-email"
                 type="email"
                 name="email"
                 required
-                placeholder="name@example.com"
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                placeholder="nume@exemplu.ro"
+                className="input"
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  background: "var(--color-canvas-elevated)",
+                  border: "1.5px solid var(--color-subtle)",
+                  borderRadius: "var(--radius-sm)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 15,
+                  color: "var(--color-ink)",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
               />
             </div>
             <button
+              id="btn-reset-submit"
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-slate-100 rounded-lg font-semibold transition-all transform hover:scale-[1.01] text-sm"
+              style={{
+                height: 48,
+                background: "var(--color-ink)",
+                color: "var(--color-canvas)",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                fontFamily: "var(--font-heading)",
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: "pointer",
+                transition: "background var(--transition-fast)",
+              }}
             >
-              Send Recovery Link
+              Trimite link de recuperare
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <a
+          <div style={{ marginTop: "var(--space-5, 20px)", textAlign: "center" }}>
+            <Link
               href="/login"
-              className="text-xs text-violet-400 hover:underline"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 13,
+                color: "var(--color-blue)",
+                textDecoration: "none",
+              }}
             >
-              Back to Sign In
-            </a>
+              ← Înapoi la autentificare
+            </Link>
           </div>
         </div>
       </div>

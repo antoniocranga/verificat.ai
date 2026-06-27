@@ -4,10 +4,10 @@ function GoogleIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="w-5 h-5 flex-shrink-0"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      style={{ width: 20, height: 20, flexShrink: 0 }}
     >
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -33,10 +33,10 @@ function GitHubIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="w-5 h-5 flex-shrink-0"
       viewBox="0 0 24 24"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
+      style={{ width: 20, height: 20, flexShrink: 0 }}
     >
       <path
         fillRule="evenodd"
@@ -47,32 +47,79 @@ function GitHubIcon() {
   );
 }
 
+const oAuthBtnBase: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  width: "100%",
+  height: 44,
+  borderRadius: "var(--radius-sm)",
+  fontFamily: "var(--font-heading)",
+  fontWeight: 500,
+  fontSize: 14,
+  cursor: "pointer",
+  transition: "background var(--transition-fast), border-color var(--transition-fast)",
+  border: "1.5px solid var(--color-subtle)",
+  boxSizing: "border-box",
+};
+
 /**
  * Server component that renders OAuth provider sign-in buttons.
  * Each button is wrapped in a form that invokes the signInWithProvider Server Action.
  */
 export function OAuthButtons() {
   return (
-    <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3, 12px)" }}>
       {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="px-3 bg-slate-900/60 text-slate-500 font-medium tracking-wider uppercase">
-            Or continue with
-          </span>
-        </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-3, 12px)",
+          margin: "var(--space-1, 4px) 0",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            height: 1,
+            background: "var(--color-subtle)",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--color-mid)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          sau continuați cu
+        </span>
+        <div
+          style={{
+            flex: 1,
+            height: 1,
+            background: "var(--color-subtle)",
+          }}
+        />
       </div>
 
       {/* OAuth provider buttons */}
-      <div className="grid grid-cols-2 gap-3">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3, 12px)" }}>
         <form action={signInWithProvider.bind(null, "google")}>
           <button
             id="btn-oauth-google"
             type="submit"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-gray-800 rounded-lg font-medium transition-all transform hover:scale-[1.01] border border-slate-200 shadow-sm text-sm"
+            style={{
+              ...oAuthBtnBase,
+              background: "var(--color-canvas-elevated)",
+              color: "var(--color-ink)",
+            }}
           >
             <GoogleIcon />
             Google
@@ -83,7 +130,12 @@ export function OAuthButtons() {
           <button
             id="btn-oauth-github"
             type="submit"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-lg font-medium transition-all transform hover:scale-[1.01] border border-slate-700 shadow-sm text-sm"
+            style={{
+              ...oAuthBtnBase,
+              background: "var(--color-ink)",
+              color: "var(--color-canvas)",
+              border: "1.5px solid var(--color-ink)",
+            }}
           >
             <GitHubIcon />
             GitHub

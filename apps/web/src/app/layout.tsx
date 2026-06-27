@@ -18,7 +18,8 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "verificat.xyz — Verificare afirmații în timp real",
+  metadataBase: new URL("https://staging.verificat.xyz"),
+  title: "verificat.ai — Verificare afirmații în timp real",
   description:
     "Verifică afirmațiile din media în timp real. Un asistent inteligent ce folosește procesare avansată de limbaj natural, căutare semantică și evaluare de încredere a surselor pentru a oferi verdicte clare, explicate și bazate pe dovezi.",
   keywords: [
@@ -29,6 +30,26 @@ export const metadata: Metadata = {
     "românia",
     "real-time",
   ],
+  openGraph: {
+    title: "verificat.ai — Verificare afirmații în timp real",
+    description:
+      "Verifică afirmațiile din media în timp real cu verdicte clare, explicate și bazate pe dovezi.",
+    images: [{ url: "/og", width: 1200, height: 630 }],
+    locale: "ro_RO",
+    type: "website",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+  },
+  other: {
+    "theme-color": "#faf9f5",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+  },
 };
 
 export default function RootLayout({

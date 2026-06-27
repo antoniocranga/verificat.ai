@@ -1,9 +1,55 @@
 import { login, signup } from "@/app/auth/actions";
 import { OAuthButtons } from "@/components/OAuthButtons";
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Autentificare — verificat.ai",
+};
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 14px",
+  background: "var(--color-canvas-elevated)",
+  border: "1.5px solid var(--color-subtle)",
+  borderRadius: "var(--radius-sm)",
+  fontFamily: "var(--font-body)",
+  fontSize: 15,
+  color: "var(--color-ink)",
+  outline: "none",
+  boxSizing: "border-box",
+  transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontFamily: "var(--font-heading)",
+  fontWeight: 500,
+  fontSize: 12,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  color: "var(--color-mid)",
+  marginBottom: 6,
+};
+
+const primaryBtnStyle: React.CSSProperties = {
+  width: "100%",
+  height: 48,
+  background: "var(--color-ink)",
+  color: "var(--color-canvas)",
+  border: "none",
+  borderRadius: "var(--radius-sm)",
+  fontFamily: "var(--font-heading)",
+  fontWeight: 600,
+  fontSize: 15,
+  cursor: "pointer",
+  letterSpacing: "-0.01em",
+  transition: "background var(--transition-fast)",
+};
 
 export default async function LoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
@@ -12,167 +58,333 @@ export default async function LoginPage({ searchParams }: PageProps) {
     typeof params.message === "string" ? params.message : undefined;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Decorative Background Gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-violet-900/25 blur-3xl" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-900/25 blur-3xl" />
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "var(--color-canvas)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-6, 24px)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Warm background blobs */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-10%",
+          right: "-5%",
+          width: 500,
+          height: 500,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse, rgba(217,119,87,0.08) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-10%",
+          left: "-5%",
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse, rgba(106,155,204,0.06) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
 
-      <div className="w-full max-w-md z-10">
-        {/* Header/Branding */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            verificat.xyz
-          </h1>
-          <p className="text-slate-400 mt-2 text-sm font-medium">
-            Verificare în timp real cu surse și dovezi
+      <div style={{ width: "100%", maxWidth: 440, position: "relative" }}>
+        {/* Branding */}
+        <div style={{ textAlign: "center", marginBottom: "var(--space-8, 32px)" }}>
+          <Link
+            href="/"
+            style={{ textDecoration: "none", display: "inline-block" }}
+          >
+            <h1
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontWeight: 700,
+                fontSize: 32,
+                letterSpacing: "-0.04em",
+                color: "var(--color-ink)",
+                margin: "0 0 8px",
+              }}
+            >
+              verificat
+              <span style={{ color: "var(--color-accent)" }}>.ai</span>
+            </h1>
+          </Link>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 15,
+              color: "var(--color-mid)",
+              margin: 0,
+            }}
+          >
+            Verificare afirmații în timp real
           </p>
         </div>
 
-        {/* Auth Card */}
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 relative">
+        {/* Auth card */}
+        <div
+          style={{
+            background: "var(--color-canvas-elevated)",
+            border: "1px solid var(--color-subtle)",
+            borderRadius: "var(--radius-lg)",
+            boxShadow: "var(--shadow-lg)",
+            padding: "var(--space-8, 32px)",
+          }}
+        >
+          {/* Error / success messages */}
           {error && (
-            <div className="mb-6 p-4 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-sm">
+            <div
+              role="alert"
+              style={{
+                marginBottom: "var(--space-5, 20px)",
+                padding: "var(--space-4, 16px)",
+                borderRadius: "var(--radius-sm)",
+                background: "rgba(192,57,43,0.08)",
+                border: "1px solid rgba(192,57,43,0.20)",
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                color: "#c0392b",
+              }}
+            >
               {error}
             </div>
           )}
           {message && (
-            <div className="mb-6 p-4 rounded-lg bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-sm">
+            <div
+              role="status"
+              style={{
+                marginBottom: "var(--space-5, 20px)",
+                padding: "var(--space-4, 16px)",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--color-green-soft)",
+                border: "1px solid rgba(120,140,93,0.25)",
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                color: "var(--color-green)",
+              }}
+            >
               {message}
             </div>
           )}
 
-          {/* Simple Tab Control via client-side or CSS/Multiple Forms */}
-          {/* We render a login form and signup form side-by-side or combined into neat UI */}
-          <div className="space-y-8">
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-8, 32px)" }}>
+            {/* Sign in */}
             <div>
-              <h2 className="text-xl font-semibold text-slate-100">
+              <h2
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  letterSpacing: "-0.02em",
+                  color: "var(--color-ink)",
+                  margin: "0 0 var(--space-1, 4px)",
+                }}
+              >
                 Autentificare
               </h2>
-              <p className="text-slate-400 text-xs mt-1">
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 13,
+                  color: "var(--color-mid)",
+                  margin: "0 0 var(--space-5, 20px)",
+                }}
+              >
                 Conectați-vă la contul dumneavoastră
               </p>
 
-              <form action={login} className="space-y-4 mt-4">
+              <form action={login} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="login-email" style={labelStyle}>
                     Email
                   </label>
                   <input
+                    id="login-email"
                     type="email"
                     name="email"
                     required
                     placeholder="nume@exemplu.ro"
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                    className="input"
+                    style={inputStyle}
                   />
                 </div>
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    <label htmlFor="login-password" style={{ ...labelStyle, marginBottom: 0 }}>
                       Parolă
                     </label>
-                    <a
+                    <Link
                       href="/reset-password"
-                      className="text-xs text-violet-400 hover:underline"
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 13,
+                        color: "var(--color-blue)",
+                        textDecoration: "none",
+                      }}
                     >
                       Ați uitat parola?
-                    </a>
+                    </Link>
                   </div>
                   <input
+                    id="login-password"
                     type="password"
                     name="password"
                     required
                     placeholder="••••••••"
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                    className="input"
+                    style={inputStyle}
                   />
                 </div>
                 <button
+                  id="btn-login-submit"
                   type="submit"
-                  className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-slate-100 rounded-lg font-semibold transition-all transform hover:scale-[1.01] shadow-lg shadow-violet-950/50 text-sm"
+                  style={primaryBtnStyle}
                 >
                   Autentificare
                 </button>
               </form>
 
-              {/* OAuth provider sign-in */}
-              <div className="mt-5">
+              <div style={{ marginTop: "var(--space-5, 20px)" }}>
                 <OAuthButtons />
               </div>
             </div>
 
-            <div className="border-t border-slate-800 pt-6">
-              <h2 className="text-xl font-semibold text-slate-100">
-                Creare Cont
+            {/* Divider */}
+            <div style={{ borderTop: "1px solid var(--color-subtle)" }} />
+
+            {/* Sign up */}
+            <div>
+              <h2
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  letterSpacing: "-0.02em",
+                  color: "var(--color-ink)",
+                  margin: "0 0 var(--space-1, 4px)",
+                }}
+              >
+                Creare cont
               </h2>
-              <p className="text-slate-400 text-xs mt-1">
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 13,
+                  color: "var(--color-mid)",
+                  margin: "0 0 var(--space-5, 20px)",
+                }}
+              >
                 Alăturați-vă comunității de verificare
               </p>
 
-              <form action={signup} className="space-y-4 mt-4">
+              <form action={signup} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4, 16px)" }}>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="signup-name" style={labelStyle}>
                     Nume complet
                   </label>
                   <input
+                    id="signup-name"
                     type="text"
                     name="fullName"
                     required
                     placeholder="Ion Popescu"
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                    className="input"
+                    style={inputStyle}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="signup-email" style={labelStyle}>
                     Email
                   </label>
                   <input
+                    id="signup-email"
                     type="email"
                     name="email"
                     required
                     placeholder="nume@exemplu.ro"
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                    className="input"
+                    style={inputStyle}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="signup-password" style={labelStyle}>
                     Parolă
                   </label>
                   <input
+                    id="signup-password"
                     type="password"
                     name="password"
                     required
                     placeholder="Minimum 8 caractere"
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors text-sm"
+                    className="input"
+                    style={inputStyle}
                   />
                 </div>
                 <button
+                  id="btn-signup-submit"
                   type="submit"
-                  className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-lg font-semibold transition-all transform hover:scale-[1.01] text-sm"
+                  style={{
+                    ...primaryBtnStyle,
+                    background: "transparent",
+                    color: "var(--color-ink)",
+                    border: "1.5px solid var(--color-subtle)",
+                  }}
                 >
                   Înregistrare
                 </button>
               </form>
             </div>
           </div>
-          <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-            <p className="text-slate-500 text-xs leading-relaxed">
+
+          {/* Legal footer */}
+          <div
+            style={{
+              marginTop: "var(--space-6, 24px)",
+              paddingTop: "var(--space-4, 16px)",
+              borderTop: "1px solid var(--color-subtle)",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 12,
+                color: "var(--color-mid)",
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
               Prin crearea unui cont sau autentificare, acceptați{" "}
-              <a
-                href="https://verificat.xyz/privacy"
-                className="text-violet-400 hover:underline"
-                target="_blank"
-                rel="noopener"
+              <Link
+                href="/privacy"
+                style={{ color: "var(--color-blue)", textDecoration: "none" }}
               >
                 Politica de Confidențialitate
-              </a>{" "}
+              </Link>{" "}
               și{" "}
-              <a
-                href="https://verificat.xyz/terms"
-                className="text-violet-400 hover:underline"
-                target="_blank"
-                rel="noopener"
+              <Link
+                href="/terms"
+                style={{ color: "var(--color-blue)", textDecoration: "none" }}
               >
                 Termenii de Utilizare
-              </a>
+              </Link>
               .
             </p>
           </div>
