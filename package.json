@@ -1,0 +1,39 @@
+{
+  "name": "verificat-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.1.4",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "prepare": "husky",
+    "security:gitleaks": "gitleaks detect --source=. --verbose",
+    "security:audit": "pnpm audit --audit-level=high",
+    "security:scan": "pnpm run security:gitleaks && pnpm run security:audit"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "turbo": "^2.9.18"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,mjs}": "pnpm lint --",
+    "*.{json,md}": "prettier --write"
+  },
+  "pnpm": {
+    "overrides": {
+      "cross-spawn": "^7.0.5",
+      "glob": "^10.5.0",
+      "multer": "^2.2.0",
+      "shell-quote": "^1.8.4",
+      "tar": "^7.5.16",
+      "tmp": "^0.2.6"
+    }
+  }
+}

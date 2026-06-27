@@ -1,0 +1,11 @@
+app_identifier ENV.fetch('IOS_APP_IDENTIFIER', 'com.verificat.verificatMobile')
+
+apple_id ENV['APPLE_ID']
+
+team_id ENV['APPLE_TEAM_ID']
+itc_team_id ENV['APPLE_ITC_TEAM_ID']
+
+for_platform :android do |platform|
+  platform.json_key_file ENV['PLAY_STORE_JSON_KEY_PATH']
+  platform.package_name 'com.verificat.verificat_mobile'
+end

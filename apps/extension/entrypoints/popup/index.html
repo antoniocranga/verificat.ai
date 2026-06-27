@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>verificat.xyz — verificat.xyz</title>
+    <meta name="manifest.type" content="browser_action" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- ── Consent screen ────────────────────────────────────── -->
+    <div id="consent-screen" role="region" aria-label="Confidențialitate">
+      <h3>Confidențialitate</h3>
+      <p>
+        verificat.xyz captează audio pentru a verifica afirmațiile în timp real.
+        Datele audio sunt procesate și nu sunt stocate după verificare.
+      </p>
+      <p>
+        <a href="%VITE_WEB_HOST%/privacy" target="_blank" rel="noopener noreferrer">
+          Politica de Confidențialitate
+        </a>
+      </p>
+      <button id="btn-accept-consent" class="btn-primary" type="button">
+        Accept și Continuă
+      </button>
+    </div>
+
+    <!-- ── Main UI ────────────────────────────────────────────── -->
+    <div id="main-ui" role="main" aria-label="Control verificare">
+      <div
+        id="status-text"
+        role="status"
+        aria-live="polite"
+      >Pregătit</div>
+
+      <div
+        id="timer-text"
+        class="timer-text"
+        aria-label="Durată înregistrare"
+        style="display: none;"
+      >00:00</div>
+
+      <button
+        id="btn-start"
+        class="btn-primary"
+        type="button"
+        aria-label="Începe ascultarea și verificarea"
+      >
+        Începe Ascultarea
+      </button>
+
+      <button
+        id="btn-stop"
+        class="btn-ghost"
+        type="button"
+        style="display: none;"
+        aria-label="Oprește înregistrarea"
+      >
+        Oprește
+      </button>
+
+      <button
+        id="btn-open"
+        class="btn-ghost"
+        type="button"
+        aria-label="Deschide panoul lateral cu detalii"
+      >
+        Deschide Panoul Lateral
+      </button>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

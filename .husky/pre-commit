@@ -1,0 +1,12 @@
+pnpm exec lint-staged
+
+# Check for staged secrets using Gitleaks
+# Falls back to npx if gitleaks CLI is not installed locally
+GITLEAKS_CMD="gitleaks"
+if ! command -v gitleaks &> /dev/null; then
+  if command -v npx &> /dev/null; then
+    GITLEAKS_CMD="npx gitleaks"
+  fi
+fi
+
+$GITLEAKS_CMD protect --staged --verbose

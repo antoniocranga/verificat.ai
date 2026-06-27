@@ -1,0 +1,16 @@
+{
+  "name": "@verificat/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "eslint.config.mjs",
+  "files": [
+    "tsconfig.json",
+    "eslint.config.mjs",
+    "prettier.config.json"
+  ],
+  "exports": {
+    "./tsconfig.json": "./tsconfig.json",
+    "./eslint": "./eslint.config.mjs",
+    "./prettier": "./prettier.config.json"
+  }
+}

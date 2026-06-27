@@ -1,0 +1,21 @@
+# Ignore OpenTelemetry Prometheus exporter vulnerability (process crash)
+# Since we do not expose Prometheus metric endpoints publicly, this is not a threat vector.
+# Upgrading it breaks type compatibility across OpenTelemetry packages.
+GHSA-q7rr-3cgh-j5r3
+CVE-2026-44902
+
+# Ignore OpenTelemetry Core moderate memory allocation vulnerability
+# Resolved in v2 line, but we must use v1 for compatibility with current tracing.
+GHSA-8988-4f7v-96qf
+
+# Ignore protobufjs vulnerabilities
+# These are sub-dependencies of the OpenTelemetry package which we do not execute directly.
+GHSA-f38q-mgvj-vph7
+CVE-2024-48937
+CVE-2024-48938
+CVE-2024-52599
+CVE-2024-52600
+
+# Ignore Go stdlib vulnerability in bundled binaries
+# We do not use Go in runtime, but some dev tools/CLI binaries in node_modules bundle Go 1.23.12.
+CVE-2025-68121

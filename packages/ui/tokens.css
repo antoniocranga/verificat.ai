@@ -1,0 +1,171 @@
+:root {
+  /* ==============================
+     COLOR TOKENS — warm palette
+     ============================== */
+
+  /* Core */
+  --color-canvas: #faf9f5;          /* page background — warm off-white */
+  --color-ink: #141413;             /* primary text — warm near-black */
+  --color-mid: #b0aea5;             /* muted / placeholder text */
+  --color-subtle: #e8e6dc;          /* hairline / borders / dividers */
+  --color-accent: #d97757;          /* primary CTA — terracotta */
+  --color-blue: #6a9bcc;            /* links / informational */
+  --color-green: #788c5d;           /* success */
+
+  /* Legacy aliases (kept for backward-compat; migrate to above) */
+  --color-canvas-elevated: #ffffff;
+  --color-ink-secondary: #3a3935;
+  --color-hairline: var(--color-subtle);
+  --color-hairline-soft: var(--color-subtle);
+  --color-body: #3a3935;
+  --color-mute: var(--color-mid);
+  --color-faint: #c4c2b8;
+  --color-link: var(--color-e);
+  --color-primary: var(--color-accent);
+  --color-on-primary: #ffffff;
+  --color-error: #c94040;
+  --color-warning: #c98040;
+  --color-success: var(--color-green);
+
+  /* ==============================
+     SURFACE STACK — 4 elevation levels
+     ============================== */
+  --surface-base:    #faf9f5;  /* page background */
+  --surface-raised:  #ffffff;  /* cards, inputs */
+  --surface-overlay: #ffffff;  /* menus, modals (add shadow) */
+  --surface-inset:   #f0ede6;  /* sunken inputs, code blocks */
+
+  /* ==============================
+     VERDICT COLOURS (text label + icon are primary; colour is supplementary)
+     ============================== */
+  --verdict-true:        #5a8a5a;  /* desaturated green — readable on warm bg */
+  --verdict-mostly-true: #6a8a40;
+  --verdict-partial:     #b07030;
+  --verdict-misleading:  #b05a30;
+  --verdict-false:       #c04040;
+  --verdict-unverified:  var(--color-mid);
+
+  /* ==============================
+     SHADOW SYSTEM — warm-tinted, not grey
+     ============================== */
+  --shadow-sm:     0 1px 2px rgba(20, 20, 19, 0.06);
+  --shadow-md:     0 4px 12px rgba(20, 20, 19, 0.08), 0 1px 3px rgba(20, 20, 19, 0.06);
+  --shadow-lg:     0 16px 48px rgba(20, 20, 19, 0.12), 0 4px 12px rgba(20, 20, 19, 0.08);
+  --shadow-accent: 0 4px 16px rgba(217, 119, 87, 0.24);
+
+  /* Legacy shadow aliases */
+  --shadow-whisper: var(--shadow-sm);
+  --shadow-floating: var(--shadow-md);
+
+  /* ==============================
+     SPACING — 8-point grid (4px base)
+     ============================== */
+  --spacing-xxs:     4px;
+  --spacing-xs:      8px;
+  --spacing-sm:      12px;
+  --spacing-md:      16px;
+  --spacing-lg:      24px;
+  --spacing-xl:      32px;
+  --spacing-2xl:     48px;
+  --spacing-3xl:     64px;
+  --spacing-4xl:     96px;
+  --spacing-section: 128px;
+
+  /* ==============================
+     BORDER RADIUS
+     ============================== */
+  --rounded-none: 0px;
+  --rounded-sm:   6px;
+  --rounded-md:   12px;
+  --rounded-lg:   16px;
+  --rounded-xl:   20px;
+  --rounded-full: 100px;
+
+  /* ==============================
+     TYPOGRAPHY — Font families
+     ============================== */
+  --font-display: 'Poppins', Arial, sans-serif;   /* headings, UI labels */
+  --font-body:    'Lora', Georgia, serif;          /* body copy */
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Display — hero headings */
+  --font-size-display-xl:      72px;
+  --font-weight-display-xl:    700;
+  --line-height-display-xl:    1.1;
+  --letter-spacing-display-xl: -0.04em;
+
+  /* Heading Lg */
+  --font-size-heading-lg:      48px;
+  --font-weight-heading-lg:    700;
+  --line-height-heading-lg:    1.1;
+  --letter-spacing-heading-lg: -0.04em;
+
+  /* Heading Md — section titles */
+  --font-size-heading-md:      32px;
+  --font-weight-heading-md:    600;
+  --line-height-heading-md:    1.2;
+  --letter-spacing-heading-md: -0.025em;
+
+  /* Heading Sm */
+  --font-size-heading-sm:      20px;
+  --font-weight-heading-sm:    600;
+  --line-height-heading-sm:    1.3;
+  --letter-spacing-heading-sm: -0.02em;
+
+  /* Body Lg */
+  --font-size-body-lg:      18px;
+  --font-weight-body-lg:    400;
+  --line-height-body-lg:    1.75;
+  --letter-spacing-body-lg: 0;
+
+  /* Body Md */
+  --font-size-body-md:      16px;
+  --font-weight-body-md:    400;
+  --line-height-body-md:    1.75;
+  --letter-spacing-body-md: 0;
+
+  /* Body Sm */
+  --font-size-body-sm:      14px;
+  --font-weight-body-sm:    400;
+  --line-height-body-sm:    1.6;
+  --letter-spacing-body-sm: 0;
+
+  /* Label — uppercase eyebrows */
+  --font-size-label:      12px;
+  --font-weight-label:    500;
+  --line-height-label:    1.4;
+  --letter-spacing-label: 0.06em;
+
+  /* Label Sm (compat alias) */
+  --font-size-label-sm:      14px;
+  --font-weight-label-sm:    500;
+  --line-height-label-sm:    1.4;
+  --letter-spacing-label-sm: -0.01em;
+
+  /* Mono Eyebrow */
+  --font-size-mono-eyebrow:      12px;
+  --font-weight-mono-eyebrow:    500;
+  --line-height-mono-eyebrow:    1.4;
+  --letter-spacing-mono-eyebrow: 0.08em;
+  --text-transform-mono-eyebrow: uppercase;
+
+  /* ==============================
+     TRANSITION PRESETS
+     ============================== */
+  --transition-fast:   all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==============================
+   SHIMMER ANIMATION (skeleton loading)
+   ============================== */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

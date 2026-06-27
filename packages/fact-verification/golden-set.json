@@ -1,0 +1,35 @@
+[
+  {
+    "input": "Salut! Astăzi avem o zi frumoasă și vom discuta despre diverse lucruri nesemnificative în emisiunea noastră.",
+    "expectedClaimsCount": 0
+  },
+  {
+    "input": "Deficitul bugetar al României a atins valoarea de 5,6% din PIB în primele zece luni ale anului 2023, conform datelor oficiale ale Ministerului Finanțelor.",
+    "expectedClaimsCount": 1,
+    "assertionSubstrings": [
+      "deficitul bugetar",
+      "5,6%",
+      "PIB",
+      "Ministerului Finanțelor",
+      "2023"
+    ],
+    "expectedVerdictRange": {
+      "minIndex": 0,
+      "maxIndex": 2
+    }
+  },
+  {
+    "input": "Conform Institutului Național de Statistică, rata inflației a scăzut la 6,7% în luna noiembrie 2023.",
+    "expectedClaimsCount": 1,
+    "assertionSubstrings": [
+      "rata inflației",
+      "6,7%",
+      "noiembrie 2023",
+      "Statistică"
+    ],
+    "expectedVerdictRange": {
+      "minIndex": 0,
+      "maxIndex": 2
+    }
+  }
+]

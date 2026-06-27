@@ -1,0 +1,23 @@
+# Ignore local node modules and build caches
+node_modules
+**/node_modules
+.npm
+.pnpm-store
+
+# Ignore git history
+.git
+.gitkeep
+
+# Ignore Next.js / WXT build outputs
+.next
+.wxt
+.turbo
+.output
+dist
+out
+
+# Ignore local configs and secrets
+.env
+.env.*
+!.env.example
+.infisical.json

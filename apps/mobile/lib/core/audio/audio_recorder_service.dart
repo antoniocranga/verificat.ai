@@ -1,0 +1,50 @@
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
+import 'audio_session_service.dart';
+
+class AudioRecorderService {
+  final AudioRecorder _recorder;
+  final AudioSessionService _sessionService;
+
+  AudioRecorderService()
+    : _recorder = AudioRecorder(),
+      _sessionService = AudioSessionService();
+
+  Stream<AudioSessionInterruption> get onInterruption => _sessionService.onInterruption;
+  Stream<String> get onSessionError => _sessionService.onError;
+  Stream<void> get onRouteLost => _sessionService.onRouteLost;
+  Stream<Amplitude> onAmplitude() => _recorder.onAmplitudeChanged(const Duration(milliseconds: 100));
+
+  Future<String> startRecording() async {
+    final dir = await getTemporaryDirectory();
+    final path = '${dir.path}/verificat_recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    await _recorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.aacLc,
+        bitRate: 64000,
+        sampleRate: 16000,
+        numChannels: 1,
+      ),
+      path: path,
+    );
+    return path;
+  }
+
+  Future<File?> stopRecording() async {
+    debugPrint('[AudioRecorder] stopRecording: calling stop');
+    final path = await _recorder.stop();
+    debugPrint('[AudioRecorder] stopRecording: path=$path');
+    if (path == null) return null;
+    return File(path);
+  }
+
+  Future<bool> isRecording() => _recorder.isRecording();
+
+  Future<void> dispose() {
+    _sessionService.dispose();
+    return _recorder.dispose();
+  }
+}

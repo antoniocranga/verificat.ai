@@ -1,0 +1,19 @@
+{
+  "id": "e2e-fixture-002",
+  "claimId": "e2e-claim-002",
+  "label": "False",
+  "confidence": 85,
+  "explanation": "Această afirmație contrazice dovezile disponibile din surse autorizate.",
+  "sources": [
+    {
+      "id": "src-002",
+      "url": "https://exemplu.ro/sursa-2",
+      "title": "Raport oficial",
+      "trustScore": 75,
+      "trustScoreExplanation": "Publicație academică evaluată inter pares.",
+      "retrievedAt": "2026-06-25T10:00:00Z"
+    }
+  ],
+  "createdAt": "2026-06-25T10:00:00Z",
+  "sessionId": "e2e-session-001"
+}

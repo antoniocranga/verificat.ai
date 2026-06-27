@@ -1,0 +1,30 @@
+{
+  "name": "extension",
+  "description": "verificat browser extension",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare",
+    "lint": "eslint . --fix",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.2.0",
+    "@types/jest": "^30.0.0",
+    "@verificat/config": "workspace:*",
+    "eslint": "^9",
+    "globals": "^15",
+    "jest": "^30.0.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.5.0",
+    "wxt": "^0.19.16"
+  }
+}

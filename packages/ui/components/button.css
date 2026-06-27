@@ -1,0 +1,160 @@
+/* ============================================================
+   Button System — verificat.ui
+   Source of truth for all button variants across web + extension.
+   Apply via data-variant + data-size attributes or className combos.
+   ============================================================ */
+
+/* ── Base ────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out,
+    box-shadow 150ms ease-out,
+    transform 150ms ease-out,
+    opacity 150ms ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Universal press feedback */
+.btn:not(:disabled):not([data-loading="true"]):active {
+  transform: scale(0.97);
+}
+
+/* Focus ring — uses accent colour for all variants */
+.btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-canvas, #faf9f5),
+    0 0 0 4px var(--color-accent, #d97757);
+}
+
+/* Disabled / loading — shared */
+.btn:disabled,
+.btn[data-loading="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Sizes ───────────────────────────────────────────────────── */
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.btn-md {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+
+.btn-lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  border-radius: 12px;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* ── Variant: primary — ink bg, canvas text ──────────────────── */
+.btn-primary {
+  background: var(--color-ink, #141413);
+  color: var(--surface-raised, #ffffff);
+  border: none;
+  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.12), 0 1px 1px rgba(20, 20, 19, 0.08);
+}
+.btn-primary:hover:not(:disabled):not([data-loading="true"]) {
+  background: #2a2a28;
+  box-shadow: 0 4px 12px rgba(20, 20, 19, 0.12), 0 1px 3px rgba(20, 20, 19, 0.08);
+}
+
+/* ── Variant: secondary — white bg, ink border ───────────────── */
+.btn-secondary {
+  background: var(--surface-raised, #ffffff);
+  color: var(--color-ink, #141413);
+  border: 1.5px solid var(--color-subtle, #e8e6dc);
+  box-shadow: none;
+}
+.btn-secondary:hover:not(:disabled):not([data-loading="true"]) {
+  border-color: var(--color-mid, #b0aea5);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.06);
+}
+
+/* ── Variant: ghost — transparent bg ────────────────────────── */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink, #141413);
+  border: none;
+  box-shadow: none;
+}
+.btn-ghost:hover:not(:disabled):not([data-loading="true"]) {
+  background: rgba(232, 230, 220, 0.6);
+}
+
+/* ── Variant: accent — terracotta CTA ───────────────────────── */
+.btn-accent {
+  background: var(--color-accent, #d97757);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(217, 119, 87, 0.24);
+}
+.btn-accent:hover:not(:disabled):not([data-loading="true"]) {
+  background: #c5694a;
+  box-shadow: 0 4px 16px rgba(217, 119, 87, 0.32);
+}
+
+/* ── Variant: destructive — subtle red ───────────────────────── */
+.btn-destructive {
+  background: transparent;
+  color: #c94040;
+  border: 1.5px solid rgba(201, 64, 64, 0.25);
+  box-shadow: none;
+}
+.btn-destructive:hover:not(:disabled):not([data-loading="true"]) {
+  background: rgba(201, 64, 64, 0.06);
+  border-color: rgba(201, 64, 64, 0.4);
+}
+
+/* ── Loading spinner inside button ───────────────────────────── */
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  animation: btn-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes btn-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

@@ -1,0 +1,79 @@
+services:
+  web:
+    image: ghcr.io/antoniocranga/verificat.xyz/web:latest
+    container_name: verificat-web
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SITE_URL=https://staging.verificat.xyz
+      - NEXT_PUBLIC_API_URL=https://api-staging.verificat.xyz
+    networks:
+      - traefik_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-staging.rule=Host(`staging.verificat.xyz`)"
+      - "traefik.http.routers.web-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-staging.tls=true"
+      - "traefik.http.routers.web-staging.tls.certresolver=myresolver"
+      - "traefik.http.routers.web-staging.middlewares=security-headers@file"
+      - "traefik.http.services.web-staging.loadbalancer.server.port=3000"
+
+  api:
+    image: ghcr.io/antoniocranga/verificat.xyz/api:latest
+    container_name: verificat-api
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WHISPER_URL=${WHISPER_URL}
+    depends_on:
+      - redis
+    networks:
+      - traefik_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-staging.rule=Host(`api-staging.verificat.xyz`)"
+      - "traefik.http.routers.api-staging.entrypoints=websecure"
+      - "traefik.http.routers.api-staging.tls=true"
+      - "traefik.http.routers.api-staging.tls.certresolver=myresolver"
+      - "traefik.http.routers.api-staging.middlewares=security-headers@file,api-ratelimit"
+      - "traefik.http.services.api-staging.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.average=150"
+      - "traefik.http.middlewares.api-ratelimit.ratelimit.burst=30"
+
+  redis:
+    image: redis:7-alpine
+    container_name: verificat-redis
+    restart: always
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    networks:
+      - traefik_default
+
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: verificat-whisper
+    restart: always
+    environment:
+      - ASR_MODEL=large-v3
+      - ASR_ENGINE=faster-whisper
+    networks:
+      - traefik_default
+
+volumes:
+  redis_data:
+
+networks:
+  traefik_default:
+    external: true
