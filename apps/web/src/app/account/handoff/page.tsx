@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ButtonPrimarySmall } from "@verificat/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { getApiBase } from "@/lib/api";
 
 export default function HandoffPage() {
   const [handoffUrl, setHandoffUrl] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export default function HandoffPage() {
     setError(null);
     setHandoffUrl(null);
     try {
-      const res = await fetch(`${API_BASE}/auth/handoff`, {
+      const res = await fetch(`${getApiBase()}/auth/handoff`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
