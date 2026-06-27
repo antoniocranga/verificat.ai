@@ -1,6 +1,6 @@
 services:
   web:
-    image: verificat-web:${VERSION}
+    image: ghcr.io/antoniocranga/verificat.ai/web:latest
     container_name: verificat-web
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
       - "traefik.http.services.web-prod.loadbalancer.server.port=3000"
 
   api:
-    image: verificat-api:${VERSION}
+    image: ghcr.io/antoniocranga/verificat.ai/api:latest
     container_name: verificat-api
     restart: always
     environment:
