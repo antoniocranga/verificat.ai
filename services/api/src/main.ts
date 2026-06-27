@@ -49,6 +49,10 @@ async function bootstrap() {
     console.log(`OpenAPI spec written to ${outputPath}`);
   }
 
+  if (process.argv.includes('--fast-exit')) {
+    process.exit(0);
+  }
+
   await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();
