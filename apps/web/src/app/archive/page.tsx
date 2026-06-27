@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ButtonPrimarySmall, ButtonGhostSmall, TextInput } from "@verificat/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { getApiBase } from "@/lib/api";
 
 interface VerdictResult {
   id: string;
@@ -38,7 +38,7 @@ export default function ArchivePage() {
         page: String(pageNum),
         limit: String(limit),
       });
-      const res = await fetch(`${API_BASE}/fact-checks/search?${params}`);
+      const res = await fetch(`${getApiBase()}/fact-checks/search?${params}`);
       if (!res.ok) throw new Error("Search failed");
       const data = (await res.json()) as SearchResponse;
       setResults(data.data);
