@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/presentation/widgets/brand_text.dart';
 import '../../../../core/widgets/widgets.dart';
 
 class ConsentScreen extends StatelessWidget {
@@ -18,7 +19,7 @@ class ConsentScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 32),
               Center(
-                child: Text(
+                child: BrandText(
                   'verificat.xyz',
                   style: Theme.of(context).textTheme.displayLarge,
                 ),
@@ -33,7 +34,7 @@ class ConsentScreen extends StatelessWidget {
                     Text('Ce date colectăm',
                         style: Theme.of(context).textTheme.headlineMedium),
                     const SizedBox(height: 8),
-                    Text(
+                    BrandText(
                       'Când utilizați verificat.xyz, colectăm următoarele categorii de date:',
                       style: Theme.of(context)
                           .textTheme

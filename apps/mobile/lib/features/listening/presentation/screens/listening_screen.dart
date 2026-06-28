@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../domain/entities/transcript_segment.dart';
 import '../bloc/listening_bloc.dart';
 
 class ListeningScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
   }
 
   void _syncTimer(ListeningStatus status) {
-    if (status == ListeningStatus.listening) {
+    if (status == ListeningStatus.listening || status == ListeningStatus.streaming) {
       if (_uiTimer != null) return;
       _displaySeconds = 0;
       _uiTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -77,6 +78,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
     return switch (state.status) {
       ListeningStatus.idle        => _buildIdle(context),
       ListeningStatus.listening   => _buildRecording(context, state),
+      ListeningStatus.streaming   => _buildStreaming(context, state),
       ListeningStatus.processing  => _buildProcessing(context, state),
       ListeningStatus.transcriptionReady => _buildTranscriptionEdit(context, state),
       ListeningStatus.verdictReady => _buildVerdict(context, state),
@@ -128,6 +130,150 @@ class _ListeningScreenState extends State<ListeningScreen> {
               context.read<ListeningBloc>().add(const StopListening()),
         ),
       ],
+    );
+  }
+
+  Widget _buildStreaming(BuildContext context, ListeningState state) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SoundWaveIndicator(
+            active: true,
+            amplitudeStream: context.read<ListeningBloc>().amplitudeStream,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _formatTime(_displaySeconds),
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+              letterSpacing: -0.72,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ascultare în timp real...',
+            style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
+          ),
+          const SizedBox(height: 16),
+
+          // Final segments with verdicts
+          if (state.segments.isNotEmpty)
+            ...state.segments.map((seg) => _buildSegmentCard(seg)),
+
+          // Live interim transcript
+          if (state.interimText.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.subtle),
+              ),
+              child: Text(
+                state.interimText,
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: AppColors.mid,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+
+          if (state.segments.isEmpty && state.interimText.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'Vorbiți pentru a vedea transcrierea...',
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
+              ),
+            ),
+
+          const SizedBox(height: 24),
+          AppButton.destructive(
+            label: 'Oprește fluxul',
+            onPressed: () =>
+                context.read<ListeningBloc>().add(const StopStreaming()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSegmentCard(TranscriptSegment seg) {
+    Color verdictColor;
+    IconData verdictIcon;
+    String verdictLabel;
+
+    switch (seg.verdict) {
+      case StreamingVerdict.verdadero:
+        verdictColor = AppColors.verdictTrue;
+        verdictIcon = Icons.check_circle;
+        verdictLabel = 'Adevărat';
+      case StreamingVerdict.falso:
+        verdictColor = AppColors.verdictFalse;
+        verdictIcon = Icons.cancel;
+        verdictLabel = 'Fals';
+      case StreamingVerdict.uncertain:
+        verdictColor = AppColors.verdictPartial;
+        verdictIcon = Icons.help;
+        verdictLabel = 'Incert';
+      case StreamingVerdict.unverified:
+        verdictColor = AppColors.mid;
+        verdictIcon = Icons.hourglass_empty;
+        verdictLabel = 'Neverificat';
+      case null:
+        verdictColor = AppColors.mid;
+        verdictIcon = Icons.pending;
+        verdictLabel = 'În așteptare...';
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(verdictIcon, size: 18, color: verdictColor),
+              const SizedBox(width: 6),
+              Text(
+                verdictLabel,
+                style: AppTextStyles.labelMd.copyWith(
+                  color: verdictColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            seg.text,
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.ink),
+          ),
+          if (seg.explanation != null && seg.explanation!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+              Text(
+                seg.explanation!,
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: AppColors.inkSub,
+                  fontSize: 13,
+                ),
+              ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -234,7 +380,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Verdict badge
           Container(
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.08),
@@ -252,8 +397,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
             ),
           ),
           const SizedBox(height: 12),
-
-          // Confidence
           Row(
             children: [
               Text(
@@ -270,8 +413,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
@@ -281,8 +422,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
               minHeight: 4,
             ),
           ),
-
-          // Explanation
           if (explanation.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
@@ -293,8 +432,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
               ),
             ),
           ],
-
-          // Sources
           if (evidence.isNotEmpty) ...[
             const SizedBox(height: 20),
             const Text(
@@ -439,4 +576,3 @@ class _TranscriptionEditWidgetState extends State<_TranscriptionEditWidget> {
     );
   }
 }
-
