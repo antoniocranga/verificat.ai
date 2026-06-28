@@ -1,14 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-STAGING_DIR="${VPS_DIR:-/home/deploy/verificat-staging}"
+STAGING_DIR="${VPS_DIR:-/home/deploy/staging}"
 
 # Login to GHCR
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 # Pull latest images
-docker pull ghcr.io/antoniocranga/verificat.ai/web:latest
-docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
+docker pull ghcr.io/antoniocranga/verificat.ai/web:staging
+docker pull ghcr.io/antoniocranga/verificat.ai/api:staging
 
 # Restart staging stack
 cd "$STAGING_DIR"
