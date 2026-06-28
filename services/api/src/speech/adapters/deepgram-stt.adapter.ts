@@ -1,13 +1,16 @@
 /* eslint-disable */
 import { Injectable, Logger } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
+import { WebSocket as NativeWebSocket } from 'ws';
 import { SttAdapter, SttConfig } from '../interfaces/stt-adapter.interface';
 import { SttSession, SttTranscriptEvent } from '../interfaces/stt-session.interface';
 
 class DeepgramSession implements SttSession {
   private readonly logger = new Logger(DeepgramSession.name);
   private readonly transcript$ = new Subject<SttTranscriptEvent>();
-  private readonly ws: WebSocket;
+  private readonly ws: NativeWebSocket;
+  private _onOpen?: () => void;
+  private _onError?: (err: Error) => void;
 
   constructor(apiKey: string, config?: SttConfig) {
     const language = config?.language || 'ro-RO';
@@ -15,20 +18,21 @@ class DeepgramSession implements SttSession {
     const sampleRate = config?.sampleRate || 16000;
 
     const url = `wss://api.deepgram.com/v1/listen?model=nova-2&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&api_key=${apiKey}`;
-    
-    const WSClass = (globalThis as any).WebSocket || (global as any).WebSocket;
-    if (!WSClass) {
-      throw new Error('Native WebSocket is not supported in this environment.');
-    }
 
-    this.ws = new WSClass(url);
+    this.ws = new NativeWebSocket(url);
 
-    this.ws.onmessage = (event) => {
+    this.ws.on('open', () => {
+      this.logger.log('Deepgram WebSocket opened');
+      this._onOpen?.();
+    });
+
+    this.ws.on('message', (data) => {
       try {
-        const data = JSON.parse(event.data.toString());
-        const transcript = data.channel?.alternatives?.[0]?.transcript;
-        const confidence = data.channel?.alternatives?.[0]?.confidence || 0;
-        const isFinal = data.is_final || false;
+        const raw = typeof data === 'string' ? data : data.toString();
+        const parsed = JSON.parse(raw);
+        const transcript = parsed.channel?.alternatives?.[0]?.transcript;
+        const confidence = parsed.channel?.alternatives?.[0]?.confidence || 0;
+        const isFinal = parsed.is_final || false;
 
         if (transcript) {
           this.transcript$.next({
@@ -41,20 +45,29 @@ class DeepgramSession implements SttSession {
       } catch (err) {
         this.logger.error('Failed to parse Deepgram response', err);
       }
-    };
+    });
 
-    this.ws.onerror = (err) => {
+    this.ws.on('error', (err) => {
       this.logger.error('Deepgram WebSocket error', err);
+      this._onError?.(err instanceof Error ? err : new Error(String(err)));
       this.transcript$.error(err);
-    };
+    });
 
-    this.ws.onclose = () => {
+    this.ws.on('close', () => {
       this.transcript$.complete();
-    };
+    });
+  }
+
+  onOpen(cb: () => void): void {
+    this._onOpen = cb;
+  }
+
+  onError(cb: (err: Error) => void): void {
+    this._onError = cb;
   }
 
   sendAudio(chunk: Buffer): void {
-    if (this.ws.readyState === 1) { // OPEN
+    if (this.ws.readyState === NativeWebSocket.OPEN) {
       this.ws.send(chunk);
     } else {
       this.logger.warn('Deepgram WebSocket is not open. Cannot send audio chunk.');
@@ -62,7 +75,7 @@ class DeepgramSession implements SttSession {
   }
 
   close(): Promise<void> {
-    if (this.ws.readyState === 1 || this.ws.readyState === 0) {
+    if (this.ws.readyState === NativeWebSocket.OPEN || this.ws.readyState === NativeWebSocket.CONNECTING) {
       this.ws.close();
     }
     return Promise.resolve();
@@ -75,14 +88,18 @@ class DeepgramSession implements SttSession {
 
 class MockDeepgramSession implements SttSession {
   private readonly transcript$ = new Subject<SttTranscriptEvent>();
+  private buffer = '';
 
   sendAudio(_chunk: Buffer): void {
-    this.transcript$.next({
-      text: 'Mock transcription from Deepgram stream (no API key)',
-      isFinal: true,
-      confidence: 0.99,
-      language: 'ro-RO',
-    });
+    this.buffer += _chunk.toString();
+    if (this.buffer.length > 100) {
+      this.transcript$.next({
+        text: 'Mock transcription from Deepgram stream',
+        isFinal: false,
+        confidence: 0.5,
+        language: 'ro-RO',
+      });
+    }
   }
 
   close(): Promise<void> {
@@ -107,7 +124,11 @@ export class DeepgramSttAdapter implements SttAdapter {
       return Promise.resolve(new MockDeepgramSession());
     }
     try {
-      return Promise.resolve(new DeepgramSession(apiKey, config));
+      const session = new DeepgramSession(apiKey, config);
+      return new Promise<SttSession>((resolve, reject) => {
+        session.onOpen(() => resolve(session));
+        session.onError((err) => reject(err));
+      });
     } catch (err) {
       this.logger.error('Failed to start Deepgram stream, falling back to mock', err);
       return Promise.resolve(new MockDeepgramSession());
