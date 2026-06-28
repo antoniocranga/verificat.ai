@@ -105,12 +105,20 @@ class TranscriptStreamService extends ChangeNotifier {
 
   Future<void> _connect() async {
     try {
+      debugPrint('[TranscriptStreamService] _connect: opening ws');
       _channel = WebSocketChannel.connect(Uri.parse(_wsUrl()));
+      debugPrint('[TranscriptStreamService] _connect: ws opened, setting up stream');
 
       _wsSub = _channel!.stream.listen(
         _onServerMessage,
-        onError: _onWsError,
-        onDone: _onWsDone,
+        onError: (err) {
+          debugPrint('[TranscriptStreamService] ws stream error: $err');
+          _onWsError(err);
+        },
+        onDone: () {
+          debugPrint('[TranscriptStreamService] ws stream done');
+          _onWsDone();
+        },
       );
 
       final audioStream = await _recorder.startStream(const RecordConfig(
@@ -121,6 +129,7 @@ class TranscriptStreamService extends ChangeNotifier {
 
       _audioSub = audioStream.listen((chunk) {
         if (_channel != null) {
+          debugPrint('[TranscriptStreamService] sending audio chunk: $chunk (${chunk.length} bytes)');
           _channel!.sink.add(chunk);
         }
       });
