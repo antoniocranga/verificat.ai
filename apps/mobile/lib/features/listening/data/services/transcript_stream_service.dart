@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/env/env.dart';
 import '../../domain/entities/transcript_segment.dart';
 
 /// Real-time streaming transcript service.
@@ -17,10 +18,13 @@ import '../../domain/entities/transcript_segment.dart';
 ///
 /// Consume via [ChangeNotifier] / [ListenableBuilder] or [Provider].
 class TranscriptStreamService extends ChangeNotifier {
-  static const String _wsUrl = String.fromEnvironment(
-    'AUDIO_WS_URL',
-    defaultValue: 'wss://api-staging.verificat.xyz/audio',
-  );
+  static String _wsUrl() {
+    final apiUrl = AppEnv.apiUrl;
+    final wsBase = apiUrl.startsWith('https')
+        ? apiUrl.replaceFirst('https', 'wss')
+        : apiUrl.replaceFirst('http', 'ws');
+    return '$wsBase/audio';
+  }
   static const int _maxRetries = 5;
 
   final AudioRecorder _recorder;
@@ -82,7 +86,7 @@ class TranscriptStreamService extends ChangeNotifier {
 
   Future<void> _connect() async {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl()));
 
       _wsSub = _channel!.stream.listen(
         _onServerMessage,
