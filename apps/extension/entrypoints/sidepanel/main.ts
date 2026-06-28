@@ -1,5 +1,8 @@
+import { registerBrandComponent } from "../../utils/brand-component";
 import { startTabCapture, startMicCapture } from "../../utils/audio-capture";
 import { resumePendingJob, dispatchAndWait } from "../../utils/api";
+
+registerBrandComponent();
 
 type CaptureState =
   | "idle"
@@ -139,12 +142,12 @@ function showPermDialog(type: CaptureType) {
   pendingCapture = type;
   if (type === "tab") {
     permTitle.textContent = "Permisiune pentru captura audio";
-    permDesc.textContent =
-      "verificat.xyz are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
+    permDesc.innerHTML =
+      "<brand-name></brand-name> are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
   } else {
     permTitle.textContent = "Permisiune pentru microfon";
-    permDesc.textContent =
-      "verificat.xyz are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
+    permDesc.innerHTML =
+      "<brand-name></brand-name> are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
   }
   permOverlay.classList.add("open");
 }

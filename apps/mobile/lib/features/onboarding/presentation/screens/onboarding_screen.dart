@@ -3,6 +3,8 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/presentation/widgets/brand_text.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -94,7 +96,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               color: AppColors.subtle.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(page.icon, size: 36, color: AppColors.ink),
+            child: page.icon == Icons.verified_outlined
+                ? Center(
+                    child: SvgPicture.asset(
+                      'assets/images/logo-accent.svg',
+                      width: 36,
+                      height: 36,
+                    ),
+                  )
+                : Icon(page.icon, size: 36, color: AppColors.ink),
           ),
           const SizedBox(height: 36),
           Text(
@@ -103,7 +113,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          Text(
+          BrandText(
             page.body,
             style: AppTextStyles.bodyLg.copyWith(color: AppColors.mid),
             textAlign: TextAlign.center,

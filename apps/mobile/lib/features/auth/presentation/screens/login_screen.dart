@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/presentation/widgets/brand_text.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? error;
@@ -69,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo / wordmark
-                Text(
+                BrandText(
                   'verificat.xyz',
                   style: AppTextStyles.headingDisplay.copyWith(fontSize: 32),
                 ),
