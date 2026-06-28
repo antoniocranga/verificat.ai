@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/listening_repository_impl.dart';
-import '../../data/services/transcript_stream_service.dart';
 import '../../domain/entities/transcript_segment.dart';
 import '../../domain/repositories/listening_repository.dart';
 
@@ -144,8 +143,11 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   StreamSubscription<Map<String, dynamic>>? _jobStreamSub;
   StreamSubscription<void>? _interruptionBeganSub;
   StreamSubscription<void>? _interruptionEndedSub;
+  StreamSubscription<String>? _streamingInterimSub;
+  StreamSubscription<TranscriptSegment>? _streamingFinalSub;
+  StreamSubscription<TranscriptSegment>? _streamingResultSub;
+  StreamSubscription<String>? _streamingErrorSub;
   Timer? _elapsedTimer;
-  TranscriptStreamService? _streamingService;
 
   Stream<dynamic> get amplitudeStream => _repository.onAmplitude();
 
@@ -266,8 +268,38 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     }
 
     try {
+      debugPrint('[ListeningBloc] startStreaming: connecting...');
       await _repository.startStreaming();
-      _streamingService = _repository.streamingService;
+      debugPrint('[ListeningBloc] startStreaming: connected');
+
+      final svc = _repository.streamingService;
+      debugPrint('[ListeningBloc] streaming URL: ${svc.runtimeType}');
+
+      _streamingInterimSub = svc.onInterim.listen((text) {
+        debugPrint('[ListeningBloc] interim: "$text"');
+        if (!isClosed) add(UpdateInterim(text));
+      });
+      _streamingFinalSub = svc.onFinal.listen((seg) {
+        debugPrint('[ListeningBloc] final: "${seg.text}"');
+        if (!isClosed) add(AddFinalSegment(seg));
+      });
+      _streamingResultSub = svc.onResult.listen((seg) {
+        debugPrint('[ListeningBloc] result: seg=${seg.segmentId} verdict=${seg.verdict}');
+        if (!isClosed) {
+          add(UpdateSegmentResult(
+            segmentId: seg.segmentId,
+            verdict: seg.verdict,
+            confidence: seg.confidence,
+            explanation: seg.explanation,
+            sources: seg.sources,
+            matchedFact: seg.matchedFact,
+          ));
+        }
+      });
+      _streamingErrorSub = svc.onStreamError.listen((err) {
+        debugPrint('[ListeningBloc] streaming error: $err');
+        if (!isClosed) add(ListeningFailed(err));
+      });
 
       emit(state.copyWith(
         status: ListeningStatus.streaming,
@@ -278,6 +310,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
       ));
       _startElapsedTimer();
     } catch (e) {
+      debugPrint('[ListeningBloc] startStreaming failed: $e');
       emit(state.copyWith(
         status: ListeningStatus.error,
         errorMessage: 'Eroare la pornirea fluxului audio.',
@@ -329,8 +362,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   Future<void> _onStopStreaming(
       StopStreaming event, Emitter<ListeningState> emit) async {
     _stopElapsedTimer();
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
+    _streamingInterimSub = null;
+    _streamingFinalSub = null;
+    _streamingResultSub = null;
+    _streamingErrorSub = null;
     await _repository.stopStreaming();
-    _streamingService = null;
 
     final transcript = state.segments.map((s) => s.text).join(' ').trim();
     if (transcript.isEmpty) {
@@ -443,10 +483,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   }
 
   void reset() {
-    if (_streamingService != null) {
-      _repository.stopStreaming();
-      _streamingService = null;
-    }
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
+    _streamingInterimSub = null;
+    _streamingFinalSub = null;
+    _streamingResultSub = null;
+    _streamingErrorSub = null;
+    _repository.stopStreaming();
     _jobStreamSub?.cancel();
     add(const ResetListening());
   }
@@ -458,6 +503,10 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
 
   @override
   Future<void> close() {
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
     _repository.stopStreaming();
     _jobStreamSub?.cancel();
     _interruptionBeganSub?.cancel();
