@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:verificat_mobile/features/listening/data/services/transcript_stream_service.dart';
 import 'package:verificat_mobile/features/listening/domain/repositories/listening_repository.dart';
 import 'package:verificat_mobile/features/listening/presentation/bloc/listening_bloc.dart';
 import 'package:verificat_mobile/features/listening/presentation/screens/listening_screen.dart';
@@ -38,6 +39,15 @@ class MockRepository implements ListeningRepository {
 
   @override
   Future<Map<String, dynamic>> verifyText(String text) async => {};
+
+  @override
+  Future<void> startStreaming() async {}
+
+  @override
+  Future<void> stopStreaming() async {}
+
+  @override
+  TranscriptStreamService? get streamingService => null;
 }
 
 Widget createTestWidget(ListeningBloc bloc) {
