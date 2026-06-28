@@ -9,13 +9,19 @@ class DeepgramSession implements SttSession {
   private readonly logger = new Logger(DeepgramSession.name);
   private readonly transcript$ = new Subject<SttTranscriptEvent>();
   private readonly ws: NativeWebSocket;
-  private _onOpen?: () => void;
-  private _onError?: (err: Error) => void;
+  private readonly _connected: Promise<void>;
+  private _resolveConnected!: () => void;
+  private _rejectConnected!: (err: Error) => void;
 
   constructor(apiKey: string, config?: SttConfig) {
     const language = config?.language || 'ro-RO';
     const langParam = language.split('-')[0];
     const sampleRate = config?.sampleRate || 16000;
+
+    this._connected = new Promise<void>((resolve, reject) => {
+      this._resolveConnected = resolve;
+      this._rejectConnected = reject;
+    });
 
     const url = `wss://api.deepgram.com/v1/listen?model=nova-2&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&api_key=${apiKey}`;
 
@@ -23,7 +29,7 @@ class DeepgramSession implements SttSession {
 
     this.ws.on('open', () => {
       this.logger.log('Deepgram WebSocket opened');
-      this._onOpen?.();
+      this._resolveConnected();
     });
 
     this.ws.on('message', (data) => {
@@ -49,7 +55,7 @@ class DeepgramSession implements SttSession {
 
     this.ws.on('error', (err) => {
       this.logger.error('Deepgram WebSocket error', err);
-      this._onError?.(err instanceof Error ? err : new Error(String(err)));
+      this._rejectConnected(err instanceof Error ? err : new Error(String(err)));
       this.transcript$.error(err);
     });
 
@@ -58,12 +64,8 @@ class DeepgramSession implements SttSession {
     });
   }
 
-  onOpen(cb: () => void): void {
-    this._onOpen = cb;
-  }
-
-  onError(cb: (err: Error) => void): void {
-    this._onError = cb;
+  waitForConnection(): Promise<void> {
+    return this._connected;
   }
 
   sendAudio(chunk: Buffer): void {
@@ -88,18 +90,14 @@ class DeepgramSession implements SttSession {
 
 class MockDeepgramSession implements SttSession {
   private readonly transcript$ = new Subject<SttTranscriptEvent>();
-  private buffer = '';
 
   sendAudio(_chunk: Buffer): void {
-    this.buffer += _chunk.toString();
-    if (this.buffer.length > 100) {
-      this.transcript$.next({
-        text: 'Mock transcription from Deepgram stream',
-        isFinal: false,
-        confidence: 0.5,
-        language: 'ro-RO',
-      });
-    }
+    this.transcript$.next({
+      text: 'Mock transcription from Deepgram stream (no API key)',
+      isFinal: true,
+      confidence: 0.99,
+      language: 'ro-RO',
+    });
   }
 
   close(): Promise<void> {
@@ -125,10 +123,7 @@ export class DeepgramSttAdapter implements SttAdapter {
     }
     try {
       const session = new DeepgramSession(apiKey, config);
-      return new Promise<SttSession>((resolve, reject) => {
-        session.onOpen(() => resolve(session));
-        session.onError((err) => reject(err));
-      });
+      return session.waitForConnection().then(() => session);
     } catch (err) {
       this.logger.error('Failed to start Deepgram stream, falling back to mock', err);
       return Promise.resolve(new MockDeepgramSession());
