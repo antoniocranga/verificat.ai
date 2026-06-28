@@ -12,7 +12,7 @@ abstract class ListeningRepository {
   // Real-time streaming
   Future<void> startStreaming();
   Future<void> stopStreaming();
-  TranscriptStreamService? get streamingService;
+  TranscriptStreamService get streamingService;
 
   Future<bool> requestMicPermission();
   Stream<dynamic> onAmplitude();

@@ -87,14 +87,51 @@ class _ListeningScreenState extends State<ListeningScreen> {
   }
 
   Widget _buildIdle(BuildContext context) {
-    return AppEmptyState(
-      icon: Icons.mic_none_rounded,
-      title: 'Pregătit pentru verificare',
-      description:
-          'Apăsați butonul pentru a începe să ascultați și să verificați afirmațiile în timp real.',
-      actionLabel: 'Începe Verificarea',
-      onAction: () =>
-          context.read<ListeningBloc>().add(const StartListening()),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.subtle.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.mic_none_rounded, size: 28, color: AppColors.mid),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Pregătit pentru verificare',
+              style: AppTextStyles.headingSubsection.copyWith(fontSize: 16, letterSpacing: -0.3),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: Text(
+                'Alege modul de captură audio pentru a verifica afirmațiile.',
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid, height: 1.65),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            AppButton.primary(
+              label: 'Înregistrare Audio',
+              onPressed: () => context.read<ListeningBloc>().add(const StartListening()),
+              width: null,
+            ),
+            const SizedBox(height: 12),
+            AppButton.secondary(
+              label: 'Flux în Timp Real',
+              onPressed: () => context.read<ListeningBloc>().add(const StartStreaming()),
+              width: null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

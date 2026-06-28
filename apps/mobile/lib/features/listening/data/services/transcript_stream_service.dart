@@ -40,6 +40,20 @@ class TranscriptStreamService extends ChangeNotifier {
   int _retryCount = 0;
   bool _isDisposed = false;
 
+  // Event streams for bloc integration
+  final StreamController<String> _interimController = StreamController<String>.broadcast();
+  final StreamController<TranscriptSegment> _finalController = StreamController<TranscriptSegment>.broadcast();
+  final StreamController<TranscriptSegment> _resultController = StreamController<TranscriptSegment>.broadcast();
+
+  /// Fires on each interim transcript update.
+  Stream<String> get onInterim => _interimController.stream;
+
+  /// Fires when a segment is finalized (text committed, awaiting verdict).
+  Stream<TranscriptSegment> get onFinal => _finalController.stream;
+
+  /// Fires when a verdict result arrives for a segment.
+  Stream<TranscriptSegment> get onResult => _resultController.stream;
+
   TranscriptStreamService({
     AudioRecorder? recorder,
     Uuid? uuid,
@@ -128,14 +142,17 @@ class TranscriptStreamService extends ChangeNotifier {
     switch (type) {
       case 'interim':
         _interimText = (msg['text'] as String?) ?? '';
+        _interimController.add(_interimText);
         notifyListeners();
 
       case 'final':
         _interimText = '';
-        _segments.add(TranscriptSegment(
+        final seg = TranscriptSegment(
           segmentId: (msg['segmentId'] as String?) ?? _uuid.v4(),
           text: (msg['text'] as String?) ?? '',
-        ));
+        );
+        _segments.add(seg);
+        _finalController.add(seg);
         notifyListeners();
 
       case 'result':
@@ -150,6 +167,7 @@ class TranscriptStreamService extends ChangeNotifier {
             sources: List<String>.from(msg['sources'] as List? ?? []),
             matchedFact: msg['matchedFact'] as String?,
           );
+          _resultController.add(_segments[idx]);
           notifyListeners();
         }
 
@@ -193,6 +211,9 @@ class TranscriptStreamService extends ChangeNotifier {
   void dispose() {
     _isDisposed = true;
     stop();
+    _interimController.close();
+    _finalController.close();
+    _resultController.close();
     _recorder.dispose();
     super.dispose();
   }

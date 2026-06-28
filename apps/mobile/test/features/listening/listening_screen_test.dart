@@ -1,13 +1,36 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:record/record.dart';
+import 'package:uuid/uuid.dart';
 import 'package:verificat_mobile/features/listening/data/services/transcript_stream_service.dart';
 import 'package:verificat_mobile/features/listening/domain/repositories/listening_repository.dart';
 import 'package:verificat_mobile/features/listening/presentation/bloc/listening_bloc.dart';
 import 'package:verificat_mobile/features/listening/presentation/screens/listening_screen.dart';
 
+class _FakeAudioRecorder extends AudioRecorder {
+  @override
+  Future<bool> hasPermission({bool request = true}) async => true;
+  @override
+  Future<Stream<Uint8List>> startStream(RecordConfig config) async => const Stream.empty();
+  @override
+  Future<String?> stop() async => null;
+  @override
+  Future<void> dispose() async {}
+}
+
+TranscriptStreamService _fakeStreaming() => TranscriptStreamService(
+  recorder: _FakeAudioRecorder(),
+  uuid: const Uuid(),
+);
+
 class MockRepository implements ListeningRepository {
+  final TranscriptStreamService _streamingService;
+  MockRepository({TranscriptStreamService? streamingService}) : _streamingService = streamingService ?? _fakeStreaming();
+
   @override
   Future<bool> requestMicPermission() async => true;
 
@@ -47,7 +70,7 @@ class MockRepository implements ListeningRepository {
   Future<void> stopStreaming() async {}
 
   @override
-  TranscriptStreamService? get streamingService => null;
+  TranscriptStreamService get streamingService => _streamingService;
 }
 
 Widget createTestWidget(ListeningBloc bloc) {
@@ -60,13 +83,19 @@ Widget createTestWidget(ListeningBloc bloc) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(const MethodChannel('com.llfbandit.record/messages'),
+          (MethodCall call) async => null);
+
   group('ListeningScreen', () {
     testWidgets('renders idle state with start button', (tester) async {
       final bloc = ListeningBloc(repository: MockRepository());
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Pregătit pentru verificare'), findsOneWidget);
-      expect(find.text('Începe Verificarea'), findsOneWidget);
+      expect(find.text('Înregistrare Audio'), findsOneWidget);
+      expect(find.text('Flux în Timp Real'), findsOneWidget);
       bloc.close();
     });
 

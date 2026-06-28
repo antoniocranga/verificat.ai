@@ -1,8 +1,28 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:record/record.dart';
+import 'package:uuid/uuid.dart';
 import 'package:verificat_mobile/features/listening/data/services/transcript_stream_service.dart';
 import 'package:verificat_mobile/features/listening/domain/repositories/listening_repository.dart';
 import 'package:verificat_mobile/features/listening/presentation/bloc/listening_bloc.dart';
+
+class FakeAudioRecorder extends AudioRecorder {
+  @override
+  Future<bool> hasPermission({bool request = true}) async => true;
+  @override
+  Future<Stream<Uint8List>> startStream(RecordConfig config) async => const Stream.empty();
+  @override
+  Future<String?> stop() async => null;
+  @override
+  Future<void> dispose() async {}
+}
+
+TranscriptStreamService makeFakeStreamingService() => TranscriptStreamService(
+  recorder: FakeAudioRecorder(),
+  uuid: const Uuid(),
+);
 
 class MockListeningRepository implements ListeningRepository {
   final bool grantPermission;
@@ -11,6 +31,7 @@ class MockListeningRepository implements ListeningRepository {
   final Stream<Map<String, dynamic>>? jobStream;
   final Stream<void>? interruptionBegan;
   final Stream<void>? interruptionEnded;
+  final TranscriptStreamService _streamingService;
   bool stopRecordingCalled = false;
   bool uploadCalled = false;
 
@@ -21,7 +42,8 @@ class MockListeningRepository implements ListeningRepository {
     this.jobStream,
     this.interruptionBegan,
     this.interruptionEnded,
-  });
+    TranscriptStreamService? streamingService,
+  }) : _streamingService = streamingService ?? makeFakeStreamingService();
 
   @override
   Future<bool> requestMicPermission() async => grantPermission;
@@ -72,10 +94,15 @@ class MockListeningRepository implements ListeningRepository {
   Future<void> stopStreaming() async {}
 
   @override
-  TranscriptStreamService? get streamingService => null;
+  TranscriptStreamService get streamingService => _streamingService;
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(const MethodChannel('com.llfbandit.record/messages'),
+          (MethodCall call) async => null);
+
   group('ListeningBloc', () {
     test('initial state is idle', () {
       final bloc = ListeningBloc(
