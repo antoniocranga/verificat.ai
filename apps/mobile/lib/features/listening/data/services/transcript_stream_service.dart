@@ -44,6 +44,7 @@ class TranscriptStreamService extends ChangeNotifier {
   final StreamController<String> _interimController = StreamController<String>.broadcast();
   final StreamController<TranscriptSegment> _finalController = StreamController<TranscriptSegment>.broadcast();
   final StreamController<TranscriptSegment> _resultController = StreamController<TranscriptSegment>.broadcast();
+  final StreamController<String> _errorController = StreamController<String>.broadcast();
 
   /// Fires on each interim transcript update.
   Stream<String> get onInterim => _interimController.stream;
@@ -53,6 +54,9 @@ class TranscriptStreamService extends ChangeNotifier {
 
   /// Fires when a verdict result arrives for a segment.
   Stream<TranscriptSegment> get onResult => _resultController.stream;
+
+  /// Fires when a connection or streaming error occurs.
+  Stream<String> get onStreamError => _errorController.stream;
 
   TranscriptStreamService({
     AudioRecorder? recorder,
@@ -71,6 +75,7 @@ class TranscriptStreamService extends ChangeNotifier {
   /// Starts microphone capture and WebSocket streaming.
   /// Throws if microphone permission is not granted.
   Future<void> start() async {
+    debugPrint('[TranscriptStreamService] start: wsUrl=${_wsUrl()}');
     final granted = await _recorder.hasPermission();
     if (!granted) throw Exception('Microphone permission denied');
 
@@ -121,7 +126,9 @@ class TranscriptStreamService extends ChangeNotifier {
       });
 
       _retryCount = 0;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[TranscriptStreamService] _connect failed: $e');
+      _errorController.add('Conexiune eșuată: $e');
       _scheduleReconnect();
     }
   }
@@ -138,6 +145,8 @@ class TranscriptStreamService extends ChangeNotifier {
     }
 
     final type = msg['type'] as String?;
+    final textPreview = (msg['text'] as String? ?? '').substring(0, ((msg['text'] as String?)?.length ?? 0).clamp(0, 60));
+    debugPrint('[TranscriptStreamService] received type=$type text="$textPreview"');
 
     switch (type) {
       case 'interim':
@@ -177,7 +186,11 @@ class TranscriptStreamService extends ChangeNotifier {
     }
   }
 
-  void _onWsError(Object err) => _scheduleReconnect();
+  void _onWsError(Object err) {
+    debugPrint('[TranscriptStreamService] WebSocket error: $err');
+    _errorController.add('Eroare WebSocket: $err');
+    _scheduleReconnect();
+  }
 
   void _onWsDone() {
     if (_isRecording) _scheduleReconnect();
@@ -187,6 +200,8 @@ class TranscriptStreamService extends ChangeNotifier {
 
   void _scheduleReconnect() {
     if (_retryCount >= _maxRetries) {
+      debugPrint('[TranscriptStreamService] max retries reached, stopping');
+      _errorController.add('Conexiunea a eșuat după $_maxRetries încercări.');
       stop();
       return;
     }
@@ -214,6 +229,7 @@ class TranscriptStreamService extends ChangeNotifier {
     _interimController.close();
     _finalController.close();
     _resultController.close();
+    _errorController.close();
     _recorder.dispose();
     super.dispose();
   }
