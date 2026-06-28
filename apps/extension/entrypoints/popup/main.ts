@@ -1,3 +1,6 @@
+import { registerBrandComponent } from "../../utils/brand-component";
+registerBrandComponent();
+
 type PopupState = "idle" | "recording" | "processing" | "result" | "error";
 
 let popupState: PopupState = "idle";

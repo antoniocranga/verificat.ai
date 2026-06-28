@@ -5,6 +5,8 @@ import '../../../../core/auth/auth_bloc.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/presentation/widgets/brand_text.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -50,14 +52,16 @@ class HomeScreen extends StatelessWidget {
                   color: AppColors.subtle.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.verified_outlined,
-                  size: 40,
-                  color: AppColors.ink,
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/images/logo-accent.svg',
+                    width: 40,
+                    height: 40,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              const BrandText(
                 'verificat.xyz',
                 style: AppTextStyles.headingSection,
               ),
