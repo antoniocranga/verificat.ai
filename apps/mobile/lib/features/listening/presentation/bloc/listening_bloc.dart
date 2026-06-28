@@ -3,9 +3,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/listening_repository_impl.dart';
+import '../../domain/entities/transcript_segment.dart';
 import '../../domain/repositories/listening_repository.dart';
 
-enum ListeningStatus { idle, listening, processing, transcriptionReady, verdictReady, error }
+enum ListeningStatus { idle, listening, streaming, processing, transcriptionReady, verdictReady, error }
 
 class ListeningState extends Equatable {
   final ListeningStatus status;
@@ -14,6 +15,8 @@ class ListeningState extends Equatable {
   final String? transcript;
   final List<Map<String, dynamic>>? claimsData;
   final String? errorMessage;
+  final String interimText;
+  final List<TranscriptSegment> segments;
 
   const ListeningState({
     this.status = ListeningStatus.idle,
@@ -22,6 +25,8 @@ class ListeningState extends Equatable {
     this.transcript,
     this.claimsData,
     this.errorMessage,
+    this.interimText = '',
+    this.segments = const [],
   });
 
   ListeningState copyWith({
@@ -31,6 +36,8 @@ class ListeningState extends Equatable {
     String? transcript,
     List<Map<String, dynamic>>? claimsData,
     String? errorMessage,
+    String? interimText,
+    List<TranscriptSegment>? segments,
   }) {
     return ListeningState(
       status: status ?? this.status,
@@ -39,11 +46,13 @@ class ListeningState extends Equatable {
       transcript: transcript ?? this.transcript,
       claimsData: claimsData ?? this.claimsData,
       errorMessage: errorMessage ?? this.errorMessage,
+      interimText: interimText ?? this.interimText,
+      segments: segments ?? this.segments,
     );
   }
 
   @override
-  List<Object?> get props => [status, elapsedSeconds, verdictId, transcript, claimsData, errorMessage];
+  List<Object?> get props => [status, elapsedSeconds, verdictId, transcript, claimsData, errorMessage, interimText, segments];
 }
 
 sealed class ListeningEvent {
@@ -56,6 +65,14 @@ class StartListening extends ListeningEvent {
 
 class StopListening extends ListeningEvent {
   const StopListening();
+}
+
+class StartStreaming extends ListeningEvent {
+  const StartStreaming();
+}
+
+class StopStreaming extends ListeningEvent {
+  const StopStreaming();
 }
 
 class TranscriptionReady extends ListeningEvent {
@@ -94,11 +111,42 @@ class TickSecond extends ListeningEvent {
   const TickSecond();
 }
 
+class UpdateInterim extends ListeningEvent {
+  final String text;
+  const UpdateInterim(this.text);
+}
+
+class AddFinalSegment extends ListeningEvent {
+  final TranscriptSegment segment;
+  const AddFinalSegment(this.segment);
+}
+
+class UpdateSegmentResult extends ListeningEvent {
+  final String segmentId;
+  final StreamingVerdict? verdict;
+  final double? confidence;
+  final String? explanation;
+  final List<String> sources;
+  final String? matchedFact;
+  const UpdateSegmentResult({
+    required this.segmentId,
+    this.verdict,
+    this.confidence,
+    this.explanation,
+    this.sources = const [],
+    this.matchedFact,
+  });
+}
+
 class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   final ListeningRepository _repository;
   StreamSubscription<Map<String, dynamic>>? _jobStreamSub;
   StreamSubscription<void>? _interruptionBeganSub;
   StreamSubscription<void>? _interruptionEndedSub;
+  StreamSubscription<String>? _streamingInterimSub;
+  StreamSubscription<TranscriptSegment>? _streamingFinalSub;
+  StreamSubscription<TranscriptSegment>? _streamingResultSub;
+  StreamSubscription<String>? _streamingErrorSub;
   Timer? _elapsedTimer;
 
   Stream<dynamic> get amplitudeStream => _repository.onAmplitude();
@@ -108,6 +156,8 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
         super(const ListeningState()) {
     on<StartListening>(_onStartListening);
     on<StopListening>(_onStopListening);
+    on<StartStreaming>(_onStartStreaming);
+    on<StopStreaming>(_onStopStreaming);
     on<TranscriptionReady>(_onTranscriptionReady);
     on<SubmitTranscription>(_onSubmitTranscription);
     on<VerdictReady>(_onVerdictReady);
@@ -116,10 +166,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     on<InterruptionEnded>(_onInterruptionEnded);
     on<ResetListening>(_onReset);
     on<TickSecond>(_onTick);
+    on<UpdateInterim>(_onUpdateInterim);
+    on<AddFinalSegment>(_onAddFinalSegment);
+    on<UpdateSegmentResult>(_onUpdateSegmentResult);
 
     _interruptionBeganSub = _repository.onInterruptionBegan.listen((_) {
       if (state.status == ListeningStatus.listening) {
         add(const InterruptionBegan());
+      } else if (state.status == ListeningStatus.streaming) {
+        add(const StopStreaming());
       }
     });
     _interruptionEndedSub = _repository.onInterruptionEnded.listen((_) {
@@ -143,9 +198,35 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     emit(state.copyWith(elapsedSeconds: state.elapsedSeconds + 1));
   }
 
+  void _onUpdateInterim(UpdateInterim event, Emitter<ListeningState> emit) {
+    emit(state.copyWith(interimText: event.text));
+  }
+
+  void _onAddFinalSegment(AddFinalSegment event, Emitter<ListeningState> emit) {
+    emit(state.copyWith(
+      interimText: '',
+      segments: [...state.segments, event.segment],
+    ));
+  }
+
+  void _onUpdateSegmentResult(UpdateSegmentResult event, Emitter<ListeningState> emit) {
+    final idx = state.segments.indexWhere((s) => s.segmentId == event.segmentId);
+    if (idx == -1) return;
+    final updated = List<TranscriptSegment>.from(state.segments);
+    updated[idx] = updated[idx].withVerdict(
+      verdict: event.verdict,
+      confidence: event.confidence,
+      explanation: event.explanation,
+      sources: event.sources,
+      matchedFact: event.matchedFact,
+    );
+    emit(state.copyWith(segments: updated));
+  }
+
   Future<void> _onStartListening(
       StartListening event, Emitter<ListeningState> emit) async {
-    if (state.status == ListeningStatus.listening) return;
+    final s = state.status;
+    if (s == ListeningStatus.listening || s == ListeningStatus.streaming) return;
 
     final granted = await _repository.requestMicPermission();
     if (!granted) {
@@ -172,6 +253,71 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     }
   }
 
+  Future<void> _onStartStreaming(
+      StartStreaming event, Emitter<ListeningState> emit) async {
+    final s = state.status;
+    if (s == ListeningStatus.listening || s == ListeningStatus.streaming) return;
+
+    final granted = await _repository.requestMicPermission();
+    if (!granted) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Permisiunea pentru microfon a fost refuzată.',
+      ));
+      return;
+    }
+
+    try {
+      debugPrint('[ListeningBloc] startStreaming: connecting...');
+      await _repository.startStreaming();
+      debugPrint('[ListeningBloc] startStreaming: connected');
+
+      final svc = _repository.streamingService;
+      debugPrint('[ListeningBloc] streaming URL: ${svc.runtimeType}');
+
+      _streamingInterimSub = svc.onInterim.listen((text) {
+        debugPrint('[ListeningBloc] interim: "$text"');
+        if (!isClosed) add(UpdateInterim(text));
+      });
+      _streamingFinalSub = svc.onFinal.listen((seg) {
+        debugPrint('[ListeningBloc] final: "${seg.text}"');
+        if (!isClosed) add(AddFinalSegment(seg));
+      });
+      _streamingResultSub = svc.onResult.listen((seg) {
+        debugPrint('[ListeningBloc] result: seg=${seg.segmentId} verdict=${seg.verdict}');
+        if (!isClosed) {
+          add(UpdateSegmentResult(
+            segmentId: seg.segmentId,
+            verdict: seg.verdict,
+            confidence: seg.confidence,
+            explanation: seg.explanation,
+            sources: seg.sources,
+            matchedFact: seg.matchedFact,
+          ));
+        }
+      });
+      _streamingErrorSub = svc.onStreamError.listen((err) {
+        debugPrint('[ListeningBloc] streaming error: $err');
+        if (!isClosed) add(ListeningFailed(err));
+      });
+
+      emit(state.copyWith(
+        status: ListeningStatus.streaming,
+        elapsedSeconds: 0,
+        errorMessage: null,
+        interimText: '',
+        segments: const [],
+      ));
+      _startElapsedTimer();
+    } catch (e) {
+      debugPrint('[ListeningBloc] startStreaming failed: $e');
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Eroare la pornirea fluxului audio.',
+      ));
+    }
+  }
+
   Future<void> _onStopListening(
       StopListening event, Emitter<ListeningState> emit) async {
     _stopElapsedTimer();
@@ -183,12 +329,9 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     }
 
     emit(state.copyWith(status: ListeningStatus.processing));
-    debugPrint('[ListeningBloc] stop: emitted processing');
 
     try {
-      debugPrint('[ListeningBloc] stop: calling stopRecording');
       await _repository.stopRecording();
-      debugPrint('[ListeningBloc] stop: stopRecording done, calling transcribeAudio');
       
       final transcript = await _repository
           .transcribeAudio()
@@ -214,6 +357,31 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
         errorMessage: 'Eroare la procesare.',
       ));
     }
+  }
+
+  Future<void> _onStopStreaming(
+      StopStreaming event, Emitter<ListeningState> emit) async {
+    _stopElapsedTimer();
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
+    _streamingInterimSub = null;
+    _streamingFinalSub = null;
+    _streamingResultSub = null;
+    _streamingErrorSub = null;
+    await _repository.stopStreaming();
+
+    final transcript = state.segments.map((s) => s.text).join(' ').trim();
+    if (transcript.isEmpty) {
+      emit(state.copyWith(
+        status: ListeningStatus.error,
+        errorMessage: 'Nu a fost detectată voce.',
+      ));
+      return;
+    }
+
+    add(TranscriptionReady(transcript));
   }
 
   void _onTranscriptionReady(
@@ -293,6 +461,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     _stopElapsedTimer();
     try {
       await _repository.stopRecording();
+      await _repository.stopStreaming();
     } catch (_) {}
     if (!emit.isDone) {
       emit(state.copyWith(
@@ -314,6 +483,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   }
 
   void reset() {
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
+    _streamingInterimSub = null;
+    _streamingFinalSub = null;
+    _streamingResultSub = null;
+    _streamingErrorSub = null;
+    _repository.stopStreaming();
     _jobStreamSub?.cancel();
     add(const ResetListening());
   }
@@ -325,6 +503,11 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
 
   @override
   Future<void> close() {
+    _streamingInterimSub?.cancel();
+    _streamingFinalSub?.cancel();
+    _streamingResultSub?.cancel();
+    _streamingErrorSub?.cancel();
+    _repository.stopStreaming();
     _jobStreamSub?.cancel();
     _interruptionBeganSub?.cancel();
     _interruptionEndedSub?.cancel();

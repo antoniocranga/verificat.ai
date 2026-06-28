@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/env/env.dart';
 import '../../domain/entities/transcript_segment.dart';
 
 /// Real-time streaming transcript service.
@@ -17,10 +18,13 @@ import '../../domain/entities/transcript_segment.dart';
 ///
 /// Consume via [ChangeNotifier] / [ListenableBuilder] or [Provider].
 class TranscriptStreamService extends ChangeNotifier {
-  static const String _wsUrl = String.fromEnvironment(
-    'AUDIO_WS_URL',
-    defaultValue: 'wss://api-staging.verificat.xyz/audio',
-  );
+  static String _wsUrl() {
+    final apiUrl = AppEnv.apiUrl;
+    final wsBase = apiUrl.startsWith('https')
+        ? apiUrl.replaceFirst('https', 'wss')
+        : apiUrl.replaceFirst('http', 'ws');
+    return '$wsBase/audio';
+  }
   static const int _maxRetries = 5;
 
   final AudioRecorder _recorder;
@@ -35,6 +39,24 @@ class TranscriptStreamService extends ChangeNotifier {
   bool _isRecording = false;
   int _retryCount = 0;
   bool _isDisposed = false;
+
+  // Event streams for bloc integration
+  final StreamController<String> _interimController = StreamController<String>.broadcast();
+  final StreamController<TranscriptSegment> _finalController = StreamController<TranscriptSegment>.broadcast();
+  final StreamController<TranscriptSegment> _resultController = StreamController<TranscriptSegment>.broadcast();
+  final StreamController<String> _errorController = StreamController<String>.broadcast();
+
+  /// Fires on each interim transcript update.
+  Stream<String> get onInterim => _interimController.stream;
+
+  /// Fires when a segment is finalized (text committed, awaiting verdict).
+  Stream<TranscriptSegment> get onFinal => _finalController.stream;
+
+  /// Fires when a verdict result arrives for a segment.
+  Stream<TranscriptSegment> get onResult => _resultController.stream;
+
+  /// Fires when a connection or streaming error occurs.
+  Stream<String> get onStreamError => _errorController.stream;
 
   TranscriptStreamService({
     AudioRecorder? recorder,
@@ -53,6 +75,7 @@ class TranscriptStreamService extends ChangeNotifier {
   /// Starts microphone capture and WebSocket streaming.
   /// Throws if microphone permission is not granted.
   Future<void> start() async {
+    debugPrint('[TranscriptStreamService] start: wsUrl=${_wsUrl()}');
     final granted = await _recorder.hasPermission();
     if (!granted) throw Exception('Microphone permission denied');
 
@@ -82,12 +105,20 @@ class TranscriptStreamService extends ChangeNotifier {
 
   Future<void> _connect() async {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      debugPrint('[TranscriptStreamService] _connect: opening ws');
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl()));
+      debugPrint('[TranscriptStreamService] _connect: ws opened, setting up stream');
 
       _wsSub = _channel!.stream.listen(
         _onServerMessage,
-        onError: _onWsError,
-        onDone: _onWsDone,
+        onError: (err) {
+          debugPrint('[TranscriptStreamService] ws stream error: $err');
+          _onWsError(err);
+        },
+        onDone: () {
+          debugPrint('[TranscriptStreamService] ws stream done');
+          _onWsDone();
+        },
       );
 
       final audioStream = await _recorder.startStream(const RecordConfig(
@@ -98,12 +129,15 @@ class TranscriptStreamService extends ChangeNotifier {
 
       _audioSub = audioStream.listen((chunk) {
         if (_channel != null) {
+          debugPrint('[TranscriptStreamService] sending audio chunk: $chunk (${chunk.length} bytes)');
           _channel!.sink.add(chunk);
         }
       });
 
       _retryCount = 0;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[TranscriptStreamService] _connect failed: $e');
+      _errorController.add('Conexiune eșuată: $e');
       _scheduleReconnect();
     }
   }
@@ -120,18 +154,23 @@ class TranscriptStreamService extends ChangeNotifier {
     }
 
     final type = msg['type'] as String?;
+    final textPreview = (msg['text'] as String? ?? '').substring(0, ((msg['text'] as String?)?.length ?? 0).clamp(0, 60));
+    debugPrint('[TranscriptStreamService] received type=$type text="$textPreview"');
 
     switch (type) {
       case 'interim':
         _interimText = (msg['text'] as String?) ?? '';
+        _interimController.add(_interimText);
         notifyListeners();
 
       case 'final':
         _interimText = '';
-        _segments.add(TranscriptSegment(
+        final seg = TranscriptSegment(
           segmentId: (msg['segmentId'] as String?) ?? _uuid.v4(),
           text: (msg['text'] as String?) ?? '',
-        ));
+        );
+        _segments.add(seg);
+        _finalController.add(seg);
         notifyListeners();
 
       case 'result':
@@ -146,6 +185,7 @@ class TranscriptStreamService extends ChangeNotifier {
             sources: List<String>.from(msg['sources'] as List? ?? []),
             matchedFact: msg['matchedFact'] as String?,
           );
+          _resultController.add(_segments[idx]);
           notifyListeners();
         }
 
@@ -155,7 +195,11 @@ class TranscriptStreamService extends ChangeNotifier {
     }
   }
 
-  void _onWsError(Object err) => _scheduleReconnect();
+  void _onWsError(Object err) {
+    debugPrint('[TranscriptStreamService] WebSocket error: $err');
+    _errorController.add('Eroare WebSocket: $err');
+    _scheduleReconnect();
+  }
 
   void _onWsDone() {
     if (_isRecording) _scheduleReconnect();
@@ -165,6 +209,8 @@ class TranscriptStreamService extends ChangeNotifier {
 
   void _scheduleReconnect() {
     if (_retryCount >= _maxRetries) {
+      debugPrint('[TranscriptStreamService] max retries reached, stopping');
+      _errorController.add('Conexiunea a eșuat după $_maxRetries încercări.');
       stop();
       return;
     }
@@ -189,6 +235,10 @@ class TranscriptStreamService extends ChangeNotifier {
   void dispose() {
     _isDisposed = true;
     stop();
+    _interimController.close();
+    _finalController.close();
+    _resultController.close();
+    _errorController.close();
     _recorder.dispose();
     super.dispose();
   }

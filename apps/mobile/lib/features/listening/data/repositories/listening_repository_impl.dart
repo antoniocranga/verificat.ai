@@ -6,11 +6,13 @@ import 'package:verificat_mobile/core/audio/audio_recorder_service.dart';
 import 'package:verificat_mobile/core/audio/audio_session_service.dart';
 import 'package:verificat_mobile/core/permissions/permission_service.dart';
 import '../../domain/repositories/listening_repository.dart';
+import '../services/transcript_stream_service.dart';
 
 class ListeningRepositoryImpl implements ListeningRepository {
   final AudioRecorderService _recorder;
   final JobApiService _api;
   final PermissionService _permissionService;
+  final TranscriptStreamService _streamingService;
   final StreamController<void> _interruptionBeganController = StreamController<void>.broadcast();
   final StreamController<void> _interruptionEndedController = StreamController<void>.broadcast();
   // ignore: unused_field
@@ -21,9 +23,11 @@ class ListeningRepositoryImpl implements ListeningRepository {
     AudioRecorderService? recorder,
     JobApiService? api,
     PermissionService? permissionService,
+    TranscriptStreamService? streamingService,
   }) : _recorder = recorder ?? AudioRecorderService(),
        _api = api ?? JobApiService(),
-        _permissionService = permissionService ?? const PermissionService() {
+        _permissionService = permissionService ?? const PermissionService(),
+        _streamingService = streamingService ?? TranscriptStreamService() {
     _interruptionSub = _recorder.onInterruption.listen((event) {
       switch (event) {
         case AudioSessionInterruption.began:
@@ -85,6 +89,21 @@ class ListeningRepositoryImpl implements ListeningRepository {
   @override
   Stream<Map<String, dynamic>> streamJobEvents(String jobId) {
     return _api.streamJobEvents(jobId);
+  }
+
+  @override
+  TranscriptStreamService get streamingService => _streamingService;
+
+  @override
+  Future<void> startStreaming() async {
+    final granted = await _permissionService.requestMicPermission();
+    if (!granted) throw Exception('Microphone permission denied');
+    await _streamingService.start();
+  }
+
+  @override
+  Future<void> stopStreaming() async {
+    await _streamingService.stop();
   }
 
   @override
