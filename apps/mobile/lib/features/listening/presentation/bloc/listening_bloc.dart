@@ -296,12 +296,9 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     }
 
     emit(state.copyWith(status: ListeningStatus.processing));
-    debugPrint('[ListeningBloc] stop: emitted processing');
 
     try {
-      debugPrint('[ListeningBloc] stop: calling stopRecording');
       await _repository.stopRecording();
-      debugPrint('[ListeningBloc] stop: stopRecording done, calling transcribeAudio');
       
       final transcript = await _repository
           .transcribeAudio()

@@ -1,3 +1,5 @@
+export {};
+
 /**
  * Tests for the real-time streaming additions to the browser extension.
  *

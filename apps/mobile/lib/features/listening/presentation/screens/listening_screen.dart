@@ -161,11 +161,9 @@ class _ListeningScreenState extends State<ListeningScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Final segments with verdicts
           if (state.segments.isNotEmpty)
             ...state.segments.map((seg) => _buildSegmentCard(seg)),
 
-          // Live interim transcript
           if (state.interimText.isNotEmpty)
             Container(
               width: double.infinity,
@@ -264,13 +262,13 @@ class _ListeningScreenState extends State<ListeningScreen> {
           ),
           if (seg.explanation != null && seg.explanation!.isNotEmpty) ...[
             const SizedBox(height: 6),
-              Text(
-                seg.explanation!,
-                style: AppTextStyles.bodyMd.copyWith(
-                  color: AppColors.inkSub,
-                  fontSize: 13,
-                ),
+            Text(
+              seg.explanation!,
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.inkSub,
+                fontSize: 13,
               ),
+            ),
           ],
         ],
       ),
