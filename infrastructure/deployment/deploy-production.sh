@@ -12,7 +12,7 @@ docker pull ghcr.io/antoniocranga/verificat.ai/api:latest
 
 # Restart production stack
 cd "$PROD_DIR"
-docker rm -f verificat-web verificat-api verificat-whisper || true
+docker rm -f verificat-prod-web verificat-prod-api verificat-prod-whisper || true
 docker compose -f docker-compose.production.yml up -d --remove-orphans
 docker image prune -f
 

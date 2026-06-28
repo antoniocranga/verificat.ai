@@ -1,7 +1,7 @@
 services:
   web:
     image: ghcr.io/antoniocranga/verificat.ai/web:staging
-    container_name: verificat-web
+    container_name: verificat-staging-web
     restart: always
     environment:
       - PORT=3000
@@ -21,7 +21,7 @@ services:
 
   api:
     image: ghcr.io/antoniocranga/verificat.ai/api:staging
-    container_name: verificat-api
+    container_name: verificat-staging-api
     restart: always
     environment:
       - PORT=3000
@@ -53,17 +53,17 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: verificat-redis
+    container_name: verificat-staging-redis
     restart: always
     command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
-      - redis_data:/data
+      - staging_redis_data:/data
     networks:
       - traefik_default
 
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
-    container_name: verificat-whisper
+    container_name: verificat-staging-whisper
     restart: always
     environment:
       - ASR_MODEL=large-v3
@@ -72,7 +72,7 @@ services:
       - traefik_default
 
 volumes:
-  redis_data:
+  staging_redis_data:
 
 networks:
   traefik_default:
