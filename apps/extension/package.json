@@ -21,7 +21,7 @@
     "@types/jest": "^30.0.0",
     "@verificat/config": "workspace:*",
     "eslint": "^9",
-    "globals": "^15",
+    "globals": "^17",
     "jest": "^30.0.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.5.0",
