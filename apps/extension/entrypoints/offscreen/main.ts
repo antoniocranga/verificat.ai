@@ -53,6 +53,7 @@ chrome.runtime.onMessage.addListener(
 
     // ── Streaming mode messages (new) ─────────────────────────────────────
     if (msg.type === "START_STREAM_MIC") {
+      console.log("[Offscreen] Received START_STREAM_MIC");
       startStreaming("mic", null)
         .then(() => sendResponse({ ok: true }))
         .catch((err: unknown) => {
@@ -64,7 +65,9 @@ chrome.runtime.onMessage.addListener(
 
     if (msg.type === "START_STREAM_TAB") {
       if (!msg.streamId) {
-        sendResponse({ error: "streamId is required for tab capture" });
+        sendResponse({
+          error: "ID-ul fluxului este obligatoriu pentru captura filei",
+        });
         return true;
       }
       startStreaming("tab", msg.streamId)
@@ -157,8 +160,12 @@ async function startStreaming(
       audio: true,
       video: false,
     });
+    console.log(
+      `[Offscreen] getUserMedia success. Track count: ${streamingMediaStream.getTracks().length}`,
+    );
   } else {
-    if (!streamId) throw new Error("streamId required for tab capture");
+    if (!streamId)
+      throw new Error("ID-ul fluxului este obligatoriu pentru captura filei");
     streamingMediaStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         mandatory: {
@@ -189,6 +196,9 @@ async function startStreaming(
     if (workletNode) {
       workletNode.port.onmessage = (e: MessageEvent<ArrayBuffer>) => {
         if (ws?.readyState === WebSocket.OPEN) {
+          console.log(
+            `[Offscreen] Sending PCM frame of size ${e.data.byteLength}`,
+          );
           ws.send(e.data);
         }
       };
@@ -202,9 +212,9 @@ async function startStreaming(
         type: string;
         [key: string]: unknown;
       };
-      // Relay to background script which distributes to popup + content scripts
       void chrome.runtime.sendMessage({
         ...msg,
+        originalType: msg.type,
         type:
           msg.type === "result"
             ? "STREAM_FACT_RESULT"

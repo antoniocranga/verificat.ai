@@ -23,9 +23,13 @@ class DeepgramSession implements SttSession {
       this._rejectConnected = reject;
     });
 
-    const url = `wss://api.deepgram.com/v1/listen?model=nova-2&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&api_key=${apiKey}`;
+    const url = `wss://api.deepgram.com/v1/listen?model=nova-2&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&interim_results=true&endpointing=300`;
 
-    this.ws = new NativeWebSocket(url);
+    this.ws = new NativeWebSocket(url, {
+      headers: {
+        Authorization: `Token ${apiKey}`
+      }
+    });
 
     this.ws.on('open', () => {
       this.logger.log('Deepgram WebSocket opened');
