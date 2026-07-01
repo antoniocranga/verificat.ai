@@ -42,66 +42,66 @@ void main() {
   });
 
   group('TextTheme', () {
-    test('displayLarge uses Poppins 700 48px h:1.1 ls:-1.92', () {
+    test('displayLarge uses Anthropic Serif 700 48px h:1.1 ls:-1.92', () {
       final style = appTheme.textTheme.displayLarge!;
-      expect(style.fontFamily, 'Poppins');
+      expect(style.fontFamily, 'Anthropic Serif');
       expect(style.fontWeight, FontWeight.w700);
       expect(style.fontSize, 48);
       expect(style.height, 1.1);
       expect(style.letterSpacing, -1.92);
     });
 
-    test('headlineLarge uses Poppins 600 32px h:1.2 ls:-0.8', () {
+    test('headlineLarge uses Anthropic Serif 600 32px h:1.2 ls:-0.8', () {
       final style = appTheme.textTheme.headlineLarge!;
-      expect(style.fontFamily, 'Poppins');
+      expect(style.fontFamily, 'Anthropic Serif');
       expect(style.fontWeight, FontWeight.w600);
       expect(style.fontSize, 32);
       expect(style.height, 1.2);
       expect(style.letterSpacing, -0.8);
     });
 
-    test('headlineMedium uses Poppins 600 24px h:1.25 ls:-0.48', () {
+    test('headlineMedium uses Anthropic Serif 600 20px h:1.3 ls:-0.4', () {
       final style = appTheme.textTheme.headlineMedium!;
-      expect(style.fontFamily, 'Poppins');
+      expect(style.fontFamily, 'Anthropic Serif');
       expect(style.fontWeight, FontWeight.w600);
-      expect(style.fontSize, 24);
-      expect(style.height, 1.25);
-      expect(style.letterSpacing, -0.48);
+      expect(style.fontSize, 20);
+      expect(style.height, 1.3);
+      expect(style.letterSpacing, -0.4);
     });
 
-    test('labelLarge uses Poppins 600 15px h:1.0 ls:-0.2', () {
+    test('labelLarge uses Anthropic Serif 600 15px h:1.0 ls:-0.2', () {
       final style = appTheme.textTheme.labelLarge!;
-      expect(style.fontFamily, 'Poppins');
+      expect(style.fontFamily, 'Anthropic Serif');
       expect(style.fontWeight, FontWeight.w600);
       expect(style.fontSize, 15);
       expect(style.height, 1.0);
       expect(style.letterSpacing, -0.2);
     });
 
-    test('bodyLarge uses Lora 400 16px h:1.75 ls:0', () {
+    test('bodyLarge uses Anthropic Sans 400 16px h:1.75 ls:0', () {
       final style = appTheme.textTheme.bodyLarge!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Anthropic Sans');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 16);
       expect(style.height, 1.75);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodyMedium uses Lora 400 14px h:1.65 ls:0', () {
+    test('bodyMedium uses Anthropic Sans 400 14px h:1.6 ls:0', () {
       final style = appTheme.textTheme.bodyMedium!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Anthropic Sans');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 14);
-      expect(style.height, 1.65);
+      expect(style.height, 1.6);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodySmall uses Lora 400 12px h:1.6 ls:0', () {
+    test('bodySmall uses Anthropic Sans 400 12px h:1.5 ls:0', () {
       final style = appTheme.textTheme.bodySmall!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Anthropic Sans');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 12);
-      expect(style.height, 1.6);
+      expect(style.height, 1.5);
       expect(style.letterSpacing, 0);
     });
   });

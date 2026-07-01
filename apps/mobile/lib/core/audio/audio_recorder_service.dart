@@ -13,6 +13,8 @@ class AudioRecorderService {
     : _recorder = AudioRecorder(),
       _sessionService = AudioSessionService();
 
+  AudioRecorder get rawRecorder => _recorder;
+
   Stream<AudioSessionInterruption> get onInterruption => _sessionService.onInterruption;
   Stream<String> get onSessionError => _sessionService.onError;
   Stream<void> get onRouteLost => _sessionService.onRouteLost;

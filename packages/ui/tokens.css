@@ -4,23 +4,24 @@
      ============================== */
 
   /* Core */
-  --color-canvas: #faf9f5;          /* page background — warm off-white */
-  --color-ink: #141413;             /* primary text — warm near-black */
+  --color-canvas: #f5f4ed;          /* Parchment */
+  --color-ink: #141413;             /* Anthropic Near Black */
   --color-mid: #b0aea5;             /* muted / placeholder text */
-  --color-subtle: #e8e6dc;          /* hairline / borders / dividers */
-  --color-accent: #d97757;          /* primary CTA — terracotta */
+  --color-subtle: #e8e6dc;          /* Border Cream */
+  --color-accent: #c96442;          /* Terracotta Brand */
+  --color-accent-secondary: #d97757;/* Coral Accent */
   --color-blue: #6a9bcc;            /* links / informational */
   --color-green: #788c5d;           /* success */
 
   /* Legacy aliases (kept for backward-compat; migrate to above) */
-  --color-canvas-elevated: #ffffff;
+  --color-canvas-elevated: #faf9f5; /* Ivory */
   --color-ink-secondary: #3a3935;
   --color-hairline: var(--color-subtle);
   --color-hairline-soft: var(--color-subtle);
   --color-body: #3a3935;
   --color-mute: var(--color-mid);
   --color-faint: #c4c2b8;
-  --color-link: var(--color-e);
+  --color-link: var(--color-blue);
   --color-primary: var(--color-accent);
   --color-on-primary: #ffffff;
   --color-error: #c94040;
@@ -30,10 +31,10 @@
   /* ==============================
      SURFACE STACK — 4 elevation levels
      ============================== */
-  --surface-base:    #faf9f5;  /* page background */
-  --surface-raised:  #ffffff;  /* cards, inputs */
-  --surface-overlay: #ffffff;  /* menus, modals (add shadow) */
-  --surface-inset:   #f0ede6;  /* sunken inputs, code blocks */
+  --surface-base:    var(--color-canvas);  /* page background */
+  --surface-raised:  var(--color-canvas-elevated);  /* cards, inputs */
+  --surface-overlay: var(--color-canvas-elevated);  /* menus, modals (add shadow) */
+  --surface-inset:   var(--color-subtle);  /* sunken inputs, code blocks */
 
   /* ==============================
      VERDICT COLOURS (text label + icon are primary; colour is supplementary)
@@ -84,8 +85,8 @@
   /* ==============================
      TYPOGRAPHY — Font families
      ============================== */
-  --font-display: 'Poppins', Arial, sans-serif;   /* headings, UI labels */
-  --font-body:    'Lora', Georgia, serif;          /* body copy */
+  --font-display: 'Anthropic Serif', Georgia, serif;   /* headings, UI labels */
+  --font-body:    'Anthropic Sans', system-ui, sans-serif; /* body copy */
   --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
 
   /* Display — hero headings */
@@ -168,4 +169,48 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ==============================
+   DARK THEME PREFERS-COLOR-SCHEME
+   ============================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Core */
+    --color-canvas: #141413;          /* Anthropic Near Black */
+    --color-canvas-elevated: #212120; /* Elevated surface */
+    --color-ink: #faf9f5;             /* Ivory text */
+    --color-mid: #8a8882;
+    --color-subtle: #3a3935;
+    --color-accent: #d97757;          /* Coral Accent (brighter for dark mode) */
+    --color-accent-secondary: #c96442;
+    --color-blue: #6a9bcc;
+    --color-green: #788c5d;
+
+    /* Legacy aliases */
+    --color-ink-secondary: #dcdad1;
+    --color-body: #faf9f5;
+    --color-on-primary: #141413;
+
+    /* Surface Stack */
+    --surface-base: var(--color-canvas);
+    --surface-raised: var(--color-canvas-elevated);
+    --surface-overlay: #2a2928;
+    --surface-inset: #0a0a0a;
+
+    /* Shadow adjustments for dark mode */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-accent: 0 4px 16px rgba(217, 119, 87, 0.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

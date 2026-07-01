@@ -11,22 +11,22 @@
 }
 
 .input-label {
-  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.1px;
-  color: var(--color-ink, #141413);
+  color: var(--color-ink);
 }
 
 .input-hint {
-  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 400;
-  color: var(--color-mid, #b0aea5);
+  color: var(--color-mid);
 }
 
 .input-error-msg {
-  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 500;
   color: var(--color-error, #c94040);
@@ -37,14 +37,14 @@
   width: 100%;
   height: 44px;
   padding: 0 14px;
-  border-radius: var(--rounded-md, 12px);
-  border: 1.5px solid var(--color-subtle, #e8e6dc);
-  background: var(--surface-raised, #ffffff);
-  font-family: var(--font-display, 'Poppins', Arial, sans-serif);
+  border-radius: var(--rounded-md);
+  border: 1.5px solid var(--color-subtle);
+  background: var(--surface-raised);
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 400;
   line-height: 1;
-  color: var(--color-ink, #141413);
+  color: var(--color-ink);
   outline: none;
   appearance: none;
   -webkit-appearance: none;
@@ -57,18 +57,18 @@
 
 /* 1. Default placeholder */
 .input-field::placeholder {
-  color: var(--color-mid, #b0aea5);
+  color: var(--color-mid);
   font-weight: 400;
 }
 
 /* 2. Hover */
 .input-field:hover:not(:focus):not(:disabled):not([data-error="true"]) {
-  border-color: var(--color-mid, #b0aea5);
+  border-color: var(--color-mid);
 }
 
 /* 3. Focus */
 .input-field:focus {
-  border-color: var(--color-accent, #d97757);
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
 }
 
@@ -85,7 +85,7 @@
 .input-field:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  background: var(--surface-inset, #f0ede6);
+  background: var(--surface-inset);
 }
 
 /* ── Textarea variant ─────────────────────────────────────────── */

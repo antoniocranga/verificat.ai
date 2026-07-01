@@ -60,8 +60,8 @@ export function SkeletonCard({ id }: { id?: string }) {
       style={{
         borderRadius: 12,
         padding: 24,
-        backgroundColor: 'var(--surface-raised, #ffffff)',
-        border: '1px solid var(--color-subtle, #e8e6dc)',
+        backgroundColor: 'var(--surface-raised)',
+        border: '1px solid var(--color-subtle)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12,

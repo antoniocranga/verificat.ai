@@ -165,60 +165,31 @@ const HOW_IT_WORKS_STEPS = [
 
 export default function Home() {
   return (
-    <div style={{ background: "var(--color-canvas)", minHeight: "100vh" }}>
+    <div className="bg-canvas min-h-screen">
       {/* ── Navigation ─────────────────────────────────────────── */}
       <SiteNav />
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <HeroBand>
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            display: "grid",
-            gap: "var(--space-16, 64px)",
-            alignItems: "center",
-          }}
-          className="hero-grid"
-        >
+        <div className="hero-grid max-w-[1200px] mx-auto grid gap-16 items-center">
           {/* Left: copy */}
           <div>
-            <h1
-              className="heading-display"
-              style={{
-                fontSize: "clamp(36px, 5.5vw, 56px)",
-                margin: "0 0 var(--space-6, 24px)",
-                letterSpacing: "-0.04em",
-              }}
-            >
+            <h1 className="heading-display text-[clamp(36px,5.5vw,56px)] mb-6">
               Verifică afirmații în{" "}
-              <span style={{ color: "var(--color-accent)" }}>timp real</span>.
+              <span className="text-accent">timp real</span>.
             </h1>
 
-            <BodyMd
-              style={{
-                color: "var(--color-mid)",
-                maxWidth: 480,
-                lineHeight: 1.7,
-                marginBottom: "var(--space-8, 32px)",
-              }}
-            >
+            <BodyMd className="text-mid max-w-[480px] leading-relaxed mb-8">
               Auziți o afirmație la TV, radio sau podcast — verificat.xyz vă
               spune dacă este adevărată înainte ca segmentul să se termine.
             </BodyMd>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--space-3, 12px)",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="flex gap-3 flex-wrap">
               <HoverButton
                 id="btn-hero-try"
                 href="/login"
                 variant="primary"
-                hoverBg="#2a2a28"
+                hoverBg="var(--color-ink)"
               >
                 Încearcă gratuit
               </HoverButton>
@@ -262,28 +233,11 @@ export default function Home() {
 
       {/* ── Social proof / sources strip ───────────────────────── */}
       <LogoStrip id="surse-verificate">
-        <span
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--color-mid)",
-          }}
-        >
-          Surse verificate:
-        </span>
+        <span className="label-text">Surse verificate:</span>
         {["INS", "BNR", "Transelectrica", "SEAP", "Eurostat"].map((name) => (
           <span
             key={name}
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: 14,
-              color: "var(--color-mid)",
-              letterSpacing: "-0.01em",
-            }}
+            className="heading-section text-sm text-mid font-semibold tracking-tight"
           >
             {name}
           </span>
@@ -291,67 +245,31 @@ export default function Home() {
       </LogoStrip>
 
       {/* ── How it works ───────────────────────────────────────── */}
-      <section
-        id="cum-functioneaza"
-        style={{
-          background: "var(--color-canvas)",
-          padding: "var(--space-24, 96px) var(--space-6, 24px)",
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "var(--space-16, 64px)",
-            }}
-          >
-            <HeadingLg as="h2" style={{ marginBottom: "var(--space-4, 16px)" }}>
+      <section id="cum-functioneaza" className="bg-canvas py-24 px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-16">
+            <HeadingLg as="h2" className="mb-4">
               Cum funcționează
             </HeadingLg>
-            <BodyMd
-              style={{
-                color: "var(--color-mid)",
-                maxWidth: 480,
-                margin: "0 auto",
-              }}
-            >
+            <BodyMd className="text-mid max-w-[480px] mx-auto">
               Verificarea nu este un singur apel LLM opac. Procesul este
               descompus în etape independente, auditate și explicate.
             </BodyMd>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "var(--space-5, 20px)",
-              position: "relative",
-            }}
-          >
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 relative">
             {HOW_IT_WORKS_STEPS.map((step) => (
               <FeatureCard key={step.step} hover id={`step-${step.step}`}>
                 <div
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 700,
-                    fontSize: 48,
-                    color: "var(--color-accent)",
-                    lineHeight: 1,
-                    marginBottom: "var(--space-4, 16px)",
-                  }}
+                  className="font-display font-bold text-[48px] text-accent leading-none mb-4"
                   aria-hidden="true"
                 >
                   {step.step}
                 </div>
-                <HeadingMd
-                  as="h3"
-                  style={{ fontSize: 20, marginBottom: "var(--space-3, 12px)" }}
-                >
+                <HeadingMd as="h3" className="text-[20px] mb-3">
                   {step.title}
                 </HeadingMd>
-                <BodyMd style={{ color: "var(--color-mid)", marginTop: 0 }}>
-                  {step.desc}
-                </BodyMd>
+                <BodyMd className="text-mid mt-0">{step.desc}</BodyMd>
               </FeatureCard>
             ))}
           </div>
@@ -359,37 +277,17 @@ export default function Home() {
       </section>
 
       {/* ── Platform install section ────────────────────────────── */}
-      <section
-        id="platforme"
-        style={{
-          background: "var(--color-canvas-inset)",
-          padding: "var(--space-24, 96px) var(--space-6, 24px)",
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
-          <HeadingLg as="h2" style={{ marginBottom: "var(--space-4, 16px)" }}>
+      <section id="platforme" className="surface-inset py-24 px-6">
+        <div className="max-w-[1200px] mx-auto text-center">
+          <HeadingLg as="h2" className="mb-4">
             Disponibil oriunde asculți
           </HeadingLg>
-          <BodyMd
-            style={{
-              color: "var(--color-mid)",
-              maxWidth: 480,
-              margin: "0 auto var(--space-12, 48px)",
-            }}
-          >
+          <BodyMd className="text-mid max-w-[480px] mx-auto mb-12">
             Instalează verificat.xyz în browserul sau telefonul tău —
             funcționează oriunde se redă conținut audio.
           </BodyMd>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "var(--space-4, 16px)",
-              justifyContent: "center",
-              alignItems: "stretch",
-            }}
-          >
+          <div className="flex flex-wrap gap-4 justify-center items-stretch">
             <PlatformButton
               id="platform-chrome"
               name="Chrome"
@@ -437,57 +335,19 @@ export default function Home() {
       {/* ── Footer ─────────────────────────────────────────────── */}
       <FooterBand id="footer">
         {/* Column 1: Logo + tagline + copyright */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-3, 12px)",
-            minWidth: 200,
-            flex: "1 1 200px",
-          }}
-        >
+        <div className="flex flex-col gap-3 min-w-[200px] flex-[1_1_200px]">
           <Logo variant="dark" size={24} showWordmark href="/" />
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: 14,
-              color: "var(--color-mid)",
-              margin: 0,
-              lineHeight: 1.6,
-            }}
-          >
+          <p className="font-body text-sm text-mid m-0 leading-relaxed">
             Verificare afirmații în timp real.
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: 13,
-              color: "var(--color-mid)",
-              margin: 0,
-            }}
-          >
+          <p className="font-body text-[13px] text-mid m-0">
             &copy; {new Date().getFullYear()} verificat.xyz
           </p>
         </div>
 
         {/* Column 2: Product links */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-3, 12px)",
-            minWidth: 140,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: 13,
-              color: "var(--color-ink)",
-              letterSpacing: "-0.01em",
-            }}
-          >
+        <div className="flex flex-col gap-3 min-w-[140px]">
+          <span className="heading-section text-[13px] tracking-tight">
             Produs
           </span>
           {[{ href: "#platforme", label: "Platforme" }].map((link) => (
@@ -498,23 +358,8 @@ export default function Home() {
         </div>
 
         {/* Column 3: Legal links */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-3, 12px)",
-            minWidth: 140,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: 13,
-              color: "var(--color-ink)",
-              letterSpacing: "-0.01em",
-            }}
-          >
+        <div className="flex flex-col gap-3 min-w-[140px]">
+          <span className="heading-section text-[13px] tracking-tight">
             Legal
           </span>
           <HoverButton href="/privacy" variant="ghost">

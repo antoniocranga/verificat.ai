@@ -1,27 +1,27 @@
 export const tokens = {
   /* ---- Color ---- */
-  colorCanvas: '#fafafa',
-  colorCanvasElevated: '#ffffff',
-  colorInk: '#171717',
-  colorHairline: '#ebebeb',
-  colorHairlineSoft: '#ebebeb',
-  colorBody: '#4d4d4d',
-  colorMute: '#8f8f8f',
-  colorFaint: '#a1a1a1',
-  colorLink: '#0070f3',
-  colorPrimary: '#0070f3',
+  colorCanvas: '#f5f4ed',
+  colorCanvasElevated: '#faf9f5',
+  colorInk: '#141413',
+  colorHairline: '#e8e6dc',
+  colorHairlineSoft: '#e8e6dc',
+  colorBody: '#141413',
+  colorMute: '#b0aea5',
+  colorFaint: '#b0aea5',
+  colorLink: '#6a9bcc',
+  colorPrimary: '#c96442',
   colorOnPrimary: '#ffffff',
-  colorError: '#dc2626',
-  colorWarning: '#d97706',
-  colorSuccess: '#16a34a',
+  colorError: '#c94040',
+  colorWarning: '#c98040',
+  colorSuccess: '#788c5d',
 
   /* Verdict colours */
-  verdictTrue: '#22c55e',
-  verdictMostlyTrue: '#84cc16',
-  verdictPartial: '#d97706',
-  verdictMisleading: '#ea580c',
-  verdictFalse: '#ef4444',
-  verdictUnverified: '#6b7280',
+  verdictTrue: '#5a8a5a',
+  verdictMostlyTrue: '#6a8a40',
+  verdictPartial: '#b07030',
+  verdictMisleading: '#b05a30',
+  verdictFalse: '#c04040',
+  verdictUnverified: '#b0aea5',
 
   /* Hero mesh stops */
   meshCyan: '#50e3c2',
@@ -54,8 +54,9 @@ export const tokens = {
   shadowFloating: '0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
 
   /* ---- Typography ---- */
-  fontSans: "'Geist Sans', Arial, sans-serif",
-  fontMono: "'Geist Mono', 'JetBrains Mono', monospace",
+  fontSans: "'Anthropic Sans', system-ui, sans-serif",
+  fontMono: "'JetBrains Mono', 'Fira Code', monospace",
+  fontSerif: "'Anthropic Serif', Georgia, serif",
 
   fontSizeDisplayXl: '72px',
   fontWeightDisplayXl: 600,

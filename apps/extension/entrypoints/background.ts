@@ -16,6 +16,11 @@ async function ensureOffscreen(): Promise<void> {
       : false;
   console.log(`[Background] ensureOffscreen: hasDoc before = ${hasDoc}`);
   if (!hasDoc) {
+    if (!chrome.offscreen) {
+      throw new Error(
+        "Browserul dvs. nu suportă funcționalitatea de ascultare în fundal (necesită un browser bazat pe Chromium).",
+      );
+    }
     try {
       await chrome.offscreen.createDocument({
         url: OFFSCREEN_URL,

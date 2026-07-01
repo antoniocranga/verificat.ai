@@ -26,7 +26,7 @@ const containerColors = {
 };
 
 const iconColors = {
-  empty:         'var(--color-mid, #b0aea5)',
+  empty:         'var(--color-mid)',
   error:         'var(--color-error, #c94040)',
   'network-error': 'var(--color-error, #c94040)',
 };
@@ -76,11 +76,11 @@ export function EmptyState({
         <h3
           style={{
             margin: 0,
-            fontFamily: 'var(--font-display, Poppins, Arial, sans-serif)',
+            fontFamily: 'var(--font-display)',
             fontSize: '16px',
             fontWeight: 600,
             letterSpacing: '-0.02em',
-            color: 'var(--color-ink, #141413)',
+            color: 'var(--color-ink)',
           }}
         >
           {title}
@@ -88,11 +88,11 @@ export function EmptyState({
         <p
           style={{
             margin: 0,
-            fontFamily: 'var(--font-body, Lora, Georgia, serif)',
+            fontFamily: 'var(--font-body)',
             fontSize: '14px',
             fontWeight: 400,
             lineHeight: 1.65,
-            color: 'var(--color-mid, #b0aea5)',
+            color: 'var(--color-mid)',
           }}
         >
           {description}

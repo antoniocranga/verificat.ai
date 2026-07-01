@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verificat_mobile/app/app.dart';
+import 'package:verificat_mobile/core/presentation/widgets/brand_text.dart';
 
 void main() {
   testWidgets('Shows consent screen on first launch',
@@ -34,7 +35,7 @@ void main() {
     await tester.pumpWidget(const VerificatApp(initialConsented: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('verificat.xyz'), findsWidgets);
+    expect(find.byType(BrandText), findsWidgets);
     expect(find.text('Verifică acum'), findsOneWidget);
   });
 
