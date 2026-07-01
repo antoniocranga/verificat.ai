@@ -82,7 +82,9 @@ class _VerificatAppState extends State<VerificatApp>
     if (!_consented) {
       return MaterialApp(
         title: 'verificat.xyz',
-        theme: appTheme,
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         home: ConsentScreen(onAccept: _acceptConsent),
       );
@@ -91,7 +93,9 @@ class _VerificatAppState extends State<VerificatApp>
     if (_onboardingComplete == false) {
       return MaterialApp(
         title: 'verificat.xyz',
-        theme: appTheme,
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         home: OnboardingScreen(onComplete: _completeOnboarding),
       );
@@ -101,7 +105,9 @@ class _VerificatAppState extends State<VerificatApp>
       value: _authBloc,
       child: MaterialApp.router(
         title: 'verificat.xyz',
-        theme: appTheme,
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: ThemeMode.system,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),

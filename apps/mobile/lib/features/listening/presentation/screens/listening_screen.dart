@@ -63,14 +63,35 @@ class _ListeningScreenState extends State<ListeningScreen> {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [_buildBody(context, state)],
-              ),
+              child: _buildBody(context, state),
             ),
           );
         },
       ),
+      floatingActionButton: BlocBuilder<ListeningBloc, ListeningState>(
+        builder: (context, state) {
+          if (state.status == ListeningStatus.streaming || state.status == ListeningStatus.listening) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 100.0),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  if (state.status == ListeningStatus.streaming) {
+                    context.read<ListeningBloc>().add(const StopStreaming());
+                  } else {
+                    context.read<ListeningBloc>().add(const StopListening());
+                  }
+                },
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.surfaceRaised,
+                icon: const Icon(Icons.stop_rounded),
+                label: const Text('Oprește', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -160,12 +181,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
           'Se înregistrează...',
           style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
         ),
-        const SizedBox(height: 32),
-        AppButton.destructive(
-          label: 'Oprește',
-          onPressed: () =>
-              context.read<ListeningBloc>().add(const StopListening()),
-        ),
       ],
     );
   }
@@ -228,13 +243,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
                 style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
               ),
             ),
-
-          const SizedBox(height: 24),
-          AppButton.destructive(
-            label: 'Oprește fluxul',
-            onPressed: () =>
-                context.read<ListeningBloc>().add(const StopStreaming()),
-          ),
+          const SizedBox(height: 80), // extra padding for fab
         ],
       ),
     );
@@ -315,16 +324,8 @@ class _ListeningScreenState extends State<ListeningScreen> {
   Widget _buildProcessing(BuildContext context, ListeningState state) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
-          ),
-        ),
-        const SizedBox(height: 24),
         const Text(
           'Se procesează...',
           style: AppTextStyles.headingSubsection,
@@ -333,7 +334,20 @@ class _ListeningScreenState extends State<ListeningScreen> {
         Text(
           'Audio a fost trimis. Se analizează conținutul.',
           style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
-          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        const AppFeatureCard(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonText(lines: 1),
+              SizedBox(height: 16),
+              SkeletonText(lines: 3),
+              SizedBox(height: 24),
+              SkeletonText(lines: 2),
+            ],
+          ),
         ),
       ],
     );
@@ -412,53 +426,64 @@ class _ListeningScreenState extends State<ListeningScreen> {
     final color = AppColors.forVerdict(label);
 
     return AppFeatureCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: Text(
-              label,
-              style: AppTextStyles.labelMd.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Nivel de încredere: ',
-                style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
-              ),
-              Text(
-                '$confidence%',
-                style: AppTextStyles.labelMd.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w600,
+              Container(
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      label.toUpperCase(),
+                      style: AppTextStyles.labelMd.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              if (confidence > 0)
+                Text(
+                  '$confidence% Confident',
+                  style: AppTextStyles.labelMd.copyWith(
+                    color: AppColors.inkSub,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: confidence.toDouble() / 100,
-              backgroundColor: AppColors.subtle,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 4,
+          const SizedBox(height: 16),
+          Text(
+            claim['claim'] as String? ?? 'Afirmație necunoscută',
+            style: AppTextStyles.headingSubsection.copyWith(
+              color: AppColors.ink,
+              fontSize: 18,
             ),
           ),
           if (explanation.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               explanation,
               style: AppTextStyles.bodyMd.copyWith(
@@ -468,37 +493,58 @@ class _ListeningScreenState extends State<ListeningScreen> {
             ),
           ],
           if (evidence.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            const Text(
-              'SURSE',
-              style: AppTextStyles.labelCaps,
-            ),
-            const SizedBox(height: 8),
-            ...evidence.take(3).map((e) {
-              final eMap = e as Map<String, dynamic>;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      eMap['title'] as String? ?? '',
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    if (eMap['url'] != null)
-                      Text(
-                        eMap['url'] as String,
-                        style: AppTextStyles.bodyMd.copyWith(
-                          color: AppColors.blue,
-                          fontSize: 12,
-                        ),
-                      ),
-                  ],
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 16),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: AppColors.subtle),
                 ),
-              );
-            }),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SURSE',
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.mid,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...evidence.take(3).map((e) {
+                    final eMap = e as Map<String, dynamic>;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            eMap['title'] as String? ?? 'Sursă',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (eMap['url'] != null)
+                            Text(
+                              eMap['url'] as String,
+                              style: AppTextStyles.bodySm.copyWith(
+                                color: AppColors.mid,
+                                decoration: TextDecoration.underline,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
           ],
         ],
       ),

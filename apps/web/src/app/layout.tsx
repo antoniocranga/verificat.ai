@@ -1,21 +1,6 @@
 import type { Metadata } from "next";
-import { Poppins, Lora } from "next/font/google";
 import "./globals.css";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
-
-const poppins = Poppins({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-
-const lora = Lora({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600"],
-  variable: "--font-lora",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://staging.verificat.xyz"),
@@ -46,7 +31,7 @@ export const metadata: Metadata = {
     apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
   },
   other: {
-    "theme-color": "#faf9f5",
+    "theme-color": "#f5f4ed",
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
   },
@@ -58,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ro" className={`${poppins.variable} ${lora.variable}`}>
+    <html lang="ro">
       <body className="antialiased grain-overlay min-h-screen">
         {children}
         <CookieConsentBanner />

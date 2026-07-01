@@ -11,3 +11,4 @@ export 'mono_eyebrow.dart';
 export 'sound_wave_indicator.dart';
 export 'liquid_glass_bottom_nav.dart';
 export 'main_shell.dart';
+export 'skeleton_text.dart';

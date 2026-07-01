@@ -5,60 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>verificat.xyz — verificat.xyz</title>
     <meta name="manifest.type" content="browser_action" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css" />
+
   </head>
   <body>
-    <!-- ── Consent screen ────────────────────────────────────── -->
-    <div id="consent-screen" role="region" aria-label="Confidențialitate">
-      <h3>Confidențialitate</h3>
-      <p>
-        <brand-name></brand-name> captează audio pentru a verifica afirmațiile în timp real.
-        Datele audio sunt procesate și nu sunt stocate după verificare.
-      </p>
-      <p>
-        <a href="%VITE_WEB_HOST%/privacy" target="_blank" rel="noopener noreferrer">
-          Politica de Confidențialitate
-        </a>
-      </p>
-      <button id="btn-accept-consent" class="btn-primary" type="button">
-        Accept și Continuă
-      </button>
-    </div>
-
-    <!-- ── Main UI ────────────────────────────────────────────── -->
-    <div id="main-ui" role="main" aria-label="Control verificare">
-      <div id="status-text" role="status" aria-live="polite">Pregătit</div>
-
-      <div id="timer-text" class="timer-text" aria-label="Durată înregistrare" style="display: none;">00:00</div>
-
-      <button id="btn-start" class="btn-primary" type="button" aria-label="Începe ascultarea și verificarea">
-        Începe Ascultarea
-      </button>
-
-      <button id="btn-stop" class="btn-ghost" type="button" style="display: none;" aria-label="Oprește înregistrarea">
-        Oprește
-      </button>
-
-      <button id="btn-open" class="btn-ghost" type="button" aria-label="Deschide panoul lateral cu detalii">
-        Deschide Panoul Lateral
-      </button>
-
-      <!-- ── Real-time streaming section ───────────────────────── -->
-      <div class="stream-section" id="stream-section">
-        <h4>Verificare în Timp Real 🇷🇴</h4>
-        <div class="stream-btn-group">
-          <button id="btn-stream-mic" type="button" aria-label="Pornește verificarea de la microfon">🎤 Microfon</button>
-          <button id="btn-stream-tab" type="button" aria-label="Pornește verificarea audio din tab">🔊 Tab</button>
-          <button id="btn-stream-stop" type="button" disabled aria-label="Oprește streaming-ul">⏹ Stop</button>
-        </div>
-        <div id="stream-status" role="status" aria-live="polite">Inactiv</div>
-        <div id="stream-transcript" aria-label="Transcriere în timp real" aria-live="polite"></div>
-      </div>
-    </div>
-
-    <script type="module" src="./main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
   </body>
 </html>

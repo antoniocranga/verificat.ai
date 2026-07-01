@@ -6,21 +6,35 @@ import '../../features/listening/domain/entities/transcript_segment.dart';
 abstract final class AppColors {
   AppColors._();
 
-  // ── Core palette ─────────────────────────────────────────────
-  static const canvas  = Color(0xFFFAF9F5); // warm off-white canvas
-  static const ink     = Color(0xFF141413); // warm near-black
+  // ── Light Theme Palette ───────────────────────────────────────────
+  static const canvas  = Color(0xFFF5F4ED); // Parchment
+  static const ink     = Color(0xFF141413); // Anthropic Near Black
   static const inkSub  = Color(0xFF3A3935); // secondary text
   static const mid     = Color(0xFFB0AEA5); // muted / placeholder
-  static const subtle  = Color(0xFFE8E6DC); // hairline / borders
-  static const accent  = Color(0xFFD97757); // terracotta CTA
+  static const subtle  = Color(0xFFE8E6DC); // Border Cream
+  static const accent  = Color(0xFFC96442); // Terracotta Brand
+  static const accentSecondary = Color(0xFFD97757); // Coral Accent
   static const blue    = Color(0xFF6A9BCC); // links / info
   static const green   = Color(0xFF788C5D); // success
 
-  // ── Surface stack ─────────────────────────────────────────────
-  static const surfaceBase    = Color(0xFFFAF9F5); // page background
-  static const surfaceRaised  = Color(0xFFFFFFFF); // cards, inputs
-  static const surfaceOverlay = Color(0xFFFFFFFF); // menus, modals
-  static const surfaceInset   = Color(0xFFF0EDE6); // code blocks, sunken
+  static const surfaceBase    = Color(0xFFF5F4ED); // Parchment
+  static const surfaceRaised  = Color(0xFFFAF9F5); // Ivory
+  static const surfaceOverlay = Color(0xFFFAF9F5); // Ivory
+  static const surfaceInset   = Color(0xFFE8E6DC); // Border Cream
+
+  // ── Dark Theme Palette ────────────────────────────────────────────
+  static const darkCanvas = Color(0xFF141413);
+  static const darkInk = Color(0xFFFAF9F5);
+  static const darkInkSub = Color(0xFFDCDAD1);
+  static const darkMid = Color(0xFF8A8882);
+  static const darkSubtle = Color(0xFF3A3935);
+  static const darkAccent = Color(0xFFD97757);
+  static const darkAccentSecondary = Color(0xFFC96442);
+
+  static const darkSurfaceBase = Color(0xFF141413);
+  static const darkSurfaceRaised = Color(0xFF212120);
+  static const darkSurfaceOverlay = Color(0xFF2A2928);
+  static const darkSurfaceInset = Color(0xFF0A0A0A);
 
   // ── Verdict colours ───────────────────────────────────────────
   static const verdictTrue        = Color(0xFF5A8A5A);

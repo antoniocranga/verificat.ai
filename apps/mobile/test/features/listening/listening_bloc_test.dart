@@ -57,6 +57,9 @@ class MockListeningRepository implements ListeningRepository {
       interruptionEnded ?? const Stream.empty();
 
   @override
+  Stream<String> get onStreamError => const Stream.empty();
+
+  @override
   Stream<dynamic> onAmplitude() => const Stream.empty();
 
   @override

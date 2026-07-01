@@ -18,4 +18,5 @@ abstract class ListeningRepository {
   Stream<dynamic> onAmplitude();
   Stream<void> get onInterruptionBegan;
   Stream<void> get onInterruptionEnded;
+  Stream<String> get onStreamError;
 }

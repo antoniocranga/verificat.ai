@@ -32,6 +32,9 @@ class MockRepository implements ListeningRepository {
   Stream<void> get onInterruptionEnded => const Stream.empty();
 
   @override
+  Stream<String> get onStreamError => const Stream.empty();
+
+  @override
   Stream<dynamic> onAmplitude() => const Stream.empty();
 
   @override
@@ -66,7 +69,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Pregătit pentru verificare'), findsOneWidget);
-      expect(find.text('Începe Verificarea'), findsOneWidget);
+      expect(find.text('Înregistrare Audio'), findsOneWidget);
       bloc.close();
     });
 
@@ -92,7 +95,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Se procesează...'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.text('Audio a fost trimis. Se analizează conținutul.'), findsOneWidget);
       bloc.close();
     });
 
