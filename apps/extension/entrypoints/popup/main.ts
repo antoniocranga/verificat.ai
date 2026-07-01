@@ -167,7 +167,9 @@ btnOpen.addEventListener("click", () => {
     (tabs: Array<chrome.tabs.Tab>) => {
       const tabId = tabs[0]?.id;
       if (tabId) {
-        void chrome.sidePanel?.open({ tabId });
+        void chrome.sidePanel?.open({ tabId }).then(() => {
+          window.close();
+        });
       }
     },
   );
@@ -198,6 +200,31 @@ function setStreamActive(active: boolean) {
   btnStreamTab.disabled = active;
   btnStreamStop.disabled = !active;
   streamStatus.textContent = active ? "⏺ Ascultare activă..." : "Inactiv";
+  if (active) {
+    startTimer();
+  } else {
+    stopTimer();
+  }
+}
+
+function translateError(rawMsg: string): string {
+  const msg = rawMsg.toLowerCase();
+  if (msg.includes("page failed to load") || msg.includes("offscreen")) {
+    return "Nu s-a putut porni captarea audio. Reîncărcați extensia și încercați din nou.";
+  }
+  if (
+    msg.includes("chrome pages cannot be captured") ||
+    msg.includes("restricted")
+  ) {
+    return "Nu se poate captura sunetul acestei pagini. Deschideți fila cu conținutul dorit și încercați din nou.";
+  }
+  if (msg.includes("permission denied") || msg.includes("not allowed")) {
+    return "Accesul la microfon a fost refuzat. Activați-l din setările browserului.";
+  }
+  if (msg.includes("websocket") || msg.includes("econnrefused")) {
+    return "Conexiunea a eșuat. Verificați internetul și încercați din nou.";
+  }
+  return "A apărut o eroare neașteptată. (" + rawMsg + ")";
 }
 
 btnStreamMic.addEventListener("click", () => {
@@ -205,7 +232,7 @@ btnStreamMic.addEventListener("click", () => {
     { type: "START_STREAM_MIC" },
     (res: { ok?: boolean; error?: string }) => {
       if (res?.error) {
-        streamStatus.textContent = `Eroare: ${res.error}`;
+        streamStatus.textContent = `Eroare: ${translateError(res.error)}`;
         return;
       }
       setStreamActive(true);
@@ -218,7 +245,7 @@ btnStreamTab.addEventListener("click", () => {
     { type: "START_STREAM_TAB" },
     (res: { ok?: boolean; error?: string }) => {
       if (res?.error) {
-        streamStatus.textContent = `Eroare: ${res.error}`;
+        streamStatus.textContent = `Eroare: ${translateError(res.error)}`;
         return;
       }
       setStreamActive(true);
@@ -300,7 +327,8 @@ chrome.runtime.onMessage.addListener((msg: Record<string, unknown>) => {
   }
 
   if (msg.type === "STREAM_ERROR") {
-    streamStatus.textContent = `Eroare: ${(msg["message"] as string) ?? "unknown"}`;
+    const rawMsg = (msg["message"] as string) ?? "unknown";
+    streamStatus.textContent = `Eroare: ${translateError(rawMsg)}`;
     setStreamActive(false);
   }
 });

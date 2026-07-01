@@ -4,206 +4,269 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>verificat.xyz — Verdict</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
       :root {
-        --color-canvas: #faf9f5;
+        --color-canvas: #FAF9F5;
         --color-ink: #141413;
-        --color-hairline: #e8e6dc;
-        --color-body: #3a3935;
-        --color-mute: #b0aea5;
-        --color-elevated: #ffffff;
-        --color-primary: #d97757;
-        --color-danger: #c94040;
+        --color-inksub: #3A3935;
+        --color-mid: #B0AEA5;
+        --color-subtle: #E8E6DC;
+        --color-accent: #D97757;
+        --color-blue: #6A9BCC;
+        --color-green: #788C5D;
+        --color-surface-raised: #FFFFFF;
+
+        --verdict-true-bg: rgba(90, 138, 90, 0.12);
+        --verdict-true-fg: #5A8A5A;
+        --verdict-false-bg: rgba(192, 64, 64, 0.12);
+        --verdict-false-fg: #C04040;
+        --verdict-uncertain-bg: rgba(176, 112, 48, 0.12);
+        --verdict-uncertain-fg: #B07030;
+
+        --font-heading: 'Poppins', Arial, sans-serif;
+        --font-body: 'Lora', Georgia, serif;
+        --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+        --radius-card: 12px;
+        --radius-pill: 24px;
+        --radius-button: 8px;
         --spacing-xs: 8px;
         --spacing-sm: 12px;
         --spacing-md: 16px;
         --spacing-lg: 24px;
-        --rounded-sm: 6px;
-        --rounded-md: 12px;
-        font-family: 'Geist Sans', Inter, Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: var(--spacing-sm);
+        font-family: var(--font-body);
         font-size: 14px;
-        color: var(--color-body);
+        color: var(--color-ink);
         background: var(--color-canvas);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        box-sizing: border-box;
       }
-      body { margin: 0; padding: var(--spacing-sm); }
       h2 {
-        font-size: 18px; font-weight: 600; margin: 0 0 var(--spacing-md) 0;
-        color: var(--color-ink); letter-spacing: -0.4px;
+        font-family: var(--font-heading);
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 var(--spacing-md) 0;
+        letter-spacing: -0.4px;
+        flex-shrink: 0;
+        color: var(--color-ink);
       }
-      .capture-card {
-        background: var(--color-elevated);
-        border: 1px solid var(--color-hairline);
-        border-radius: var(--rounded-md);
-        padding: var(--spacing-md);
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
         margin-bottom: var(--spacing-sm);
+        flex-shrink: 0;
       }
-      .capture-card h3 {
-        font-size: 16px; font-weight: 600; margin: 0 0 4px 0;
-        color: var(--color-ink); letter-spacing: -0.4px;
+      /* Segmented control */
+      .segmented-control {
+        display: flex;
+        background: var(--color-subtle);
+        border-radius: var(--radius-pill);
+        padding: 4px;
       }
-      .capture-card p {
-        font-size: 13px; margin: 0 0 var(--spacing-sm) 0; line-height: 1.4;
+      .segmented-control button {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-heading);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-mid);
+        cursor: pointer;
+        transition: all 0.2s ease;
       }
-      .capture-card .icon { font-size: 22px; margin-bottom: 4px; }
-      .btn-capture {
-        display: block; width: 100%; height: 36px; padding: 0 var(--spacing-sm);
-        border-radius: var(--rounded-sm); border: none;
-        background: var(--color-ink); color: var(--color-elevated);
-        font-family: inherit; font-size: 14px; font-weight: 500;
-        cursor: pointer; box-sizing: border-box;
+      .segmented-control button.active {
+        background: var(--color-surface-raised);
+        color: var(--color-ink);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       }
-      .btn-capture:disabled { opacity: 0.4; cursor: not-allowed; }
-      .btn-stop-capture {
-        display: block; width: 100%; height: 36px; padding: 0 var(--spacing-sm);
-        border-radius: var(--rounded-sm); border: 1px solid var(--color-danger);
-        background: var(--color-elevated); color: var(--color-danger);
-        font-family: inherit; font-size: 14px; font-weight: 500;
-        cursor: pointer; box-sizing: border-box;
+      /* Primary action button */
+      .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 12px var(--spacing-sm);
+        border-radius: var(--radius-button);
+        border: none;
+        background: var(--color-ink);
+        color: var(--color-surface-raised);
+        font-family: var(--font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
       }
-      #status { font-size: 13px; color: var(--color-mute); padding: var(--spacing-xs) 0; }
-      #verdict-section { margin-top: var(--spacing-sm); }
-      .timer-display {
-        font-size: 36px; font-weight: 600; color: var(--color-ink);
-        text-align: center; letter-spacing: -0.4px;
-        padding: var(--spacing-md) 0 var(--spacing-xs) 0;
-        font-variant-numeric: tabular-nums;
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
-      .timer-label { font-size: 12px; color: var(--color-mute); text-align: center; margin-bottom: var(--spacing-sm); }
-      .recording-active { text-align: center; padding: var(--spacing-md); }
-      .processing-state { text-align: center; padding: var(--spacing-lg); }
-      .spinner {
-        width: 32px; height: 32px; border: 3px solid var(--color-hairline);
-        border-top-color: var(--color-primary); border-radius: 50%;
-        animation: spin 0.8s linear infinite; margin: 0 auto var(--spacing-sm) auto;
+      .btn-primary.recording-mic { background: var(--color-accent); }
+      .btn-primary.recording-tab { background: var(--color-accent); }
+      
+      .status-text {
+        font-size: 12px;
+        color: var(--color-mid);
+        text-align: center;
+        margin-top: -8px;
+        font-family: var(--font-heading);
       }
-      @keyframes spin { to { transform: rotate(360deg); } }
+      
+      .timer-text {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-ink);
+      }
 
-      .wave-bar { display: flex; align-items: center; justify-content: center; gap: 3px; height: 40px; margin-bottom: 8px; }
-      .wave-bar span { display: block; width: 4px; background: var(--color-ink); border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
-      .wave-bar span:nth-child(1) { height: 16px; animation-delay: 0s; }
-      .wave-bar span:nth-child(2) { height: 24px; animation-delay: 0.1s; }
-      .wave-bar span:nth-child(3) { height: 32px; animation-delay: 0.2s; }
-      .wave-bar span:nth-child(4) { height: 24px; animation-delay: 0.3s; }
-      .wave-bar span:nth-child(5) { height: 16px; animation-delay: 0.4s; }
-      @keyframes wave { 0%,100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
+      /* Live transcript area */
+      .transcript-container {
+        position: relative;
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-top: var(--spacing-sm);
+        padding-bottom: var(--spacing-lg);
+        mask-image: linear-gradient(to bottom, transparent, black 5%, black 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent, black 5%, black 100%);
+      }
+      .segment {
+        padding: var(--spacing-sm);
+        border-radius: 4px;
+        margin-bottom: var(--spacing-xs);
+        background: var(--color-surface-raised);
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      }
+      .segment.interim {
+        color: var(--color-mid);
+        font-style: italic;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        cursor: default;
+      }
+      .segment.verdict-true {
+        background: var(--verdict-true-bg);
+        border-left-color: var(--verdict-true-fg);
+      }
+      .segment.verdict-false {
+        background: var(--verdict-false-bg);
+        border-left-color: var(--verdict-false-fg);
+      }
+      .segment.verdict-misc {
+        background: var(--verdict-uncertain-bg);
+        border-left-color: var(--verdict-uncertain-fg);
+      }
+      .segment-text {
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--color-ink);
+      }
+      .segment.interim .segment-text {
+        color: var(--color-mid);
+      }
+      
+      /* Verdict Badge */
+      .verdict-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-heading);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .segment.verdict-true .verdict-badge {
+        background: var(--verdict-true-fg);
+        color: var(--color-surface-raised);
+      }
+      .segment.verdict-false .verdict-badge {
+        background: var(--verdict-false-fg);
+        color: var(--color-surface-raised);
+      }
+      .segment.verdict-misc .verdict-badge {
+        background: var(--verdict-uncertain-fg);
+        color: var(--color-surface-raised);
+      }
 
-      @media (prefers-reduced-motion: reduce) {
-        .wave-bar span { animation: none; }
-        .spinner { animation: none; border-top-color: var(--color-hairline); }
+      .segment-details {
+        display: none;
+        margin-top: var(--spacing-sm);
+        font-size: 14px;
+        border-top: 1px solid var(--color-subtle);
+        padding-top: var(--spacing-sm);
       }
-      .verdict-label {
-        font-size: 32px; font-weight: 600; color: var(--color-ink);
-        letter-spacing: -0.4px; margin: 0 0 var(--spacing-xs) 0;
+      .segment.expanded .segment-details {
+        display: block;
       }
-      .verdict-confidence { font-size: 16px; color: var(--color-body); margin: 4px 0; }
-      .verdict-explanation { font-size: 14px; line-height: 1.6; color: var(--color-body); margin: var(--spacing-xs) 0; }
-      .evidence-item { font-size: 13px; padding: var(--spacing-xs) 0; border-bottom: 1px solid var(--color-hairline); }
-      .evidence-item:last-child { border-bottom: none; }
-      .evidence-item a { color: var(--color-primary); text-decoration: none; }
-      .evidence-item a:hover { text-decoration: underline; }
-      .evidence-source-name { font-weight: 500; color: var(--color-ink); font-size: 13px; }
-      .evidence-url { font-size: 12px; color: var(--color-mute); word-break: break-all; }
-      .stage-text { font-size: 13px; color: var(--color-mute); }
-      .progress-bar-track {
-        width: 100%; height: 6px; background: var(--color-hairline);
-        border-radius: 3px; overflow: hidden; margin: 6px 0;
+      .detail-explanation {
+        font-family: var(--font-body);
+        color: var(--color-inksub);
+        margin-bottom: var(--spacing-xs);
+        line-height: 1.5;
       }
-      .progress-bar-fill { height: 100%; background: var(--color-primary); border-radius: 3px; transition: width 0.3s ease; }
-      .progress-claim { font-size: 12px; color: var(--color-mute); font-style: italic; margin-top: 2px; }
-      .btn-new-check {
-        display: block; width: 100%; height: 36px; margin-top: var(--spacing-sm);
-        padding: 0 var(--spacing-sm); border-radius: var(--rounded-sm); border: none;
-        background: var(--color-ink); color: var(--color-elevated);
-        font-family: inherit; font-size: 14px; font-weight: 500;
-        cursor: pointer; box-sizing: border-box;
+      .detail-title {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: var(--color-inksub);
       }
-      .inline-error {
-        font-size: 13px; color: var(--color-danger); text-align: center;
-        padding: var(--spacing-sm); line-height: 1.4;
+      .source-link {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--color-blue);
+        text-decoration: none;
+        word-break: break-all;
       }
-      #perm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: var(--spacing-md); box-sizing: border-box; }
-      #perm-overlay.open { display: flex; }
-      #perm-dialog { background: var(--color-elevated); border-radius: var(--rounded-md); padding: var(--spacing-lg); max-width: 300px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-      #perm-dialog h3 { font-size: 16px; font-weight: 600; margin: 0 0 var(--spacing-xs) 0; color: var(--color-ink); letter-spacing: -0.4px; }
-      #perm-dialog p { font-size: 13px; line-height: 1.5; margin: 0 0 var(--spacing-md) 0; }
-      #perm-dialog .perm-actions { display: flex; gap: var(--spacing-xs); }
-      #perm-dialog .perm-actions button { flex: 1; height: 36px; border-radius: var(--rounded-sm); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-      .btn-allow { border: none; background: var(--color-ink); color: var(--color-elevated); }
-      .btn-cancel { border: 1px solid var(--color-hairline); background: var(--color-elevated); color: var(--color-body); }
-      .privacy-link { font-size: 11px; color: var(--color-mute); line-height: 1.4; margin-top: var(--spacing-sm); }
-      .privacy-link a { color: var(--color-primary); text-decoration: none; }
-      .privacy-link a:hover { text-decoration: underline; }
+      .source-link:hover { text-decoration: underline; }
+
+      /* Errors */
+      .error-banner {
+        display: none;
+        background: var(--verdict-false-bg);
+        color: var(--verdict-false-fg);
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-button);
+        margin-bottom: var(--spacing-md);
+        font-size: 13px;
+        font-family: var(--font-heading);
+      }
     </style>
   </head>
   <body>
     <h2><brand-name></brand-name></h2>
 
-    <div id="idle-ui">
-      <div class="capture-card">
-        <div class="icon">&#x1F5A5;&#xFE0F;</div>
-        <h3>Captură Audio din Filă</h3>
-        <p>Înregistrează sunetul din fila activă pentru a verifica afirmațiile.</p>
-        <button id="btn-tab-record" class="btn-capture">Captură Filă</button>
+    <div class="error-banner" id="error-banner"></div>
+
+    <div class="controls">
+      <div class="segmented-control">
+        <button id="tab-mic" class="active">Microfon</button>
+        <button id="tab-browser">Filă activă</button>
       </div>
-      <div class="capture-card">
-        <div class="icon">&#x1F3A4;</div>
-        <h3>Captură Microfon</h3>
-        <p>Înregistrează audio de la microfon pentru a verifica afirmațiile.</p>
-        <button id="btn-mic-record" class="btn-capture">Captură Microfon</button>
-      </div>
+      
+      <div id="timer-text" class="timer-text" style="display: none;">00:00</div>
+      <button id="btn-action" class="btn-primary">Începe ascultarea</button>
+      <div id="status-text" class="status-text">Pregătit</div>
     </div>
 
-    <div id="preparing-ui" style="display:none">
-      <div class="processing-state">
-        <div class="spinner"></div>
-        <div class="stage-text" id="preparing-text">Se inițializează...</div>
-      </div>
-    </div>
-
-    <div id="recording-ui" style="display:none">
-      <div class="recording-active">
-        <div class="wave-bar" id="wave-bar">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <div class="timer-display" id="timer-display">00:00</div>
-        <div class="timer-label" id="recording-label">Se înregistrează...</div>
-        <button id="btn-stop-recording" class="btn-stop-capture">Oprește</button>
-      </div>
-    </div>
-
-    <div id="processing-ui" style="display:none">
-      <div class="processing-state">
-        <div class="spinner"></div>
-        <div id="processing-status" class="stage-text">Se procesează...</div>
-      </div>
-      <div id="progress-detail"></div>
-    </div>
-
-    <div id="result-ui" style="display:none">
-      <div id="verdict-section"></div>
-      <button id="btn-new-check" class="btn-new-check">Noua Verificare</button>
-    </div>
-
-    <div id="error-ui" style="display:none">
-      <div class="inline-error" id="error-text"></div>
-      <button id="btn-error-retry" class="btn-new-check">Încearcă din Nou</button>
-    </div>
-
-    <div id="status">Stare: Pregătit</div>
-
-    <div class="privacy-link">
-      Prin utilizarea capturii audio, acceptați <a href="%VITE_WEB_HOST%/privacy" target="_blank" rel="noopener">Politica de Confidențialitate</a>.
-    </div>
-
-    <div id="perm-overlay">
-      <div id="perm-dialog">
-        <h3 id="perm-title">Permisiune necesară</h3>
-        <p id="perm-desc"></p>
-        <div class="perm-actions">
-          <button id="btn-perm-cancel" class="btn-cancel">Anulează</button>
-          <button id="btn-perm-allow" class="btn-allow">Permite</button>
-        </div>
-      </div>
+    <div class="transcript-container" id="transcript-container">
+      <div id="segments-list"></div>
+      <div id="interim-text" class="segment interim" style="display:none"><div class="segment-text"></div></div>
     </div>
 
     <script type="module" src="./main.ts"></script>
