@@ -35,9 +35,9 @@ describe('tokens', () => {
   });
 
   it('should have exact token values for key colours', () => {
-    expect(tokens.colorCanvas).toBe('#fafafa');
-    expect(tokens.colorInk).toBe('#171717');
-    expect(tokens.colorHairline).toBe('#ebebeb');
-    expect(tokens.colorBody).toBe('#4d4d4d');
+    expect(tokens.colorCanvas).toBe('#f5f4ed');
+    expect(tokens.colorInk).toBe('#141413');
+    expect(tokens.colorHairline).toBe('#e8e6dc');
+    expect(tokens.colorBody).toBe('#141413');
   });
 });
