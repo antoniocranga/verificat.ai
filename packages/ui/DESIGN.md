@@ -15,6 +15,7 @@ These are not aspirational values — they are constraints that every screen, co
 ### 1.1 Show your work
 
 Every verdict must visibly carry:
+
 - The verdict label (one of the six exact values)
 - A confidence score (rendered as a percentage or a calibrated visual indicator — never hidden)
 - At least one cited source (link, publisher, date)
@@ -25,6 +26,7 @@ A UI that shows a verdict label without all three of the above is incomplete and
 ### 1.2 Unverified is not a failure
 
 `Unverified` is displayed with the same visual weight and clarity as any other verdict label. It must never be:
+
 - Displayed in a faded, grey-out, or otherwise de-emphasised style
 - Accompanied by copy that implies the system failed
 - Suppressed in favour of the closest partial match
@@ -38,6 +40,7 @@ No headline, CTA, badge, tooltip, or marketing copy may imply the system deliver
 ### 1.4 Romanian first
 
 All user-facing copy is reviewed for correct Romanian diacritics (ă â î ș ț) before any release. This includes:
+
 - All static copy in `apps/web` and `apps/mobile`
 - STT transcripts displayed in the UI (post-processed, not raw ASR output)
 - Verdict evidence explanations
@@ -48,6 +51,7 @@ A missing diacritic is filed as a bug, not deferred as a typo.
 ### 1.5 Accessibility is a launch requirement
 
 WCAG 2.1 AA compliance is the floor for the public website (`apps/web`). This means, at minimum:
+
 - All images have descriptive `alt` text
 - All interactive elements are keyboard-reachable and have a visible focus state
 - Colour contrast ratio ≥ 4.5:1 for normal text, ≥ 3:1 for large text
@@ -62,16 +66,17 @@ WCAG AA on mobile (`apps/mobile`) is a Phase 6 target. Extension (`apps/extensio
 
 The six verdict values must be rendered consistently across all surfaces. The mapping below is canonical — do not introduce new colours, icons, or labels for verdicts without updating this document and getting design review.
 
-| Verdict | Colour token | Icon | Accessible label |
-|---|---|---|---|
-| `True` | `--verdict-true` (green, 500-level) | ✓ filled circle | "Adevărat" |
-| `Mostly True` | `--verdict-mostly-true` (lime-green, 500-level) | ✓ partial circle | "Predominant adevărat" |
-| `Partially True` | `--verdict-partial` (amber, 500-level) | ◑ half circle | "Parțial adevărat" |
-| `Misleading` | `--verdict-misleading` (orange, 600-level) | ⚠ triangle | "Înșelător" |
-| `False` | `--verdict-false` (red, 600-level) | ✗ filled circle | "Fals" |
-| `Unverified` | `--verdict-unverified` (grey, 500-level) | ? circle | "Neverificat" |
+| Verdict          | Colour token                                    | Icon             | Accessible label       |
+| ---------------- | ----------------------------------------------- | ---------------- | ---------------------- |
+| `True`           | `--verdict-true` (green, 500-level)             | ✓ filled circle  | "Adevărat"             |
+| `Mostly True`    | `--verdict-mostly-true` (lime-green, 500-level) | ✓ partial circle | "Predominant adevărat" |
+| `Partially True` | `--verdict-partial` (amber, 500-level)          | ◑ half circle    | "Parțial adevărat"     |
+| `Misleading`     | `--verdict-misleading` (orange, 600-level)      | ⚠ triangle       | "Înșelător"            |
+| `False`          | `--verdict-false` (red, 600-level)              | ✗ filled circle  | "Fals"                 |
+| `Unverified`     | `--verdict-unverified` (grey, 500-level)        | ? circle         | "Neverificat"          |
 
 Rules:
+
 - **Never** communicate verdict solely via colour. The text label and icon are always present.
 - The colour token values are defined in `packages/ui/tokens.css` (web) and `packages/ui/lib/src/tokens.dart` (Flutter). Do not hardcode hex values in component code.
 - Confidence score is always displayed as a percentage (e.g. "72%") adjacent to the verdict label, never hidden behind a tooltip on mobile.
@@ -80,14 +85,14 @@ Rules:
 
 ## 3. Typography
 
-| Role | Web (CSS variable) | Mobile (Flutter TextTheme) | Fallback stack |
-|---|---|---|---|
-| Display / headline | `--font-display` | `displayLarge` | Inter, system-ui, sans-serif |
-| Body | `--font-body` | `bodyMedium` | Inter, system-ui, sans-serif |
-| Code / transcript | `--font-mono` | `bodySmall` (monospace variant) | JetBrains Mono, Fira Code, monospace |
-| Romanian diacritics testing | All of the above | All of the above | Font must render ă â î ș ț without substitution |
+| Role                        | Web (CSS variable) | Mobile (Flutter TextTheme)      | Fallback stack                                  |
+| --------------------------- | ------------------ | ------------------------------- | ----------------------------------------------- |
+| Display / headline          | `--font-display`   | `displayLarge`                  | Anthropic Serif, Georgia, serif                 |
+| Body                        | `--font-body`      | `bodyMedium`                    | Anthropic Sans, system-ui, sans-serif           |
+| Code / transcript           | `--font-mono`      | `bodySmall` (monospace variant) | JetBrains Mono, Fira Code, monospace            |
+| Romanian diacritics testing | All of the above   | All of the above                | Font must render ă â î ș ț without substitution |
 
-**Font loading:** Inter is loaded via `next/font` (web) and bundled via the Flutter font asset pipeline. No Google Fonts CDN calls in production (privacy and performance).
+**Font loading:** Anthropic fonts are loaded locally via `next/font/local` (web) and bundled via the Flutter font asset pipeline. No Google Fonts CDN calls in production (privacy and performance).
 
 ---
 
@@ -124,17 +129,17 @@ All shared UI components live in `packages/ui`. Rules for adding or modifying co
 
 ### 6.1 Web (`apps/web`)
 
-| Route | Purpose | Auth required |
-|---|---|---|
-| `/` | Marketing landing page | No |
-| `/cum-functioneaza` | How it works (explainer) | No |
-| `/surse` | Source trust methodology (public) | No |
-| `/auth/login` | Sign in | No (redirects if already authed) |
-| `/auth/signup` | Create account | No |
-| `/dashboard` | User's recent fact-checks | Yes |
-| `/check/[id]` | Individual verdict page (shareable) | No (public) |
-| `/settings` | Account settings | Yes |
-| `/admin/*` | Admin dashboard | Yes + Admin role |
+| Route               | Purpose                             | Auth required                    |
+| ------------------- | ----------------------------------- | -------------------------------- |
+| `/`                 | Marketing landing page              | No                               |
+| `/cum-functioneaza` | How it works (explainer)            | No                               |
+| `/surse`            | Source trust methodology (public)   | No                               |
+| `/auth/login`       | Sign in                             | No (redirects if already authed) |
+| `/auth/signup`      | Create account                      | No                               |
+| `/dashboard`        | User's recent fact-checks           | Yes                              |
+| `/check/[id]`       | Individual verdict page (shareable) | No (public)                      |
+| `/settings`         | Account settings                    | Yes                              |
+| `/admin/*`          | Admin dashboard                     | Yes + Admin role                 |
 
 Deep links from mobile and extension resolve to `/check/[id]` and fall back gracefully if the app is not installed.
 
@@ -181,13 +186,13 @@ Animations are functional, not decorative. They communicate state transitions (l
 
 Every screen must have a designed error state and empty state. "Throws an exception" and "shows a blank screen" are not designed states — they are bugs.
 
-| State | Required elements |
-|---|---|
-| Network error | Illustration or icon, human-readable message (Romanian), retry button |
-| No fact-checks yet (history empty) | Illustration, onboarding CTA ("Start a live fact-check") |
-| `Unverified` verdict | Verdict chip with correct colour/icon, explanation of why, sources that were checked |
-| Pipeline timeout | User-facing message, transcript shown, option to retry |
-| Auth error | Clear message, link to login or support |
+| State                              | Required elements                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| Network error                      | Illustration or icon, human-readable message (Romanian), retry button                |
+| No fact-checks yet (history empty) | Illustration, onboarding CTA ("Start a live fact-check")                             |
+| `Unverified` verdict               | Verdict chip with correct colour/icon, explanation of why, sources that were checked |
+| Pipeline timeout                   | User-facing message, transcript shown, option to retry                               |
+| Auth error                         | Clear message, link to login or support                                              |
 
 Error messages must never expose internal error codes, stack traces, or raw API responses to the user.
 

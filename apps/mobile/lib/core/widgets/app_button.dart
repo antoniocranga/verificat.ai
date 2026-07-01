@@ -186,68 +186,73 @@ class _AppButtonState extends State<AppButton>
   Widget build(BuildContext context) {
     final (bg, fg, border, shadows) = _colors;
 
-    return MouseRegion(
-      cursor: _isDisabled
-          ? SystemMouseCursors.forbidden
-          : SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: _isDisabled ? null : _onTapDown,
-        onTapUp: _isDisabled ? null : _onTapUp,
-        onTapCancel: _onTapCancel,
-        onTap: _isDisabled ? null : widget.onPressed,
-        child: AnimatedBuilder(
-          animation: _scale,
-          builder: (context, child) => Transform.scale(
-            scale: _scale.value,
-            child: child,
-          ),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 150),
-            opacity: _isDisabled ? 0.4 : 1.0,
-            child: AnimatedContainer(
+    return Semantics(
+      button: true,
+      enabled: !_isDisabled,
+      label: widget.label,
+      child: MouseRegion(
+        cursor: _isDisabled
+            ? SystemMouseCursors.forbidden
+            : SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTapDown: _isDisabled ? null : _onTapDown,
+          onTapUp: _isDisabled ? null : _onTapUp,
+          onTapCancel: _onTapCancel,
+          onTap: _isDisabled ? null : widget.onPressed,
+          child: AnimatedBuilder(
+            animation: _scale,
+            builder: (context, child) => Transform.scale(
+              scale: _scale.value,
+              child: child,
+            ),
+            child: AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              width: widget.width,
-              height: _height,
-              padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(_borderRadius),
-                border: border != null
-                    ? Border.all(color: border, width: 1.5)
-                    : null,
-                boxShadow: _isDisabled ? null : shadows,
-              ),
-              child: Row(
-                mainAxisSize:
-                    widget.width != null ? MainAxisSize.max : MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.loading)
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(fg),
+              opacity: _isDisabled ? 0.4 : 1.0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                width: widget.width,
+                height: _height,
+                padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                  border: border != null
+                      ? Border.all(color: border, width: 1.5)
+                      : null,
+                  boxShadow: _isDisabled ? null : shadows,
+                ),
+                child: Row(
+                  mainAxisSize:
+                      widget.width != null ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.loading)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(fg),
+                        ),
+                      )
+                    else ...[
+                      if (widget.icon != null) ...[
+                        IconTheme(
+                          data: IconThemeData(color: fg, size: 16),
+                          child: widget.icon!,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.label,
+                        style: _labelStyle.copyWith(color: fg),
                       ),
-                    )
-                  else ...[
-                    if (widget.icon != null) ...[
-                      IconTheme(
-                        data: IconThemeData(color: fg, size: 16),
-                        child: widget.icon!,
-                      ),
-                      const SizedBox(width: 8),
                     ],
-                    Text(
-                      widget.label,
-                      style: _labelStyle.copyWith(color: fg),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
           ),

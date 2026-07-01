@@ -51,7 +51,7 @@ export function Logo({
       {showWordmark && (
         <span
           style={{
-            fontFamily: 'var(--font-heading, var(--font-display, Poppins, Arial, sans-serif))',
+            fontFamily: 'var(--font-display)',
             fontWeight: 700,
             fontSize: size * 0.7,
             letterSpacing: '-0.03em',

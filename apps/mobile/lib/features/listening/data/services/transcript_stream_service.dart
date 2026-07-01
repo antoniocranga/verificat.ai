@@ -39,10 +39,12 @@ class TranscriptStreamService extends ChangeNotifier {
   bool _isRecording = false;
   int _retryCount = 0;
   bool _isDisposed = false;
+  final void Function(String message)? onError;
 
   TranscriptStreamService({
     AudioRecorder? recorder,
     Uuid? uuid,
+    this.onError,
   })  : _recorder = recorder ?? AudioRecorder(),
         _uuid = uuid ?? const Uuid();
 
@@ -170,6 +172,7 @@ class TranscriptStreamService extends ChangeNotifier {
   void _scheduleReconnect() {
     if (_retryCount >= _maxRetries) {
       stop();
+      onError?.call('Conexiunea s-a întrerupt și nu s-a putut restabili.');
       return;
     }
     // Exponential backoff: 2, 4, 8, 16, 30 seconds (capped at 30)

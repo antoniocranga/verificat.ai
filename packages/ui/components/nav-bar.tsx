@@ -27,10 +27,10 @@ export function NavBar({ children, id, scrolled = false }: NavBarProps) {
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
         borderBottom: scrolled
-          ? '1px solid var(--color-subtle, #e8e6dc)'
+          ? '1px solid var(--color-subtle)'
           : '1px solid transparent',
         transition: 'background-color 200ms ease-out, border-color 200ms ease-out, backdrop-filter 200ms ease-out',
-        fontFamily: 'var(--font-heading, var(--font-display, Poppins, Arial, sans-serif))',
+        fontFamily: 'var(--font-display)',
         boxSizing: 'border-box',
       }}
     >

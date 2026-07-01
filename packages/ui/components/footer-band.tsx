@@ -10,11 +10,11 @@ export function FooterBand({ children, id }: FooterBandProps) {
     <footer
       id={id}
       style={{
-        background: 'var(--color-canvas, #faf9f5)',
-        borderTop: '1px solid var(--color-subtle, #e8e6dc)',
-        padding: 'var(--space-24, 96px) var(--space-6, 24px)',
-        fontFamily: 'var(--font-body, Lora, Georgia, serif)',
-        color: 'var(--color-mid, #b0aea5)',
+        background: 'var(--color-canvas)',
+        borderTop: '1px solid var(--color-subtle)',
+        padding: 'var(--spacing-4xl) var(--spacing-lg)',
+        fontFamily: 'var(--font-body)',
+        color: 'var(--color-mid)',
         fontSize: 14,
         lineHeight: 1.6,
       }}
@@ -25,7 +25,7 @@ export function FooterBand({ children, id }: FooterBandProps) {
           margin: '0 auto',
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 'var(--space-12, 48px)',
+          gap: 'var(--spacing-2xl)',
         }}
       >
         {children}
