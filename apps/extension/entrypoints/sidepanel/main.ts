@@ -1,127 +1,42 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-floating-promises */
 import { registerBrandComponent } from "../../utils/brand-component";
 import { startTabCapture, startMicCapture } from "../../utils/audio-capture";
-import { resumePendingJob, dispatchAndWait } from "../../utils/api";
 
 registerBrandComponent();
 
-type CaptureState =
-  | "idle"
-  | "preparing"
-  | "recording"
-  | "processing"
-  | "result"
-  | "error";
-type CaptureType = "tab" | "mic";
+type SourceType = "mic" | "tab";
+type State = "idle" | "preparing" | "recording";
 
-let state: CaptureState = "idle";
+let currentSource: SourceType = "mic";
+let currentState: State = "idle";
+let stopCaptureFn: (() => Promise<void>) | null = null;
 
-let micStop: (() => Promise<Blob>) | null = null;
+const tabMicBtn = document.getElementById("tab-mic") as HTMLButtonElement;
+const tabBrowserBtn = document.getElementById(
+  "tab-browser",
+) as HTMLButtonElement;
+const actionBtn = document.getElementById("btn-action") as HTMLButtonElement;
+const statusText = document.getElementById("status-text") as HTMLDivElement;
+const timerText = document.getElementById("timer-text") as HTMLDivElement;
+const errorBanner = document.getElementById("error-banner") as HTMLDivElement;
+
 let elapsedSeconds = 0;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
-let isTabCapturing = false;
 
-const btnTab = document.getElementById("btn-tab-record") as HTMLButtonElement;
-const btnMic = document.getElementById("btn-mic-record") as HTMLButtonElement;
-const statusDiv = document.getElementById("status") as HTMLDivElement;
-
-const idleUi = document.getElementById("idle-ui") as HTMLDivElement;
-const preparingUi = document.getElementById("preparing-ui") as HTMLDivElement;
-const preparingText = document.getElementById(
-  "preparing-text",
-) as HTMLDivElement;
-const recordingUi = document.getElementById("recording-ui") as HTMLDivElement;
-const timerDisplay = document.getElementById("timer-display") as HTMLDivElement;
-const recordingLabel = document.getElementById(
-  "recording-label",
-) as HTMLDivElement;
-const btnStopRecording = document.getElementById(
-  "btn-stop-recording",
-) as HTMLButtonElement;
-const processingUi = document.getElementById("processing-ui") as HTMLDivElement;
-const processingStatus = document.getElementById(
-  "processing-status",
-) as HTMLDivElement;
-const progressDetail = document.getElementById(
-  "progress-detail",
-) as HTMLDivElement;
-const resultUi = document.getElementById("result-ui") as HTMLDivElement;
-const verdictSection = document.getElementById(
-  "verdict-section",
-) as HTMLDivElement;
-const btnNewCheck = document.getElementById(
-  "btn-new-check",
-) as HTMLButtonElement;
-const errorUi = document.getElementById("error-ui") as HTMLDivElement;
-const errorText = document.getElementById("error-text") as HTMLDivElement;
-const btnErrorRetry = document.getElementById(
-  "btn-error-retry",
-) as HTMLButtonElement;
-
-const permOverlay = document.getElementById("perm-overlay") as HTMLDivElement;
-const permTitle = document.getElementById("perm-title") as HTMLHeadingElement;
-const permDesc = document.getElementById("perm-desc") as HTMLParagraphElement;
-const btnPermAllow = document.getElementById(
-  "btn-perm-allow",
-) as HTMLButtonElement;
-const btnPermCancel = document.getElementById(
-  "btn-perm-cancel",
-) as HTMLButtonElement;
-
-let pendingCapture: CaptureType | null = null;
-
-function setStatus(text: string) {
-  statusDiv.textContent = `Stare: ${text}`;
-}
-
-function transitionTo(newState: CaptureState) {
-  state = newState;
-  idleUi.style.display = "none";
-  preparingUi.style.display = "none";
-  recordingUi.style.display = "none";
-  processingUi.style.display = "none";
-  resultUi.style.display = "none";
-  errorUi.style.display = "none";
-
-  switch (newState) {
-    case "idle":
-      idleUi.style.display = "block";
-      btnTab.disabled = false;
-      btnMic.disabled = false;
-      btnTab.textContent = "Captură Filă";
-      btnMic.textContent = "Captură Microfon";
-      setStatus("Pregătit");
-      break;
-    case "preparing":
-      preparingUi.style.display = "block";
-      btnTab.disabled = true;
-      btnMic.disabled = true;
-      setStatus("Se inițializează...");
-      break;
-    case "recording":
-      recordingUi.style.display = "block";
-      setStatus("Se înregistrează");
-      break;
-    case "processing":
-      processingUi.style.display = "block";
-      setStatus("Se procesează");
-      break;
-    case "result":
-      resultUi.style.display = "block";
-      setStatus("Verdict primit");
-      break;
-    case "error":
-      errorUi.style.display = "block";
-      setStatus("Eroare");
-      break;
-  }
+function updateTimerDisplay() {
+  const mins = Math.floor(elapsedSeconds / 60);
+  const secs = elapsedSeconds % 60;
+  timerText.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 function startTimer() {
+  if (timerInterval) return;
   elapsedSeconds = 0;
-  updateTimer();
+  updateTimerDisplay();
+  timerText.style.display = "block";
   timerInterval = setInterval(() => {
     elapsedSeconds++;
-    updateTimer();
+    updateTimerDisplay();
   }, 1000);
 }
 
@@ -130,283 +45,287 @@ function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
   }
+  timerText.style.display = "none";
 }
 
-function updateTimer() {
-  const mins = Math.floor(elapsedSeconds / 60);
-  const secs = elapsedSeconds % 60;
-  timerDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+const segmentsList = document.getElementById("segments-list") as HTMLDivElement;
+const interimTextDiv = document.getElementById(
+  "interim-text",
+) as HTMLDivElement;
+const transcriptContainer = document.getElementById(
+  "transcript-container",
+) as HTMLDivElement;
+
+interface Segment {
+  segmentId: string;
+  text: string;
+  verdict?: string;
+  confidence?: number;
+  explanation?: string;
+  sources?: string[];
 }
 
-function showPermDialog(type: CaptureType) {
-  pendingCapture = type;
-  if (type === "tab") {
-    permTitle.textContent = "Permisiune pentru captura audio";
-    permDesc.innerHTML =
-      "<brand-name></brand-name> are nevoie de acces la sunetul din fila ta activă pentru a analiza și verifica afirmațiile.";
-  } else {
-    permTitle.textContent = "Permisiune pentru microfon";
-    permDesc.innerHTML =
-      "<brand-name></brand-name> are nevoie de acces la microfonul tău pentru a înregistra și verifica afirmațiile.";
-  }
-  permOverlay.classList.add("open");
-}
+const segments = new Map<string, Segment>();
 
-function hidePermDialog() {
-  permOverlay.classList.remove("open");
-  pendingCapture = null;
-}
-
-btnPermCancel.addEventListener("click", hidePermDialog);
-
-btnPermAllow.addEventListener("click", () => {
-  hidePermDialog();
-  if (pendingCapture === "tab") {
-    void startTabCaptureImpl();
-  } else if (pendingCapture === "mic") {
-    void startMicCaptureImpl();
-  }
+tabMicBtn.addEventListener("click", () => {
+  if (currentState !== "idle") return;
+  currentSource = "mic";
+  tabMicBtn.classList.add("active");
+  tabBrowserBtn.classList.remove("active");
 });
 
-btnStopRecording.addEventListener("click", () => {
-  void stopRecording();
+tabBrowserBtn.addEventListener("click", () => {
+  if (currentState !== "idle") return;
+  currentSource = "tab";
+  tabBrowserBtn.classList.add("active");
+  tabMicBtn.classList.remove("active");
 });
 
-btnNewCheck.addEventListener("click", () => {
-  transitionTo("idle");
-});
-
-btnErrorRetry.addEventListener("click", () => {
-  transitionTo("idle");
-});
-
-async function startTabCaptureImpl() {
-  if (isTabCapturing) return;
-  transitionTo("preparing");
-  preparingText.textContent = "Se inițializează capturarea filei...";
-
-  try {
-    const capture = await startTabCapture();
-    isTabCapturing = true;
-
-    micStop = capture.stop;
-
-    recordingLabel.textContent = "Se capturează audio din filă";
-    transitionTo("recording");
-    startTimer();
-  } catch (err: unknown) {
-    const msg = (err as Error).message;
-    showInlineError(msg);
-  }
-}
-
-async function startMicCaptureImpl() {
-  if (micStop) return;
-  transitionTo("preparing");
-  preparingText.textContent = "Se inițializează microfonul...";
-
-  try {
-    const capture = await startMicCapture();
-    micStop = capture.stop;
-
-    void chrome.runtime.sendMessage({
-      type: "CAPTURE_STARTED",
-      captureType: "mic",
-    });
-
-    recordingLabel.textContent = "Se înregistrează de la microfon";
-    transitionTo("recording");
-    startTimer();
-  } catch (err: unknown) {
-    const msg = (err as Error).message;
-    showInlineError(msg);
-  }
-}
-
-async function stopRecording() {
-  stopTimer();
-
-  if (micStop) {
-    const stopFn = micStop;
-    micStop = null;
-    isTabCapturing = false;
-
-    transitionTo("processing");
-    processingStatus.textContent = "Se procesează audio...";
-
-    try {
-      const blob = await stopFn();
-      if (!blob) throw new Error("Captura audio nu a produs date.");
-      processingStatus.textContent = "Se analizează...";
-      await dispatchAudioAndWait(blob);
-    } catch (err: unknown) {
-      showInlineError((err as Error).message);
-    }
-  }
-}
-
-async function dispatchAudioAndWait(blob: Blob) {
-  const result = (await dispatchAndWait(blob, (p) => {
-    showProgress(p.stage, p.progress, p.claim);
-  })) as {
-    claims?: {
-      verdict: string;
-      explanation: string;
-      confidenceScore: number;
-      evidence?: { title: string; url: string; snippet: string }[];
-    }[];
-  };
-
-  if (result?.claims && result.claims.length > 0) {
-    const c = result.claims[0];
-    showVerdict(c.verdict, c.explanation, c.confidenceScore, c.evidence ?? []);
-  } else {
-    showVerdict(
-      "Unverified",
-      "Nu s-au găsit afirmații în înregistrare.",
-      0,
-      [],
-    );
-  }
-}
-
-function showProgress(stage: string, pct: number, claim?: string) {
-  const labels: Record<string, string> = {
-    speech: "Transcriere audio...",
-    claim_detection: "Detectare afirmații...",
-    evidence_retrieval: "Căutare dovezi...",
-    verdict_generation: "Generare verdict...",
-  };
-  const clampedPct = Math.max(0, Math.min(100, pct));
-  let html = `<div class="stage-text">${labels[stage] || "Procesare..."} ${clampedPct}%</div>`;
-  html += `<div class="progress-bar-track"><div class="progress-bar-fill" style="width:${clampedPct}%"></div></div>`;
-  if (claim) {
-    html += `<div class="progress-claim">"${claim.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>`;
-  }
-  progressDetail.innerHTML = html;
-  processingStatus.textContent = labels[stage] || "Procesare...";
-}
-
-const verdictTranslations: Record<string, string> = {
-  True: "Adevărat",
-  "Mostly True": "În mare parte adevărat",
-  "Partially True": "Parțial adevărat",
-  Misleading: "Înșelător",
-  False: "Fals",
-  Unverified: "Neverificat",
-};
-
-const verdictColors: Record<string, string> = {
-  True: "#22c55e",
-  "Mostly True": "#84cc16",
-  "Partially True": "#d97706",
-  Misleading: "#ea580c",
-  False: "#ef4444",
-  Unverified: "#6b7280",
-};
-
-function showVerdict(
-  verdict: string,
-  explanation: string,
-  confidence: number,
-  evidence: Array<{ title: string; url: string; snippet: string }>,
-) {
-  let evidenceHtml = "";
-  if (evidence && evidence.length > 0) {
-    evidenceHtml = evidence
-      .map(
-        (e) =>
-          `<div class="evidence-item">
-            <div class="evidence-source-name">${e.title}</div>
-            <div class="evidence-url"><a href="${e.url}" target="_blank" rel="noopener">${e.url}</a></div>
-            <div style="font-size:12px;color:var(--color-mute);margin-top:2px;">${e.snippet}</div>
-          </div>`,
-      )
-      .join("");
-  }
-
-  const accentColor = verdictColors[verdict] || "#171717";
-
-  verdictSection.innerHTML = `
-    <div class="verdict-label" style="color:${accentColor};">${verdictTranslations[verdict] || verdict}</div>
-    <div class="verdict-confidence">${confidence} / 100</div>
-    <div class="verdict-explanation">${explanation}</div>
-    ${evidenceHtml ? `<div style="margin-top:var(--spacing-sm);font-size:13px;font-weight:500;color:var(--color-ink);">Surse</div>${evidenceHtml}` : ""}
-    <div class="progress-bar-track" style="margin-top:12px;">
-      <div class="progress-bar-fill" style="width:${confidence}%;background:${accentColor};"></div>
-    </div>
-  `;
-  transitionTo("result");
-}
-
-function showInlineError(message: string) {
-  errorText.textContent = message;
-  transitionTo("error");
-}
-
-btnTab.addEventListener("click", () => {
-  if (state !== "idle") return;
-  showPermDialog("tab");
-});
-
-btnMic.addEventListener("click", () => {
-  if (state !== "idle") return;
-  showPermDialog("mic");
-});
-
-type SidepanelMessage =
-  | { type: "CAPTURE_STARTED"; captureType?: string }
-  | { type: "VERIFICATION_STARTED"; source?: string; jobId?: string }
-  | {
-      type: "VERIFICATION_PROGRESS";
-      stage: string;
-      progress: number;
-      claim?: string;
-    }
-  | {
-      type: "VERIFICATION_COMPLETED";
-      result: {
-        claims: Array<{
-          verdict: string;
-          explanation: string;
-          confidenceScore: number;
-          evidence?: Array<{ title: string; url: string; snippet: string }>;
-        }>;
-      };
-    }
-  | { type: "VERIFICATION_FAILED"; reason: string }
-  | { type: "START_MIC_CAPTURE" };
-
-chrome.runtime.onMessage.addListener((msg: SidepanelMessage) => {
-  if (msg.type === "VERIFICATION_STARTED") {
-    transitionTo("processing");
-    processingStatus.textContent =
-      msg.source === "text" ? "Se analizează textul..." : "Se încarcă audio...";
-  }
-  if (msg.type === "VERIFICATION_PROGRESS") {
-    if (state === "processing") {
-      showProgress(msg.stage, msg.progress, msg.claim);
-    }
-  }
-  if (msg.type === "VERIFICATION_COMPLETED" && msg.result?.claims) {
-    if (msg.result.claims.length > 0) {
-      const c = msg.result.claims[0];
-      showVerdict(
-        c.verdict,
-        c.explanation,
-        c.confidenceScore,
-        c.evidence ?? [],
-      );
+actionBtn.addEventListener("click", () => {
+  void (async () => {
+    if (currentState === "idle") {
+      await startListening();
     } else {
-      showVerdict("Unverified", "Nu s-au găsit afirmații.", 0, []);
+      await stopListening();
     }
-  }
-  if (msg.type === "VERIFICATION_FAILED") {
-    showInlineError(msg.reason);
-  }
-  if (msg.type === "START_MIC_CAPTURE") {
-    showPermDialog("mic");
-  }
+  })();
 });
 
-void resumePendingJob();
+function translateError(rawMsg: string): string {
+  const msg = rawMsg.toLowerCase();
+  if (msg.includes("page failed to load") || msg.includes("offscreen")) {
+    return "Nu s-a putut porni captarea audio. Reîncărcați extensia și încercați din nou.";
+  }
+  if (
+    msg.includes("chrome pages cannot be captured") ||
+    msg.includes("restricted")
+  ) {
+    return "Nu se poate captura sunetul acestei pagini. Deschideți fila cu conținutul dorit și încercați din nou.";
+  }
+  if (msg.includes("permission denied") || msg.includes("not allowed")) {
+    return "Accesul la microfon a fost refuzat. Activați-l din setările browserului.";
+  }
+  if (msg.includes("websocket") || msg.includes("econnrefused")) {
+    return "Conexiunea a eșuat. Verificați internetul și încercați din nou.";
+  }
+  return "A apărut o eroare neașteptată. Încercați din nou. (" + rawMsg + ")";
+}
+
+function showError(msg: string) {
+  errorBanner.textContent = translateError(msg);
+  errorBanner.style.display = "block";
+}
+function clearError() {
+  errorBanner.style.display = "none";
+}
+
+async function startListening() {
+  clearError();
+  currentState = "preparing";
+  updateUI();
+
+  try {
+    const capture =
+      currentSource === "mic"
+        ? await startMicCapture()
+        : await startTabCapture();
+    stopCaptureFn = capture.stop;
+    currentState = "recording";
+    // Clear transcript on new recording
+    segments.clear();
+    segmentsList.innerHTML = "";
+    interimTextDiv.textContent = "";
+    interimTextDiv.style.display = "none";
+    updateUI();
+  } catch (err: unknown) {
+    showError(err instanceof Error ? err.message : String(err));
+    currentState = "idle";
+    updateUI();
+  }
+}
+
+async function stopListening() {
+  if (stopCaptureFn) {
+    try {
+      await stopCaptureFn();
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : String(err));
+    }
+  }
+  stopCaptureFn = null;
+  currentState = "idle";
+  interimTextDiv.style.display = "none";
+  updateUI();
+}
+
+function updateUI() {
+  if (currentState === "idle") {
+    actionBtn.textContent = "Începe ascultarea";
+    actionBtn.className = "btn-primary";
+    actionBtn.disabled = false;
+    statusText.textContent = "Pregătit";
+    tabMicBtn.disabled = false;
+    tabBrowserBtn.disabled = false;
+    stopTimer();
+  } else if (currentState === "preparing") {
+    actionBtn.textContent = "Se inițializează...";
+    actionBtn.className = "btn-primary";
+    actionBtn.disabled = true;
+    statusText.textContent = "Așteptați...";
+    tabMicBtn.disabled = true;
+    tabBrowserBtn.disabled = true;
+  } else if (currentState === "recording") {
+    actionBtn.textContent = "Oprește";
+    actionBtn.className = `btn-primary recording-${currentSource}`;
+    actionBtn.disabled = false;
+    statusText.textContent =
+      currentSource === "mic"
+        ? "Se înregistrează de la microfon"
+        : "Se capturează audio din filă";
+    tabMicBtn.disabled = true;
+    tabBrowserBtn.disabled = true;
+    startTimer();
+  }
+}
+
+// Render segments
+function getVerdictClass(verdict?: string) {
+  if (!verdict) return "";
+  const v = verdict.toLowerCase();
+  if (v === "true" || v === "adevărat") return "verdict-true";
+  if (v === "false" || v === "fals") return "verdict-false";
+  return "verdict-misc";
+}
+
+function getVerdictLabel(verdict?: string) {
+  if (!verdict) return "";
+  const v = verdict.toLowerCase();
+  if (v === "true" || v === "adevărat") return "ADEVĂRAT";
+  if (v === "false" || v === "fals") return "FALS";
+  if (v === "unverified" || v === "neverificat") return "NEVERIFICAT";
+  return "INCERT";
+}
+
+function renderSegment(seg: Segment) {
+  let el = document.getElementById(`seg-${seg.segmentId}`);
+  if (!el) {
+    el = document.createElement("div");
+    el.id = `seg-${seg.segmentId}`;
+    el.className = "segment";
+    el.addEventListener("click", () => {
+      if (seg.verdict) el!.classList.toggle("expanded");
+    });
+    segmentsList.appendChild(el);
+  }
+
+  el.className = `segment ${getVerdictClass(seg.verdict)}`;
+
+  let sourcesHtml = "";
+  if (seg.sources && seg.sources.length > 0) {
+    sourcesHtml =
+      `<div class="detail-title">Surse:</div>` +
+      seg.sources
+        .map(
+          (s) => `<a href="${s}" class="source-link" target="_blank">${s}</a>`,
+        )
+        .join("<br>");
+  }
+
+  const detailsHtml = seg.verdict
+    ? `
+    <div class="segment-details">
+      <div class="detail-explanation">${seg.explanation || ""}</div>
+      ${sourcesHtml}
+    </div>
+  `
+    : "";
+
+  const badgeHtml = seg.verdict
+    ? `
+    <div class="verdict-badge">${getVerdictLabel(seg.verdict)}</div>
+  `
+    : "";
+
+  el.innerHTML = `
+    ${badgeHtml}
+    <div class="segment-text">${seg.text}</div>
+    ${detailsHtml}
+  `;
+
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  transcriptContainer.scrollTop = transcriptContainer.scrollHeight;
+}
+
+// Listen to extension messages
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+chrome.runtime.onMessage.addListener((msg: any) => {
+  console.log("[SidePanel] Received relay message:", msg);
+  if (msg.type === "STREAM_TRANSCRIPT_UPDATE") {
+    if (msg.originalType === "interim") {
+      interimTextDiv.textContent = msg.text;
+      interimTextDiv.style.display = "block";
+      scrollToBottom();
+    } else if (msg.originalType === "final") {
+      interimTextDiv.style.display = "none";
+      if (msg.segmentId) {
+        segments.set(msg.segmentId, {
+          segmentId: msg.segmentId,
+          text: msg.text,
+        });
+        renderSegment(segments.get(msg.segmentId)!);
+      }
+    }
+  } else if (msg.type === "STREAM_FACT_RESULT") {
+    if (msg.segmentId && segments.has(msg.segmentId)) {
+      const seg = segments.get(msg.segmentId)!;
+      seg.verdict = msg.verdict;
+      seg.confidence = msg.confidence;
+      seg.explanation = msg.explanation;
+      seg.sources = msg.sources;
+      renderSegment(seg);
+    }
+  } else if (msg.type === "STREAM_ERROR") {
+    showError(msg.message || "A apărut o eroare la conexiune.");
+    stopListening();
+  } else if (msg.type === "VERIFICATION_STARTED") {
+    clearError();
+    segments.clear();
+    segmentsList.innerHTML = "";
+    interimTextDiv.textContent = "";
+    interimTextDiv.style.display = "none";
+    statusText.textContent = "Se inițializează verificarea textului...";
+  } else if (msg.type === "VERIFICATION_PROGRESS") {
+    const labels: Record<string, string> = {
+      speech: "Transcriere audio...",
+      claim_detection: "Detectare afirmații...",
+      evidence_retrieval: "Căutare dovezi...",
+      verdict_generation: "Generare verdict...",
+    };
+    statusText.textContent = labels[msg.stage as string] || "Procesare...";
+  } else if (msg.type === "VERIFICATION_COMPLETED") {
+    statusText.textContent = "Verificare completă";
+    const result = msg.result;
+    if (result && result.claims && result.claims.length > 0) {
+      const claim = result.claims[0];
+      const segmentId = "batch-" + Date.now();
+      const seg: Segment = {
+        segmentId,
+        text: claim.claim || "Text selectat",
+        verdict: claim.verdict,
+        confidence: claim.confidenceScore,
+        explanation: claim.explanation,
+        sources: claim.evidence?.map((e: { url: string }) => e.url) || [],
+      };
+      segments.set(segmentId, seg);
+      renderSegment(seg);
+    } else {
+      showError("Nu s-au găsit afirmații verificabile.");
+    }
+  } else if (msg.type === "VERIFICATION_FAILED") {
+    showError((msg.reason as string) || "A apărut o eroare la verificare.");
+    statusText.textContent = "Eroare";
+  }
+});

@@ -216,7 +216,7 @@ export default defineContentScript({
       }
       if (m.type === "VERIFICATION_STARTED") {
         createOverlay();
-        showStatus("Încărcare audio...");
+        showStatus("Se inițializează...");
       }
       if (m.type === "VERIFICATION_PROGRESS") {
         createOverlay();

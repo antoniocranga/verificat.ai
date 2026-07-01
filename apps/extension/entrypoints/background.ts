@@ -6,7 +6,7 @@ import {
 } from "../utils/api";
 
 // ─── Offscreen document helpers ───────────────────────────────────────────────
-const OFFSCREEN_URL = chrome.runtime.getURL("entrypoints/offscreen/index.html");
+const OFFSCREEN_URL = chrome.runtime.getURL("offscreen.html");
 
 async function ensureOffscreen(): Promise<void> {
   // Chrome 116+ supports hasDocument(); guard for older builds
@@ -14,15 +14,22 @@ async function ensureOffscreen(): Promise<void> {
     typeof chrome.offscreen?.hasDocument === "function"
       ? await chrome.offscreen.hasDocument()
       : false;
+  console.log(`[Background] ensureOffscreen: hasDoc before = ${hasDoc}`);
   if (!hasDoc) {
-    await chrome.offscreen.createDocument({
-      url: OFFSCREEN_URL,
-      reasons: [
-        chrome.offscreen.Reason.USER_MEDIA,
-        chrome.offscreen.Reason.AUDIO_PLAYBACK,
-      ],
-      justification: "Capture audio for real-time fact-checking",
-    });
+    try {
+      await chrome.offscreen.createDocument({
+        url: OFFSCREEN_URL,
+        reasons: [
+          chrome.offscreen.Reason.USER_MEDIA,
+          chrome.offscreen.Reason.AUDIO_PLAYBACK,
+        ],
+        justification: "Capture audio for real-time fact-checking",
+      });
+      console.log("[Background] ensureOffscreen: createDocument success");
+    } catch (err) {
+      console.error("[Background] ensureOffscreen: createDocument failed", err);
+      throw err;
+    }
   }
 }
 
@@ -39,24 +46,37 @@ export default defineBackground(() => {
     const text = info.selectionText;
     if (!text || text.trim().length === 0) return;
 
-    if (tab?.id) {
-      void chrome.sidePanel.open({ tabId: tab.id });
-    }
-
     void (async () => {
+      if (tab?.id) {
+        try {
+          await chrome.sidePanel.open({ tabId: tab.id });
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (err) {
+          console.error("[Background] Failed to open side panel", err);
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const notify = (msg: any) => {
+        void chrome.runtime.sendMessage(msg).catch(() => undefined);
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, msg).catch(() => undefined);
+        }
+      };
+
+      notify({
+        type: "VERIFICATION_STARTED",
+        source: "text",
+      });
+
       try {
         const jobId = await verifyText(text.trim());
         await storage.setItem("local:verification_job_id", jobId);
-        void chrome.runtime.sendMessage({
-          type: "VERIFICATION_STARTED",
-          jobId,
-          source: "text",
-        });
 
         await consumeVerdictStream(
           jobId,
           (p) => {
-            void chrome.runtime.sendMessage({
+            notify({
               type: "VERIFICATION_PROGRESS",
               stage: p.stage,
               progress: p.progress,
@@ -64,20 +84,20 @@ export default defineBackground(() => {
             });
           },
           (result) => {
-            void chrome.runtime.sendMessage({
+            notify({
               type: "VERIFICATION_COMPLETED",
               result,
             });
           },
           (reason) => {
-            void chrome.runtime.sendMessage({
+            notify({
               type: "VERIFICATION_FAILED",
               reason,
             });
           },
         );
       } catch (err) {
-        void chrome.runtime.sendMessage({
+        notify({
           type: "VERIFICATION_FAILED",
           reason: String(err),
         });
@@ -91,6 +111,7 @@ export default defineBackground(() => {
       _sender,
       sendResponse,
     ) => {
+      console.log("[Background] Received message:", JSON.stringify(msg));
       // ── Existing tab-stream ID helper ──────────────────────────────────
       if (msg.type === "GET_TAB_STREAM_ID") {
         try {
@@ -147,7 +168,7 @@ export default defineBackground(() => {
 
       // ── Real-time streaming controls (new) ─────────────────────────────
 
-      if (msg.type === "START_STREAM_MIC") {
+      if (msg.type === "UI_START_STREAM_MIC") {
         ensureOffscreen()
           .then(() => chrome.runtime.sendMessage({ type: "START_STREAM_MIC" }))
           .then(() => sendResponse({ ok: true }))
@@ -155,21 +176,36 @@ export default defineBackground(() => {
         return true;
       }
 
-      if (msg.type === "START_STREAM_TAB") {
+      if (msg.type === "UI_START_STREAM_TAB") {
         // getMediaStreamId must be called from the service worker, not offscreen
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           const tabId = tabs[0]?.id;
+          const url = tabs[0]?.url || "";
+
           if (!tabId) {
-            sendResponse({ error: "No active tab found" });
+            sendResponse({ error: "Nu s-a găsit fila activă." });
             return;
           }
+
+          if (
+            url.startsWith("chrome://") ||
+            url.startsWith("chrome-extension://") ||
+            url.startsWith("edge://") ||
+            url.startsWith("about:") ||
+            url.startsWith("https://chrome.google.com/webstore")
+          ) {
+            sendResponse({ error: "RESTRICTED_PAGE" });
+            return;
+          }
+
           chrome.tabCapture.getMediaStreamId(
             { targetTabId: tabId },
             (streamId) => {
               if (!streamId || chrome.runtime.lastError) {
                 sendResponse({
                   error:
-                    chrome.runtime.lastError?.message ?? "No streamId returned",
+                    chrome.runtime.lastError?.message ??
+                    "Nu s-a putut obține ID-ul fluxului",
                 });
                 return;
               }
@@ -188,7 +224,7 @@ export default defineBackground(() => {
         return true;
       }
 
-      if (msg.type === "STOP_STREAM") {
+      if (msg.type === "UI_STOP_STREAM") {
         void chrome.runtime.sendMessage({ type: "STOP_STREAM" });
         sendResponse({ ok: true });
       }
