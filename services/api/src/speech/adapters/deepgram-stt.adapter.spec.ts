@@ -14,10 +14,10 @@ jest.mock('ws', () => {
     }),
     _mockHandlers: mockOnHandlers,
   }));
-  WebSocketMock.CONNECTING = 0;
-  WebSocketMock.OPEN = 1;
-  WebSocketMock.CLOSING = 2;
-  WebSocketMock.CLOSED = 3;
+  (WebSocketMock as any).CONNECTING = 0;
+  (WebSocketMock as any).OPEN = 1;
+  (WebSocketMock as any).CLOSING = 2;
+  (WebSocketMock as any).CLOSED = 3;
   return { WebSocket: WebSocketMock };
 });
 
