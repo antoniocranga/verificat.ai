@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { NavBar, SiteLogo, Button } from "@verificat/ui";
 
@@ -10,6 +10,19 @@ const NAV_LINKS = [
 ];
 
 export function SiteNav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    setScrolled(window.scrollY > 60);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Check initial scroll position
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
   useEffect(() => {
     const easeOutCubic = (t: number, b: number, c: number, d: number) => {
       t /= d;
@@ -65,6 +78,7 @@ export function SiteNav() {
 
   return (
     <NavBar
+      scrolled={scrolled}
       logo={<SiteLogo linkComponent={Link} />}
       items={NAV_LINKS}
       actions={
