@@ -90,9 +90,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             </p>
           </div>
           <form action={signOut}>
-            <Button size="sm" id="signout-btn">
-              Sign Out
-            </Button>
+            <Button size="sm" id="signout-btn">Sign Out</Button>
           </form>
         </div>
 

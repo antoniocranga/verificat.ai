@@ -49,8 +49,7 @@ const primaryBtnStyle: React.CSSProperties = {
   fontSize: 14,
   cursor: "pointer",
   letterSpacing: "-0.01em",
-  transition:
-    "background var(--transition-fast), transform var(--transition-fast)",
+  transition: "background var(--transition-fast), transform var(--transition-fast)",
 };
 
 export default async function LoginPage({ searchParams }: PageProps) {

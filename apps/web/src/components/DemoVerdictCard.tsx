@@ -169,10 +169,7 @@ export function DemoVerdictCard() {
               <div
                 aria-label={`Scor de încredere: ${verdict.confidence}%`}
                 className="h-full rounded-sm transition-all duration-700 ease-out"
-                style={{
-                  width: `${verdict.confidence}%`,
-                  background: config.color,
-                }}
+                style={{ width: `${verdict.confidence}%`, background: config.color }}
               />
             </div>
             <span

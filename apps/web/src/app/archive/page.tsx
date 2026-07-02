@@ -100,9 +100,7 @@ export default function ArchivePage() {
             }
           />
         </div>
-        <Button size="sm" id="search-btn">
-          Caută
-        </Button>
+        <Button size="sm" id="search-btn">Caută</Button>
       </form>
 
       {loading && (

@@ -152,8 +152,7 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
                 fontWeight: 500,
                 fontSize: 14,
                 cursor: "pointer",
-                transition:
-                  "background var(--transition-fast), transform var(--transition-fast)",
+                transition: "background var(--transition-fast), transform var(--transition-fast)",
               }}
             >
               Actualizează parola
