@@ -1,4 +1,5 @@
 import { defineConfig } from "wxt";
+import tailwindcss from "@tailwindcss/vite";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -33,6 +34,7 @@ export default defineConfig({
     ],
   },
   vite: () => ({
+    plugins: [tailwindcss()],
     define: {
       __API_URL__: JSON.stringify(
         process.env.API_URL || "http://localhost:3000",

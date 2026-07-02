@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { signOut } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FeatureCard, ButtonPrimarySmall, verdictColors } from "@verificat/ui";
+import { FeatureCard, Button, verdictColors } from "@verificat/ui";
 import type { VerdictLabel } from "@verificat/ui";
 
 interface VerdictRow {
@@ -90,7 +90,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             </p>
           </div>
           <form action={signOut}>
-            <ButtonPrimarySmall id="signout-btn">Sign Out</ButtonPrimarySmall>
+            <Button size="sm" id="signout-btn">
+              Sign Out
+            </Button>
           </form>
         </div>
 

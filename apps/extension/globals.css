@@ -1,0 +1,3 @@
+@import "tailwindcss";
+@source "../../packages/ui";
+@import "@verificat/ui/tokens.css";

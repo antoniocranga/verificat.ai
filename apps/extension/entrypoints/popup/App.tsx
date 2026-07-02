@@ -1,9 +1,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from "react";
 import {
-  ButtonPrimary,
-  ButtonSecondary,
-  ButtonGhostSmall,
+  Button,
   HeadingMd,
   BodyMd,
   BodySm,
@@ -215,9 +213,9 @@ export function App() {
             Politica de Confidențialitate
           </a>
         </BodySm>
-        <ButtonPrimary onClick={handleAcceptConsent} style={{ width: "100%" }}>
+        <Button onClick={handleAcceptConsent} className="w-full">
           Accept și Continuă
-        </ButtonPrimary>
+        </Button>
       </Surface>
     );
   }
@@ -268,19 +266,19 @@ export function App() {
         {popupState === "idle" ||
         popupState === "result" ||
         popupState === "error" ? (
-          <ButtonPrimary onClick={handleStart}>
+          <Button onClick={handleStart}>
             {popupState === "idle"
               ? "Începe Ascultarea"
               : popupState === "result"
                 ? "Noua Verificare"
                 : "Încearcă din Nou"}
-          </ButtonPrimary>
+          </Button>
         ) : (
-          <ButtonSecondary onClick={handleStop}>Oprește</ButtonSecondary>
+          <Button variant="secondary" onClick={handleStop}>Oprește</Button>
         )}
-        <ButtonGhostSmall onClick={handleOpenPanel} style={{ width: "100%" }}>
+        <Button variant="ghost" size="sm" onClick={handleOpenPanel} className="w-full">
           Deschide Panoul Lateral
-        </ButtonGhostSmall>
+        </Button>
       </div>
 
       <div
@@ -302,27 +300,30 @@ export function App() {
             marginBottom: "var(--spacing-sm)",
           }}
         >
-          <ButtonSecondary
+          <Button
+            variant="secondary"
             onClick={handleStartStreamMic}
             disabled={streamActive}
-            style={{ flex: 1, padding: "4px" }}
+            className="flex-1 px-1"
           >
             🎤 Mic
-          </ButtonSecondary>
-          <ButtonSecondary
+          </Button>
+          <Button
+            variant="secondary"
             onClick={handleStartStreamTab}
             disabled={streamActive}
-            style={{ flex: 1, padding: "4px" }}
+            className="flex-1 px-1"
           >
             🔊 Tab
-          </ButtonSecondary>
-          <ButtonSecondary
+          </Button>
+          <Button
+            variant="secondary"
             onClick={handleStopStream}
             disabled={!streamActive}
-            style={{ flex: 1, padding: "4px" }}
+            className="flex-1 px-1"
           >
             ⏹ Stop
-          </ButtonSecondary>
+          </Button>
         </div>
         <BodySm
           style={{

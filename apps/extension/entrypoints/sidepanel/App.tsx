@@ -1,15 +1,12 @@
 /* eslint-disable */
 import React, { useEffect, useState } from "react";
 import {
-  ButtonPrimary,
-  ButtonSecondary,
+  Button,
   HeadingMd,
   BodyMd,
   BodySm,
   Surface,
   SkeletonText,
-  ButtonPrimarySmall,
-  ButtonGhostSmall,
 } from "@verificat/ui";
 import { startTabCapture, startMicCapture } from "../../utils/audio-capture";
 
@@ -297,18 +294,18 @@ export function App() {
           )}
 
           {currentState === "idle" ? (
-            <ButtonPrimary onClick={handleStart}>
+            <Button onClick={handleStart}>
               Începe ascultarea
-            </ButtonPrimary>
+            </Button>
           ) : currentState === "preparing" ? (
-            <ButtonPrimary disabled>Se inițializează...</ButtonPrimary>
+            <Button disabled>Se inițializează...</Button>
           ) : (
-            <ButtonPrimary
+            <Button
+              variant="destructive"
               onClick={handleStop}
-              style={{ backgroundColor: "var(--color-accent)" }}
             >
               Oprește
-            </ButtonPrimary>
+            </Button>
           )}
 
           <BodySm style={{ textAlign: "center", color: "var(--color-mid)" }}>
@@ -520,12 +517,12 @@ export function App() {
             </>
             )}
           </div>
-          <ButtonPrimary
+          <Button
             onClick={handleNewCheck}
-            style={{ marginTop: "var(--spacing-md)" }}
+            className="mt-4"
           >
             Verificare nouă
-          </ButtonPrimary>
+          </Button>
         </div>
       )}
     </div>

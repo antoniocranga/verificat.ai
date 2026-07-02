@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
+@source "../../../../packages/ui";
 @import "@verificat/ui/tokens.css";
 
 /* ============================================================
@@ -13,7 +15,7 @@
   --color-accent: var(--color-accent);
   --color-blue: var(--color-blue);
   --color-green: var(--color-green);
-  
+
   --color-surface-base: var(--surface-base);
   --color-surface-raised: var(--surface-raised);
   --color-surface-overlay: var(--surface-overlay);
@@ -25,6 +27,29 @@
   --color-verdict-misleading: var(--verdict-misleading);
   --color-verdict-false: var(--verdict-false);
   --color-verdict-unverified: var(--verdict-unverified);
+
+  /* shadcn semantic tokens mapped to our design system */
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-canvas-elevated);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-canvas-elevated);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-canvas-elevated);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-subtle);
+  --color-muted-foreground: var(--color-mid);
+  --color-accent: var(--color-canvas-elevated);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-subtle);
+  --color-input: var(--color-subtle);
+  --color-ring: var(--color-accent);
+
+  --radius: var(--rounded-md);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -52,7 +77,7 @@
    TYPOGRAPHY CLASSES — apply via className, never per-component
    ============================================================ */
 
-/* Display / hero heading — Anthropic Serif, tight tracking */
+/* Display / hero heading — Poppins, tight tracking */
 .heading-display {
   font-family: var(--font-display);
   font-weight: 700;
@@ -61,7 +86,7 @@
   color: var(--color-ink);
 }
 
-/* Section heading — Anthropic Serif 600 */
+/* Section heading — Poppins 600 */
 .heading-section {
   font-family: var(--font-display);
   font-weight: 600;
@@ -79,7 +104,7 @@
   color: var(--color-ink);
 }
 
-/* Body copy — Anthropic Sans, generous leading */
+/* Body copy — Lora, generous leading */
 .body-text {
   font-family: var(--font-body);
   font-weight: 400;
@@ -97,11 +122,12 @@
   color: var(--color-mid);
 }
 
-/* UI labels — Anthropic Serif 500, slight wide tracking */
+/* UI labels — Poppins 500, slight wide tracking */
 .label-text {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
+  /* 12px */
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-mid);
@@ -113,12 +139,15 @@
 .surface-base {
   background-color: var(--surface-base);
 }
+
 .surface-raised {
   background-color: var(--surface-raised);
 }
+
 .surface-inset {
   background-color: var(--surface-inset);
 }
+
 .surface-overlay {
   background-color: var(--surface-overlay);
   box-shadow: var(--shadow-lg);
@@ -132,6 +161,7 @@
     transform 150ms ease-out,
     box-shadow 150ms ease-out;
 }
+
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -149,17 +179,21 @@
     box-shadow 150ms ease-out;
   outline: none;
 }
+
 .input::placeholder {
   color: var(--color-mid);
 }
+
 .input:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.1);
 }
+
 .input:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
 .input[data-error="true"] {
   border-color: var(--verdict-false);
   box-shadow: 0 0 0 3px rgba(201, 64, 64, 0.1);
@@ -186,6 +220,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  border-color: var(--color-subtle);
 }
 
 html {
@@ -200,23 +235,39 @@ body {
   font-family: var(--font-body);
 }
 
-a {
-  color: var(--color-ink);
-  text-decoration: none;
-  transition:
-    color 150ms ease-out,
-    text-decoration 150ms ease-out;
-}
+@layer base {
+  a {
+    color: var(--color-ink);
+    text-decoration: none;
+    transition:
+      color 150ms ease-out,
+      text-decoration 150ms ease-out;
+  }
 
-a:hover {
-  color: var(--color-accent);
-  text-decoration: underline dotted;
+  a:hover {
+    color: var(--color-accent);
+    text-decoration: underline dotted;
+  }
+
+  /* Prevent links inside buttons from breaking button text color */
+  button a,
+  [data-slot="button"] a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  button a:hover,
+  [data-slot="button"] a:hover {
+    color: inherit;
+    text-decoration: inherit;
+  }
 }
 
 /* ============================================================
    PREFERS-REDUCED-MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
