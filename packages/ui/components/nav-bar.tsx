@@ -65,13 +65,9 @@ export function NavBar({ id, scrolled = false, logo, items, actions }: NavBarPro
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          maxWidth: 1200,
+          width: scrolled ? "calc(100% - 0px)" : "100%",
+          maxWidth: scrolled ? 1200 : "100%",
           height: scrolled ? 52 : 64,
-          padding: scrolled ? "0 16px" : "0 24px",
           borderRadius: scrolled ? "var(--rounded-lg, 16px)" : 0,
           backgroundColor: scrolled ? "rgba(250, 249, 245, 0.85)" : "rgba(250, 249, 245, 0.15)",
           backdropFilter: "blur(12px)",
@@ -84,6 +80,19 @@ export function NavBar({ id, scrolled = false, logo, items, actions }: NavBarPro
           boxSizing: "border-box",
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            maxWidth: 1200,
+            margin: "0 auto",
+            height: "100%",
+            padding: scrolled ? "0 16px" : "0 24px",
+            boxSizing: "border-box",
+          }}
+        >
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: "1 1 0%", overflow: "hidden" }}>
           {logo}
         </div>
@@ -124,7 +133,7 @@ export function NavBar({ id, scrolled = false, logo, items, actions }: NavBarPro
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "1 1 0%", justifyContent: "flex-end" }}>
-          {actions}
+
 
           {mounted && (
             <Button
@@ -136,6 +145,8 @@ export function NavBar({ id, scrolled = false, logo, items, actions }: NavBarPro
               {currentTheme === "dark" ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
             </Button>
           )}
+
+          {actions}
 
           <div ref={menuRef} className="relative md:hidden">
             <Button
@@ -203,6 +214,7 @@ export function NavBar({ id, scrolled = false, logo, items, actions }: NavBarPro
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
     </nav>
