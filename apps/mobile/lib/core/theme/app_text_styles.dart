@@ -9,7 +9,7 @@ abstract final class AppTextStyles {
 
   // ── Display ────────────────────────────────────────────────────
   static const headingDisplay = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w700,
     fontSize: 48,
     height: 1.1,
@@ -17,7 +17,7 @@ abstract final class AppTextStyles {
   );
 
   static const headingSection = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w600,
     fontSize: 32,
     height: 1.2,
@@ -25,7 +25,7 @@ abstract final class AppTextStyles {
   );
 
   static const headingSubsection = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w600,
     fontSize: 20,
     height: 1.3,
@@ -34,7 +34,7 @@ abstract final class AppTextStyles {
 
   // ── Body ───────────────────────────────────────────────────────
   static const bodyLg = TextStyle(
-    fontFamily: 'Lora',
+    fontFamily: 'Anthropic Sans',
     fontWeight: FontWeight.w400,
     fontSize: 16,
     height: 1.75,
@@ -42,7 +42,7 @@ abstract final class AppTextStyles {
   );
 
   static const bodyMd = TextStyle(
-    fontFamily: 'Lora',
+    fontFamily: 'Anthropic Sans',
     fontWeight: FontWeight.w400,
     fontSize: 14,
     height: 1.6,
@@ -57,9 +57,18 @@ abstract final class AppTextStyles {
     letterSpacing: 0,
   );
 
+  static const bodySm = TextStyle(
+    fontFamily: 'Anthropic Sans',
+    fontWeight: FontWeight.w400,
+    fontSize: 12,
+    height: 1.5,
+    letterSpacing: 0,
+    color: Color(0xFF141413),
+  );
+
   // ── UI Labels ─────────────────────────────────────────────────
   static const labelLg = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w600,
     fontSize: 15,
     height: 1.0,
@@ -67,7 +76,7 @@ abstract final class AppTextStyles {
   );
 
   static const labelMd = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w500,
     fontSize: 13,
     height: 1.0,
@@ -83,7 +92,7 @@ abstract final class AppTextStyles {
   );
 
   static const labelCaps = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Anthropic Serif',
     fontWeight: FontWeight.w500,
     fontSize: 11,
     height: 1.4,

@@ -214,6 +214,30 @@ class _ListeningScreenState extends State<ListeningScreen> {
           ],
         ),
       ),
+      floatingActionButton: BlocBuilder<ListeningBloc, ListeningState>(
+        builder: (context, state) {
+          if (state.status == ListeningStatus.streaming || state.status == ListeningStatus.listening) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 100.0),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  if (state.status == ListeningStatus.streaming) {
+                    context.read<ListeningBloc>().add(const StopStreaming());
+                  } else {
+                    context.read<ListeningBloc>().add(const StopListening());
+                  }
+                },
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.surfaceRaised,
+                icon: const Icon(Icons.stop_rounded),
+                label: const Text('Oprește', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

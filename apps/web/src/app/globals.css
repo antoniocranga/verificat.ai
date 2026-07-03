@@ -86,7 +86,7 @@
   color: var(--color-ink);
 }
 
-/* Section heading — Poppins 600 */
+/* Section heading — Anthropic Serif 600 */
 .heading-section {
   font-family: var(--font-display);
   font-weight: 600;
@@ -104,7 +104,7 @@
   color: var(--color-ink);
 }
 
-/* Body copy — Lora, generous leading */
+/* Body copy — Anthropic Sans, generous leading */
 .body-text {
   font-family: var(--font-body);
   font-weight: 400;
@@ -122,7 +122,7 @@
   color: var(--color-mid);
 }
 
-/* UI labels — Poppins 500, slight wide tracking */
+/* UI labels — Anthropic Serif 500, slight wide tracking */
 .label-text {
   font-family: var(--font-display);
   font-weight: 500;
