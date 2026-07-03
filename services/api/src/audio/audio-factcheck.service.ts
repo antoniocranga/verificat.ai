@@ -84,7 +84,10 @@ export class AudioFactcheckService {
       let status: 'true' | 'false' | 'uncertain' = 'uncertain';
       if (verdict.verdict === 'True' || verdict.verdict === 'Mostly True') {
         status = 'true';
-      } else if (verdict.verdict === 'False' || verdict.verdict === 'Misleading') {
+      } else if (
+        verdict.verdict === 'False' ||
+        verdict.verdict === 'Misleading'
+      ) {
         status = 'false';
       }
 

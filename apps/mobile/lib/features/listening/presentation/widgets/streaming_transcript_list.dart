@@ -93,11 +93,11 @@ class _StreamingTranscriptListState extends State<StreamingTranscriptList> {
 
     return ShaderMask(
       shaderCallback: (bounds) {
-        return LinearGradient(
+        return const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [Colors.transparent, Colors.black, Colors.black],
-          stops: const [0.0, 0.12, 1.0],
+          stops: [0.0, 0.12, 1.0],
         ).createShader(bounds);
       },
       blendMode: BlendMode.dstIn,

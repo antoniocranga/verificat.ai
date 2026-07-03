@@ -151,6 +151,7 @@ class AppThemeProvider extends InheritedWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
 
   const AppThemeProvider({
+    super.key,
     required this.themeMode,
     required this.onThemeChanged,
     required super.child,

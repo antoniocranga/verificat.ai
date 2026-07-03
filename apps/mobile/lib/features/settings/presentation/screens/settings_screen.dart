@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/app.dart';
 import '../../../../core/env/env.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/widgets/bottom_sheet_shell.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../history/data/repositories/saved_checks_repository_impl.dart';
@@ -131,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
         return SelectorTrigger<ListenMode>(
           title: 'Mod implicit',
           currentValue: ListenMode.streaming,
-          options: [
+          options: const [
             SelectorOption(
               value: ListenMode.streaming,
               label: 'Timp real',

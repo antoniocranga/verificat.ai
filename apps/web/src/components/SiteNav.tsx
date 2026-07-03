@@ -41,7 +41,12 @@ export function SiteNav() {
       const animation = (currentTime: number) => {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
-        const run = easeOutCubic(timeElapsed, startPosition, distance, duration);
+        const run = easeOutCubic(
+          timeElapsed,
+          startPosition,
+          distance,
+          duration,
+        );
         window.scrollTo(0, run);
         if (timeElapsed < duration) {
           requestAnimationFrame(animation);

@@ -171,7 +171,8 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
                 fontWeight: 500,
                 fontSize: 14,
                 cursor: "pointer",
-                transition: "background var(--transition-fast), transform var(--transition-fast)",
+                transition:
+                  "background var(--transition-fast), transform var(--transition-fast)",
               }}
             >
               Trimite link de recuperare

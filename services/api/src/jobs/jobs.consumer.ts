@@ -3,7 +3,10 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { SpeechService } from '../speech/speech.service';
-import { ClaimDetectionService, NormalizedClaim } from '../fact-checks/claim-detection.service';
+import {
+  ClaimDetectionService,
+  NormalizedClaim,
+} from '../fact-checks/claim-detection.service';
 import {
   EvidenceRetrievalService,
   EvidenceResult,
@@ -164,7 +167,8 @@ export class JobsConsumer extends WorkerHost {
         rawEvidence,
       );
 
-      const claimId = i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
+      const claimId =
+        i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
       const factCheckId = crypto.randomUUID();
       const verdictId = crypto.randomUUID();
 
@@ -185,8 +189,9 @@ export class JobsConsumer extends WorkerHost {
     let lastSearchIndex = 0;
 
     for (const internalRes of internalClaimsResults) {
-      const textToSearch = internalRes.claim.exactQuote || internalRes.claim.assertion;
-      
+      const textToSearch =
+        internalRes.claim.exactQuote || internalRes.claim.assertion;
+
       let start = textToAnalyze.indexOf(textToSearch, lastSearchIndex);
       if (start === -1 && lastSearchIndex > 0) {
         start = textToAnalyze.indexOf(textToSearch, 0);
@@ -198,9 +203,15 @@ export class JobsConsumer extends WorkerHost {
           lastSearchIndex = end;
 
           let mappedStatus: 'true' | 'false' | 'uncertain' = 'uncertain';
-          if (internalRes.verdict === 'True' || internalRes.verdict === 'Mostly True') {
+          if (
+            internalRes.verdict === 'True' ||
+            internalRes.verdict === 'Mostly True'
+          ) {
             mappedStatus = 'true';
-          } else if (internalRes.verdict === 'False' || internalRes.verdict === 'Misleading') {
+          } else if (
+            internalRes.verdict === 'False' ||
+            internalRes.verdict === 'Misleading'
+          ) {
             mappedStatus = 'false';
           } else {
             mappedStatus = 'uncertain';
@@ -218,10 +229,14 @@ export class JobsConsumer extends WorkerHost {
             reportId: internalRes.verdictId,
           });
         } else {
-            this.logger.warn(`Invalid offset bounds for claim ${internalRes.claimId}: start=${start}, end=${end}. Discarding claim from final payload.`);
+          this.logger.warn(
+            `Invalid offset bounds for claim ${internalRes.claimId}: start=${start}, end=${end}. Discarding claim from final payload.`,
+          );
         }
       } else {
-          this.logger.warn(`Could not locate exactQuote or assertion in text for claim ${internalRes.claimId}. Discarding from final payload.`);
+        this.logger.warn(
+          `Could not locate exactQuote or assertion in text for claim ${internalRes.claimId}. Discarding from final payload.`,
+        );
       }
     }
 

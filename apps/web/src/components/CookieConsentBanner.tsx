@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button, Switch, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, Card } from "@verificat/ui";
+import {
+  Button,
+  Switch,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Card,
+} from "@verificat/ui";
 
 const CONSENT_KEY = "vcai_cookie_consent";
 
@@ -95,10 +105,11 @@ export function CookieConsentBanner() {
     <>
       {/* ── Banner ───────────────────────────────────────────── */}
       <div
-        className={`fixed z-[200] bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] transition-all duration-500 md:left-auto md:p-5 md:pb-[calc(20px+env(safe-area-inset-bottom,0px))] xl:pr-8 xl:pb-8 ${visible
-          ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 translate-y-6 pointer-events-none"
-          }`}
+        className={`fixed z-[200] bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] transition-all duration-500 md:left-auto md:p-5 md:pb-[calc(20px+env(safe-area-inset-bottom,0px))] xl:pr-8 xl:pb-8 ${
+          visible
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-6 pointer-events-none"
+        }`}
         role="dialog"
         aria-label="Consimțământ cookie-uri"
         aria-describedby="cookieDesc"
@@ -114,7 +125,10 @@ export function CookieConsentBanner() {
               <div className="font-medium text-base leading-snug text-foreground mb-1">
                 Confidențialitatea dumneavoastră
               </div>
-              <div className="text-[13px] leading-relaxed text-muted-foreground" id="cookieDesc">
+              <div
+                className="text-[13px] leading-relaxed text-muted-foreground"
+                id="cookieDesc"
+              >
                 Folosim cookie-uri pentru a vă oferi o experiență mai bună.{" "}
                 <a
                   href="/privacy#cookie"
@@ -190,9 +204,14 @@ export function CookieConsentBanner() {
                 disabled: false,
               },
             ].map((item, index) => (
-              <div key={item.id} className={`flex items-start justify-between gap-4 ${index > 0 ? "pt-6 border-t border-border" : ""}`}>
+              <div
+                key={item.id}
+                className={`flex items-start justify-between gap-4 ${index > 0 ? "pt-6 border-t border-border" : ""}`}
+              >
                 <div className="flex flex-col gap-1 pr-4">
-                  <h4 className="font-medium text-[15px] leading-none">{item.title}</h4>
+                  <h4 className="font-medium text-[15px] leading-none">
+                    {item.title}
+                  </h4>
                   <p className="text-[13px] text-muted-foreground leading-snug">
                     {item.desc}
                   </p>
