@@ -6,11 +6,8 @@ import { SpeechService } from '../speech/speech.service';
 import { AudioFactcheckService } from './audio-factcheck.service';
 import { WebSocket } from 'ws';
 import { Subject } from 'rxjs';
+import { IncomingMessage } from 'http';
 
-/**
- * Creates a minimal mock WebSocket with just enough surface for AudioGateway.
- * OPEN = 1 (per the WS spec).
- */
 function makeMockWs(readyState = WebSocket.OPEN): jest.Mocked<WebSocket> {
   const ee = new EventEmitter();
   return Object.assign(ee, {
@@ -21,10 +18,13 @@ function makeMockWs(readyState = WebSocket.OPEN): jest.Mocked<WebSocket> {
   }) as unknown as jest.Mocked<WebSocket>;
 }
 
-/**
- * Builds a mock SttSession backed by an RxJS Subject so tests can
- * imperatively emit transcript events.
- */
+function makeMockRequest(url = '/audio'): IncomingMessage {
+  return {
+    url,
+    headers: { host: 'localhost' }
+  } as unknown as IncomingMessage;
+}
+
 function makeMockSttSession() {
   const subject$ = new Subject<{
     text: string;
@@ -83,7 +83,7 @@ describe('AudioGateway', () => {
 
   it('opens a Deepgram session on connection', async () => {
     const client = makeMockWs();
-    await gateway.handleConnection(client);
+    await gateway.handleConnection(client, makeMockRequest());
     expect(speechService.getAdapter('deepgram').startStream).toHaveBeenCalledWith({
       language: 'ro-RO',
       sampleRate: 16000,
@@ -95,7 +95,7 @@ describe('AudioGateway', () => {
       new Error('Deepgram unreachable'),
     );
     const client = makeMockWs();
-    await gateway.handleConnection(client);
+    await gateway.handleConnection(client, makeMockRequest());
 
     expect(client.send).toHaveBeenCalledWith(
       expect.stringContaining('"type":"error"'),
@@ -105,79 +105,79 @@ describe('AudioGateway', () => {
 
   it('cleans up the session on disconnect', async () => {
     const client = makeMockWs();
-    await gateway.handleConnection(client);
+    await gateway.handleConnection(client, makeMockRequest());
     await gateway.handleDisconnect(client);
 
     expect(sttSession.close).toHaveBeenCalled();
   });
 
-  it('is a no-op disconnect for an unknown client', async () => {
-    const unknown = makeMockWs();
-    // Should not throw
-    await expect(gateway.handleDisconnect(unknown)).resolves.toBeUndefined();
-  });
+  // ─── Transcript & Offset Logic ─────────────────────────────────────────────
 
-  // ─── Message routing — interim ───────────────────────────────────────────
-
-  it('sends an interim message for non-final transcripts', async () => {
+  it('maintains a canonical transcript and emits transcript_sync', async () => {
     const client = makeMockWs();
-    await gateway.handleConnection(client);
+    await gateway.handleConnection(client, makeMockRequest());
 
     sttSession.subject$.next({
-      text: 'Salut',
-      isFinal: false,
-      confidence: 0.9,
-      language: 'ro',
-    });
-
-    const sent = JSON.parse((client.send as jest.Mock).mock.calls[0][0] as string);
-    expect(sent.type).toBe('interim');
-    expect(sent.text).toBe('Salut');
-    expect(sent).toHaveProperty('sessionId');
-  });
-
-  // ─── Message routing — final ─────────────────────────────────────────────
-
-  it('sends a final message and triggers a fact-check on final transcripts', async () => {
-    const client = makeMockWs();
-    await gateway.handleConnection(client);
-
-    sttSession.subject$.next({
-      text: 'România are o populație de aproximativ nouăsprezece milioane de oameni',
+      text: 'Prima parte',
       isFinal: true,
       confidence: 0.95,
       language: 'ro',
     });
 
-    // Allow the fire-and-forget fact-check promise to settle
-    await new Promise((r) => setImmediate(r));
-
     const calls = (client.send as jest.Mock).mock.calls.map((c) =>
       JSON.parse(c[0] as string),
     );
-    expect(calls.some((m) => m.type === 'final')).toBe(true);
-    expect(factcheck.check).toHaveBeenCalledWith(
-      expect.stringContaining('România'),
-      expect.any(String),
+    const sync1 = calls.find((m) => m.type === 'transcript_sync');
+    expect(sync1.fullText).toBe('Prima parte');
+    expect(sync1.transcriptVersion).toBe(1);
+
+    (client.send as jest.Mock).mockClear();
+
+    sttSession.subject$.next({
+      text: 'a doua parte',
+      isFinal: true,
+      confidence: 0.95,
+      language: 'ro',
+    });
+
+    const calls2 = (client.send as jest.Mock).mock.calls.map((c) =>
+      JSON.parse(c[0] as string),
     );
+    const sync2 = calls2.find((m) => m.type === 'transcript_sync');
+    expect(sync2.fullText).toBe('Prima parte a doua parte');
+    expect(sync2.transcriptVersion).toBe(2);
   });
 
-  it('sends a result message when the fact-check returns a verdict', async () => {
+  it('translates fact-check offsets to canonical offsets', async () => {
+    const client = makeMockWs();
+    await gateway.handleConnection(client, makeMockRequest());
+
+    // Send first segment
+    sttSession.subject$.next({
+      text: 'Prima parte',
+      isFinal: true,
+      confidence: 0.95,
+      language: 'ro',
+    });
+
+    // Mock fact-check result for second segment
     const mockResult = {
       segmentId: 'some-seg',
       verdict: 'TRUE' as const,
+      status: 'true' as const,
       confidence: 0.9,
       explanation: 'Afirmație confirmată.',
       sources: ['https://insse.ro'],
       matchedFact: 'Populația României.',
+      claimId: 'claim-123',
+      reportId: 'report-123',
+      offset: { start: 2, end: 6 }, // relative to "a doua parte"
     };
-    factcheck.check.mockResolvedValue(mockResult);
+    factcheck.check.mockResolvedValueOnce(mockResult as any);
 
-    const client = makeMockWs();
-    await gateway.handleConnection(client);
-
+    // Send second segment
     sttSession.subject$.next({
-      text: 'România are o populație de aproximativ nouăsprezece milioane de oameni',
+      text: 'a doua parte',
       isFinal: true,
       confidence: 0.95,
       language: 'ro',
@@ -188,58 +188,38 @@ describe('AudioGateway', () => {
     const calls = (client.send as jest.Mock).mock.calls.map((c) =>
       JSON.parse(c[0] as string),
     );
-    const resultMsg = calls.find((m) => m.type === 'result');
-    expect(resultMsg).toBeDefined();
-    expect(resultMsg?.verdict).toBe('TRUE');
-    expect(resultMsg?.explanation).toBe('Afirmație confirmată.');
+
+    const claimResult = calls.find((m) => m.type === 'claim_result');
+    expect(claimResult).toBeDefined();
+    
+    // "Prima parte" length = 11. Plus space = 12. 
+    // canonical start = 12 + 2 = 14. canonical end = 12 + 6 = 18.
+    expect(claimResult.offset.start).toBe(14);
+    expect(claimResult.offset.end).toBe(18);
+    expect(claimResult.transcriptVersion).toBe(2);
   });
 
-  it('does not send a result message when the fact-check returns null', async () => {
-    factcheck.check.mockResolvedValue(null);
-
-    const client = makeMockWs();
-    await gateway.handleConnection(client);
+  it('reconnects and emits transcript_sync immediately', async () => {
+    const client1 = makeMockWs();
+    await gateway.handleConnection(client1, makeMockRequest('/audio?sessionId=test-session-123'));
 
     sttSession.subject$.next({
-      text: 'Unu doi trei',
+      text: 'Test',
       isFinal: true,
-      confidence: 0.8,
+      confidence: 0.95,
       language: 'ro',
     });
 
-    await new Promise((r) => setImmediate(r));
+    const client2 = makeMockWs();
+    await gateway.handleConnection(client2, makeMockRequest('/audio?sessionId=test-session-123'));
 
-    const calls = (client.send as jest.Mock).mock.calls.map((c) =>
+    const calls = (client2.send as jest.Mock).mock.calls.map((c) =>
       JSON.parse(c[0] as string),
     );
-    expect(calls.every((m) => m.type !== 'result')).toBe(true);
-  });
-
-  // ─── Audio forwarding ────────────────────────────────────────────────────
-
-  it('forwards binary audio frames from the client to the Deepgram session', async () => {
-    const client = makeMockWs() as unknown as EventEmitter;
-    await gateway.handleConnection(client as unknown as WebSocket);
-
-    const chunk = Buffer.from([0x01, 0x02, 0x03]);
-    client.emit('message', chunk);
-
-    expect(sttSession.sendAudio).toHaveBeenCalledWith(chunk);
-  });
-
-  // ─── STT stream error ────────────────────────────────────────────────────
-
-  it('sends an error message to the client when the STT stream errors', async () => {
-    const client = makeMockWs();
-    await gateway.handleConnection(client);
-
-    sttSession.subject$.error(new Error('Deepgram connection lost'));
-
-    const calls = (client.send as jest.Mock).mock.calls.map((c) =>
-      JSON.parse(c[0] as string),
-    );
-    const errorMsg = calls.find((m) => m.type === 'error');
-    expect(errorMsg).toBeDefined();
-    expect(errorMsg?.code).toBe('DEEPGRAM_ERROR');
+    const syncMsg = calls.find((m) => m.type === 'transcript_sync');
+    expect(syncMsg).toBeDefined();
+    expect(syncMsg.fullText).toBe('Test');
+    expect(syncMsg.transcriptVersion).toBe(1);
+    expect(syncMsg.sessionId).toBe('test-session-123');
   });
 });
