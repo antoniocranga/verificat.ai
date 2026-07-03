@@ -5,6 +5,12 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   manifest: {
     name: "verificat.xyz",
+    icons: {
+      16: "/icon-16.png",
+      32: "/icon-32.png",
+      48: "/icon-48.png",
+      128: "/icon-128.png",
+    },
     permissions: [
       "sidePanel",
       "storage",

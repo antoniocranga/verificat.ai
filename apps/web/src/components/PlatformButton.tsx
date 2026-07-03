@@ -23,7 +23,7 @@ export function PlatformButton({
     <Squircle
       fill="var(--color-canvas-elevated)"
       stroke="var(--color-subtle)"
-      className={`block transition-all duration-200 h-full min-w-[160px] drop-shadow-sm ${
+      className={`block transition-all duration-200 h-full min-w-40 drop-shadow-sm ${
         comingSoon ? "opacity-50 cursor-default" : "cursor-pointer"
       }`}
     >

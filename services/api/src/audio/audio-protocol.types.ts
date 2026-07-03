@@ -54,8 +54,28 @@ export interface ErrorMessage {
   message: string;
 }
 
+export interface TranscriptSyncMessage {
+  type: 'transcript_sync';
+  sessionId: string;
+  transcriptVersion: number;
+  fullText: string;
+}
+
+export interface ClaimResultMessage {
+  type: 'claim_result';
+  sessionId: string;
+  claimId: string;
+  status: 'true' | 'false' | 'uncertain';
+  confidence: number;
+  offset: { start: number; end: number };
+  transcriptVersion: number;
+  reportId: string;
+}
+
 export type ServerMessage =
   | InterimMessage
   | FinalMessage
   | ResultMessage
-  | ErrorMessage;
+  | ErrorMessage
+  | TranscriptSyncMessage
+  | ClaimResultMessage;

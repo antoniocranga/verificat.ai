@@ -152,6 +152,31 @@ final ThemeData appThemeLight = ThemeData(
     thickness: 1,
     space: 0,
   ),
+  textSelectionTheme: TextSelectionThemeData(
+    cursorColor: AppColors.accent,
+    selectionColor: AppColors.accent.withValues(alpha: 0.3),
+    selectionHandleColor: AppColors.accent,
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: AppColors.surfaceRaised,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.subtle),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.subtle),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    shape: CircleBorder(),
+  ),
 );
 
 final ThemeData appThemeDark = ThemeData(
@@ -194,6 +219,31 @@ final ThemeData appThemeDark = ThemeData(
     color: AppColors.darkSubtle,
     thickness: 1,
     space: 0,
+  ),
+  textSelectionTheme: TextSelectionThemeData(
+    cursorColor: AppColors.darkAccent,
+    selectionColor: AppColors.darkAccent.withValues(alpha: 0.3),
+    selectionHandleColor: AppColors.darkAccent,
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: AppColors.darkSurfaceRaised,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.darkSubtle),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.darkSubtle),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.darkAccent, width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    shape: CircleBorder(),
   ),
 );
 

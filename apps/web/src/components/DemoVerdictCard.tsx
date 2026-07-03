@@ -128,8 +128,8 @@ export function DemoVerdictCard() {
     <Card
       aria-live="polite"
       aria-label="Exemplu de verificare a afirmațiilor"
-      className={`min-h-[400px] w-full transition-all duration-300 ease-out shadow-lg ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[6px]"
+      className={`min-h-100 w-full transition-all duration-300 ease-out shadow-lg ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1.5"
       }`}
     >
       <CardHeader className="pb-4">

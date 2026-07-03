@@ -45,6 +45,12 @@ class SavedChecksRepositoryImpl implements SavedChecksRepository {
     return checks.any((c) => c.id == verdictId);
   }
 
+  @override
+  Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
+
   Future<void> _persist(List<SavedCheck> checks) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = jsonEncode(checks.map((c) => {

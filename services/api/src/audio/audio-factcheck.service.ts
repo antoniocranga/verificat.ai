@@ -26,7 +26,14 @@ function mapVerdict(v: VerdictValue): AudioVerdictValue {
   }
 }
 
-export type StreamingResult = Omit<ResultMessage, 'type'>;
+import * as crypto from 'crypto';
+
+export type StreamingResult = Omit<ResultMessage, 'type'> & {
+  claimId: string;
+  reportId: string;
+  offset: { start: number; end: number };
+  status: 'true' | 'false' | 'uncertain';
+};
 
 @Injectable()
 export class AudioFactcheckService {
@@ -74,13 +81,24 @@ export class AudioFactcheckService {
       const topEvidence = evidence[0];
       const matchedFact = topEvidence ? topEvidence.snippet : null;
 
+      let status: 'true' | 'false' | 'uncertain' = 'uncertain';
+      if (verdict.verdict === 'True' || verdict.verdict === 'Mostly True') {
+        status = 'true';
+      } else if (verdict.verdict === 'False' || verdict.verdict === 'Misleading') {
+        status = 'false';
+      }
+
       return {
         segmentId,
         verdict: mapVerdict(verdict.verdict),
+        status,
         confidence: verdict.confidenceScore / 100,
         explanation: verdict.explanation,
         sources,
         matchedFact,
+        claimId: crypto.randomUUID(),
+        reportId: crypto.randomUUID(),
+        offset: { start: 0, end: text.length },
       };
     } catch (err) {
       this.logger.error(

@@ -1,55 +1,45 @@
 /* eslint-disable */
 import React, { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { Moon, Sun, Sparkles, Radio } from "lucide-react";
 import {
   Button,
-  HeadingMd,
-  BodyMd,
+  Card,
+  CardContent,
+  CardHeader,
+  Badge,
   BodySm,
-  Surface,
+  SiteLogo,
 } from "@verificat/ui";
 
 const CONSENT_KEY = "local:privacy_consent";
 
-type PopupState = "idle" | "recording" | "processing" | "result" | "error";
-
 export function App() {
   const [hasConsent, setHasConsent] = useState<boolean | null>(null);
-  const [popupState, setPopupState] = useState<PopupState>("idle");
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [streamActive, setStreamActive] = useState(false);
   const [streamStatus, setStreamStatus] = useState("Inactiv");
   const [interimText, setInterimText] = useState("");
   const [segments, setSegments] = useState<
     { id: string; text: string; verdict?: string; explanation?: string }[]
   >([]);
+  const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     chrome.storage.local.get([CONSENT_KEY], (result) => {
       if (result[CONSENT_KEY]) {
         setHasConsent(true);
-        chrome.runtime.sendMessage({ type: "GET_STATUS" }, (response: any) => {
-          if (response?.ready) {
-            setPopupState("idle");
-          }
-        });
       } else {
         setHasConsent(false);
       }
     });
 
     const handleMessage = (msg: any) => {
-      if (msg.type === "CAPTURE_STARTED") setPopupState("recording");
-      if (msg.type === "VERIFICATION_STARTED") setPopupState("processing");
-      if (msg.type === "VERIFICATION_PROGRESS" && popupState === "processing") {
-        // Keep processing state
-      }
-      if (msg.type === "VERIFICATION_COMPLETED") setPopupState("result");
-      if (msg.type === "VERIFICATION_FAILED") setPopupState("error");
-
       if (msg.type === "STREAM_TRANSCRIPT_UPDATE") {
         const text = msg.text;
         const segmentId = msg.segmentId;
-        const wsType = guessWsType(msg);
+        const wsType = msg.originalType || "";
 
         if (wsType === "interim" && text !== undefined) {
           setInterimText(text);
@@ -80,57 +70,27 @@ export function App() {
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, [popupState]);
+  }, []);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (popupState === "recording" || streamActive) {
-      interval = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      setElapsedSeconds(0);
-    }
-    return () => clearInterval(interval);
-  }, [popupState, streamActive]);
+  const currentTheme = theme === "system" ? systemTheme : theme;
 
   const handleAcceptConsent = () => {
     chrome.storage.local.set({ [CONSENT_KEY]: true }, () => {
       setHasConsent(true);
-      setPopupState("idle");
     });
-  };
-
-  const handleStart = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tabId = tabs[0]?.id;
-      if (tabId) {
-        chrome.sidePanel.open({ tabId }).then(() => {
-          chrome.runtime.sendMessage({ type: "START_MIC_CAPTURE" });
-        });
-      }
-    });
-  };
-
-  const handleStop = () => {
-    chrome.runtime.sendMessage({ type: "STOP_CAPTURE" });
-    chrome.runtime.sendMessage({ type: "STOP_TAB_CAPTURE" });
-    setPopupState("idle");
   };
 
   const handleOpenPanel = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (tabId) {
-        chrome.sidePanel.open({ tabId }).then(() => {
-          window.close();
-        });
+        chrome.sidePanel.open({ tabId }).then(() => window.close());
       }
     });
   };
 
   const handleStartStreamMic = () => {
-    chrome.runtime.sendMessage({ type: "START_STREAM_MIC" }, (res: any) => {
+    chrome.runtime.sendMessage({ type: "UI_START_STREAM_MIC" }, (res: any) => {
       if (res?.error) {
         setStreamStatus(`Eroare: ${translateError(res.error)}`);
         return;
@@ -141,7 +101,7 @@ export function App() {
   };
 
   const handleStartStreamTab = () => {
-    chrome.runtime.sendMessage({ type: "START_STREAM_TAB" }, (res: any) => {
+    chrome.runtime.sendMessage({ type: "UI_START_STREAM_TAB" }, (res: any) => {
       if (res?.error) {
         setStreamStatus(`Eroare: ${translateError(res.error)}`);
         return;
@@ -152,27 +112,17 @@ export function App() {
   };
 
   const handleStopStream = () => {
-    chrome.runtime.sendMessage({ type: "STOP_STREAM" });
+    chrome.runtime.sendMessage({ type: "UI_STOP_STREAM" });
     setStreamActive(false);
     setStreamStatus("Inactiv");
   };
-
-  function guessWsType(msg: any): string {
-    if (msg.segmentId && msg.verdict) return "result";
-    if (msg.segmentId && msg.text) return "final";
-    if (msg.text && !msg.segmentId) return "interim";
-    return "unknown";
-  }
 
   function translateError(rawMsg: string): string {
     const msg = rawMsg.toLowerCase();
     if (msg.includes("page failed to load") || msg.includes("offscreen")) {
       return "Nu s-a putut porni captarea audio. Reîncărcați extensia și încercați din nou.";
     }
-    if (
-      msg.includes("chrome pages cannot be captured") ||
-      msg.includes("restricted")
-    ) {
+    if (msg.includes("chrome pages cannot be captured") || msg.includes("restricted")) {
       return "Nu se poate captura sunetul acestei pagini. Deschideți fila cu conținutul dorit și încercați din nou.";
     }
     if (msg.includes("permission denied") || msg.includes("not allowed")) {
@@ -184,206 +134,104 @@ export function App() {
     return "A apărut o eroare neașteptată. (" + rawMsg + ")";
   }
 
-  const mins = Math.floor(elapsedSeconds / 60);
-  const secs = elapsedSeconds % 60;
-  const timerDisplay = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-
   if (hasConsent === null) return null;
 
-  if (!hasConsent) {
-    return (
-      <Surface
-        elevation="base"
-        style={{ padding: "var(--spacing-md)", width: "320px" }}
-      >
-        <HeadingMd style={{ marginBottom: "var(--spacing-sm)" }}>
-          Confidențialitate
-        </HeadingMd>
-        <BodyMd style={{ marginBottom: "var(--spacing-sm)" }}>
-          verificat.xyz captează audio pentru a verifica afirmațiile în timp
-          real. Datele audio sunt procesate și nu sunt stocate după verificare.
-        </BodyMd>
-        <BodySm style={{ marginBottom: "var(--spacing-md)" }}>
+  return (
+    <Card className="w-[360px] border-0 rounded-none overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+        <div className="flex items-center" style={{ pointerEvents: "none" }}>
+          <SiteLogo />
+        </div>
+        <div style={{ pointerEvents: "auto" }}>
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
+              aria-label="Schimbă tema"
+            >
+              {currentTheme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+
+      {!hasConsent ? (
+        <CardContent className="px-4 pb-4 space-y-3">
+          <BodySm className="text-muted-foreground">
+            verificat.xyz captează audio pentru a verifica afirmațiile în timp real. Datele audio sunt procesate și nu sunt stocate după verificare.
+          </BodySm>
           <a
-            href={`${process.env.VITE_WEB_HOST || "https://verificat.xyz"}/privacy`}
+            href="https://verificat.xyz/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "var(--color-blue)" }}
+            className="text-xs text-primary no-underline hover:text-primary hover:underline hover:underline-offset-2 hover:decoration-dotted transition-colors"
           >
             Politica de Confidențialitate
           </a>
-        </BodySm>
-        <Button onClick={handleAcceptConsent} className="w-full">
-          Accept și Continuă
-        </Button>
-      </Surface>
-    );
-  }
+          <Button onClick={handleAcceptConsent} className="w-full">
+            Accept și Continuă
+          </Button>
+        </CardContent>
+      ) : (
+        <>
+          <CardContent className="px-4 pb-2">
+            <div className="border border-border rounded-xl p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Radio className="h-4 w-4 text-primary" />
+                <span className="font-display text-sm font-semibold text-foreground tracking-tight">
+                  Verificare în Timp Real
+                </span>
+                {streamActive && (
+                  <span className="ml-auto relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                  </span>
+                )}
+              </div>
 
-  return (
-    <Surface
-      elevation="base"
-      style={{ padding: "var(--spacing-md)", width: "320px" }}
-    >
-      <BodySm
-        style={{
-          color: "var(--color-mid)",
-          textAlign: "center",
-          marginBottom: "var(--spacing-md)",
-        }}
-      >
-        {popupState === "idle"
-          ? "Pregătit"
-          : popupState === "recording"
-            ? "Se ascultă..."
-            : popupState === "processing"
-              ? "Se verifică..."
-              : popupState === "result"
-                ? "Verdict primit"
-                : "Eroare"}
-      </BodySm>
+              <div className="flex gap-1.5">
+                <Button variant="default" size="xs" onClick={handleStartStreamMic} disabled={streamActive} className="flex-1">
+                  🎤 Mic
+                </Button>
+                <Button variant="outline" size="xs" onClick={handleStartStreamTab} disabled={streamActive} className="flex-1">
+                  🔊 Tab
+                </Button>
+                <Button variant="outline" size="xs" onClick={handleStopStream} disabled={!streamActive} className="flex-1">
+                  ⏹ Stop
+                </Button>
+              </div>
 
-      {(popupState === "recording" || streamActive) && (
-        <BodyMd
-          style={{
-            fontFamily: "var(--font-mono)",
-            textAlign: "center",
-            marginBottom: "var(--spacing-md)",
-            fontSize: "24px",
-          }}
-        >
-          {timerDisplay}
-        </BodyMd>
+              <BodySm className="text-muted-foreground">{streamStatus}</BodySm>
+
+              <div className="max-h-[300px] overflow-y-auto flex flex-col gap-1.5 pr-1 scrollbar-thin">
+                {segments.map((seg) => (
+                  <div key={seg.id} className="rounded-lg bg-muted/50 px-3 py-2">
+                    <BodySm>{seg.text}</BodySm>
+                    {seg.verdict && (
+                      <Badge
+                        variant={seg.verdict === "TRUE" ? "default" : seg.verdict === "FALSE" ? "destructive" : "secondary"}
+                        className="mt-1.5 text-[10px] px-1.5 py-0"
+                      >
+                        {seg.verdict === "TRUE" ? "ADEVĂRAT" : seg.verdict === "FALSE" ? "FALS" : "INCERT"}
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+                {interimText && (
+                  <BodySm className="text-muted-foreground italic px-3">{interimText}</BodySm>
+                )}
+              </div>
+            </div>
+          </CardContent>
+
+          <div className="px-4 pb-4">
+            <Button variant="outline" size="sm" onClick={handleOpenPanel} className="w-full">
+              Deschide Panoul Lateral
+            </Button>
+          </div>
+        </>
       )}
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--spacing-sm)",
-        }}
-      >
-        {popupState === "idle" ||
-        popupState === "result" ||
-        popupState === "error" ? (
-          <Button onClick={handleStart}>
-            {popupState === "idle"
-              ? "Începe Ascultarea"
-              : popupState === "result"
-                ? "Noua Verificare"
-                : "Încearcă din Nou"}
-          </Button>
-        ) : (
-          <Button variant="secondary" onClick={handleStop}>Oprește</Button>
-        )}
-        <Button variant="ghost" size="sm" onClick={handleOpenPanel} className="w-full">
-          Deschide Panoul Lateral
-        </Button>
-      </div>
-
-      <div
-        style={{
-          marginTop: "var(--spacing-lg)",
-          borderTop: "1px solid var(--color-subtle)",
-          paddingTop: "var(--spacing-md)",
-        }}
-      >
-        <HeadingMd
-          style={{ fontSize: "16px", marginBottom: "var(--spacing-sm)" }}
-        >
-          Verificare în Timp Real 🇷🇴
-        </HeadingMd>
-        <div
-          style={{
-            display: "flex",
-            gap: "var(--spacing-xs)",
-            marginBottom: "var(--spacing-sm)",
-          }}
-        >
-          <Button
-            variant="secondary"
-            onClick={handleStartStreamMic}
-            disabled={streamActive}
-            className="flex-1 px-1"
-          >
-            🎤 Mic
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleStartStreamTab}
-            disabled={streamActive}
-            className="flex-1 px-1"
-          >
-            🔊 Tab
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleStopStream}
-            disabled={!streamActive}
-            className="flex-1 px-1"
-          >
-            ⏹ Stop
-          </Button>
-        </div>
-        <BodySm
-          style={{
-            color: "var(--color-mid)",
-            marginBottom: "var(--spacing-sm)",
-          }}
-        >
-          {streamStatus}
-        </BodySm>
-
-        <div
-          style={{
-            maxHeight: "150px",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--spacing-xs)",
-          }}
-        >
-          {segments.map((seg) => (
-            <Surface
-              key={seg.id}
-              elevation="inset"
-              style={{ padding: "var(--spacing-xs)" }}
-            >
-              <BodySm>{seg.text}</BodySm>
-              {seg.verdict && (
-                <div
-                  style={{
-                    marginTop: "4px",
-                    display: "inline-block",
-                    padding: "2px 6px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: "10px",
-                    fontWeight: 600,
-                    backgroundColor:
-                      seg.verdict === "TRUE"
-                        ? "var(--color-green)"
-                        : seg.verdict === "FALSE"
-                          ? "var(--color-accent)"
-                          : "var(--color-mid)",
-                    color: "var(--color-canvas)",
-                  }}
-                >
-                  {seg.verdict === "TRUE"
-                    ? "ADEVĂRAT"
-                    : seg.verdict === "FALSE"
-                      ? "FALS"
-                      : "INCERT"}
-                </div>
-              )}
-            </Surface>
-          ))}
-          {interimText && (
-            <BodySm style={{ color: "var(--color-mid)", fontStyle: "italic" }}>
-              {interimText}
-            </BodySm>
-          )}
-        </div>
-      </div>
-    </Surface>
+    </Card>
   );
 }

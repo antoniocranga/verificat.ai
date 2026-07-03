@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_text_styles.dart';
 
-enum AppButtonVariant { primary, secondary, ghost, accent, destructive }
+enum AppButtonVariant { primary, secondary, outline, ghost, accent, destructive }
 enum AppButtonSize { sm, md, lg }
 
 class AppButton extends StatefulWidget {
@@ -57,6 +57,16 @@ class AppButton extends StatefulWidget {
     this.width,
     this.size = AppButtonSize.md,
   }) : variant = AppButtonVariant.accent;
+
+  const AppButton.outline({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.loading = false,
+    this.icon,
+    this.width,
+    this.size = AppButtonSize.md,
+  }) : variant = AppButtonVariant.outline;
 
   const AppButton.ghost({
     super.key,
@@ -142,49 +152,63 @@ class _AppButtonState extends State<AppButton>
     AppButtonSize.lg => AppTextStyles.labelLg.copyWith(fontSize: 16),
   };
 
-  (Color bg, Color fg, Color? border, List<BoxShadow> shadows) get _colors =>
-      switch (widget.variant) {
-        AppButtonVariant.primary => (
-          _isHovered ? const Color(0xFF2A2A28) : AppColors.ink,
-          AppColors.surfaceRaised,
-          null,
-          _isHovered ? AppShadows.md : AppShadows.primaryButton,
-        ),
-        AppButtonVariant.secondary => (
-          AppColors.surfaceRaised,
-          AppColors.ink,
-          _isHovered ? AppColors.mid : AppColors.subtle,
-          _isHovered ? AppShadows.sm : const [],
-        ),
-        AppButtonVariant.ghost => (
-          _isHovered
-              ? AppColors.subtle.withValues(alpha: 0.6)
-              : Colors.transparent,
-          AppColors.ink,
-          null,
-          const [],
-        ),
-        AppButtonVariant.accent => (
-          _isHovered ? const Color(0xFFC5694A) : AppColors.accent,
-          Colors.white,
-          null,
-          AppShadows.accent,
-        ),
-        AppButtonVariant.destructive => (
-          _isHovered
-              ? AppColors.error.withValues(alpha: 0.06)
-              : Colors.transparent,
-          AppColors.error,
-          _isHovered
-              ? AppColors.error.withValues(alpha: 0.4)
-              : AppColors.error.withValues(alpha: 0.25),
-          const [],
-        ),
-      };
+  (Color bg, Color fg, Color? border, List<BoxShadow> shadows) _colors(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return switch (widget.variant) {
+      AppButtonVariant.primary => (
+        _isHovered 
+            ? (isDark ? const Color(0xFFE8E6E1) : const Color(0xFF2A2A28)) 
+            : cs.primary,
+        cs.onPrimary,
+        null,
+        _isHovered ? AppShadows.md : AppShadows.primaryButton,
+      ),
+      AppButtonVariant.secondary => (
+        cs.surface,
+        cs.onSurface,
+        _isHovered ? cs.outlineVariant : cs.outline,
+        _isHovered ? AppShadows.sm : const [],
+      ),
+      AppButtonVariant.outline => (
+        _isHovered ? cs.outline.withValues(alpha: 0.2) : Colors.transparent,
+        cs.onSurface,
+        _isHovered ? cs.outlineVariant : cs.outline,
+        const [],
+      ),
+      AppButtonVariant.ghost => (
+        _isHovered
+            ? cs.outline.withValues(alpha: 0.6)
+            : Colors.transparent,
+        cs.onSurface,
+        null,
+        const [],
+      ),
+      AppButtonVariant.accent => (
+        _isHovered 
+            ? (isDark ? const Color(0xFFE38A6C) : const Color(0xFFC5694A)) 
+            : cs.secondary,
+        cs.onSecondary,
+        null,
+        AppShadows.accent,
+      ),
+      AppButtonVariant.destructive => (
+        _isHovered
+            ? cs.error.withValues(alpha: 0.06)
+            : Colors.transparent,
+        cs.error,
+        _isHovered
+            ? cs.error.withValues(alpha: 0.4)
+            : cs.error.withValues(alpha: 0.25),
+        const [],
+      ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, border, shadows) = _colors;
+    final (bg, fg, border, shadows) = _colors(context);
 
     return Semantics(
       button: true,

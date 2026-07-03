@@ -192,7 +192,7 @@ export function App() {
         height: "100vh",
         padding: "var(--spacing-md)",
         boxSizing: "border-box",
-        backgroundColor: "var(--color-canvas)",
+        backgroundColor: "var(--color-canvas-elevated)",
         color: "var(--color-ink)",
       }}
     >
