@@ -12,9 +12,6 @@ describe('Build output', () => {
     expect(existsSync(resolve(dist, 'index.js'))).toBe(true);
   });
 
-  it('dist/components/button.css exists', () => {
-    expect(existsSync(resolve(dist, 'components', 'button.css'))).toBe(true);
-  });
 
   it('dist/components/input.css exists', () => {
     expect(existsSync(resolve(dist, 'components', 'input.css'))).toBe(true);

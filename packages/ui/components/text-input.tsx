@@ -1,4 +1,4 @@
-import type { ChangeEvent, InputHTMLAttributes } from 'react';
+import { type ChangeEvent, type InputHTMLAttributes, useId } from 'react';
 import './input.css';
 
 interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -25,7 +25,8 @@ export function TextInput({
   className = '',
   ...props
 }: TextInputProps) {
-  const inputId = id ?? `input-${Math.random().toString(36).slice(2, 9)}`;
+  const reactId = useId();
+  const inputId = id ?? `input-${reactId}`;
 
   if (label || hint || error) {
     return (

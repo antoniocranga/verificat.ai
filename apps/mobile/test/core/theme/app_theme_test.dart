@@ -60,7 +60,7 @@ void main() {
       expect(style.letterSpacing, -0.8);
     });
 
-    test('headlineMedium uses Anthropic Serif 600 20px h:1.3 ls:-0.4', () {
+    test('headlineMedium uses Poppins 600 20px h:1.3 ls:-0.4', () {
       final style = appTheme.textTheme.headlineMedium!;
       expect(style.fontFamily, 'Anthropic Serif');
       expect(style.fontWeight, FontWeight.w600);
@@ -87,7 +87,7 @@ void main() {
       expect(style.letterSpacing, 0);
     });
 
-    test('bodyMedium uses Anthropic Sans 400 14px h:1.6 ls:0', () {
+    test('bodyMedium uses Lora 400 14px h:1.6 ls:0', () {
       final style = appTheme.textTheme.bodyMedium!;
       expect(style.fontFamily, 'Anthropic Sans');
       expect(style.fontWeight, FontWeight.w400);
@@ -96,7 +96,7 @@ void main() {
       expect(style.letterSpacing, 0);
     });
 
-    test('bodySmall uses Anthropic Sans 400 12px h:1.5 ls:0', () {
+    test('bodySmall uses Lora 400 12px h:1.5 ls:0', () {
       final style = appTheme.textTheme.bodySmall!;
       expect(style.fontFamily, 'Anthropic Sans');
       expect(style.fontWeight, FontWeight.w400);

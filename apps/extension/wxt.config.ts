@@ -1,9 +1,16 @@
 import { defineConfig } from "wxt";
+import tailwindcss from "@tailwindcss/vite";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   manifest: {
     name: "verificat.xyz",
+    icons: {
+      16: "/icon-16.png",
+      32: "/icon-32.png",
+      48: "/icon-48.png",
+      128: "/icon-128.png",
+    },
     permissions: [
       "sidePanel",
       "storage",
@@ -33,6 +40,7 @@ export default defineConfig({
     ],
   },
   vite: () => ({
+    plugins: [tailwindcss()],
     define: {
       __API_URL__: JSON.stringify(
         process.env.API_URL || "http://localhost:3000",

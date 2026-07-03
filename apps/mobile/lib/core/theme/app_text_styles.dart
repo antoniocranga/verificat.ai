@@ -14,7 +14,6 @@ abstract final class AppTextStyles {
     fontSize: 48,
     height: 1.1,
     letterSpacing: -1.92,
-    color: Color(0xFF141413),
   );
 
   static const headingSection = TextStyle(
@@ -23,7 +22,6 @@ abstract final class AppTextStyles {
     fontSize: 32,
     height: 1.2,
     letterSpacing: -0.8,
-    color: Color(0xFF141413),
   );
 
   static const headingSubsection = TextStyle(
@@ -32,7 +30,6 @@ abstract final class AppTextStyles {
     fontSize: 20,
     height: 1.3,
     letterSpacing: -0.4,
-    color: Color(0xFF141413),
   );
 
   // ── Body ───────────────────────────────────────────────────────
@@ -42,7 +39,6 @@ abstract final class AppTextStyles {
     fontSize: 16,
     height: 1.75,
     letterSpacing: 0,
-    color: Color(0xFF141413),
   );
 
   static const bodyMd = TextStyle(
@@ -51,7 +47,14 @@ abstract final class AppTextStyles {
     fontSize: 14,
     height: 1.6,
     letterSpacing: 0,
-    color: Color(0xFF141413),
+  );
+
+  static const bodySm = TextStyle(
+    fontFamily: 'Lora',
+    fontWeight: FontWeight.w400,
+    fontSize: 12,
+    height: 1.5,
+    letterSpacing: 0,
   );
 
   static const bodySm = TextStyle(
@@ -81,7 +84,7 @@ abstract final class AppTextStyles {
   );
 
   static const labelSm = TextStyle(
-    fontFamily: 'Anthropic Serif',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
     fontSize: 11,
     height: 1.0,
@@ -94,7 +97,6 @@ abstract final class AppTextStyles {
     fontSize: 11,
     height: 1.4,
     letterSpacing: 0.66,
-    color: Color(0xFFB0AEA5),
   );
 
   // ── Mono ───────────────────────────────────────────────────────

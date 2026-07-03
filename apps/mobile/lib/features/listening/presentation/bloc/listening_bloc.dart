@@ -9,8 +9,11 @@ import '../../domain/repositories/listening_repository.dart';
 
 enum ListeningStatus { idle, listening, streaming, processing, transcriptionReady, verdictReady, error }
 
+enum ListenMode { streaming, recording }
+
 class ListeningState extends Equatable {
   final ListeningStatus status;
+  final ListenMode listenMode;
   final int elapsedSeconds;
   final String? verdictId;
   final String? transcript;
@@ -21,6 +24,7 @@ class ListeningState extends Equatable {
 
   const ListeningState({
     this.status = ListeningStatus.idle,
+    this.listenMode = ListenMode.streaming,
     this.elapsedSeconds = 0,
     this.verdictId,
     this.transcript,
@@ -32,6 +36,7 @@ class ListeningState extends Equatable {
 
   ListeningState copyWith({
     ListeningStatus? status,
+    ListenMode? listenMode,
     int? elapsedSeconds,
     String? verdictId,
     String? transcript,
@@ -42,6 +47,7 @@ class ListeningState extends Equatable {
   }) {
     return ListeningState(
       status: status ?? this.status,
+      listenMode: listenMode ?? this.listenMode,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       verdictId: verdictId ?? this.verdictId,
       transcript: transcript ?? this.transcript,
@@ -53,7 +59,7 @@ class ListeningState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, elapsedSeconds, verdictId, transcript, claimsData, errorMessage, interimText, segments];
+  List<Object?> get props => [status, listenMode, elapsedSeconds, verdictId, transcript, claimsData, errorMessage, interimText, segments];
 }
 
 sealed class ListeningEvent {
@@ -145,6 +151,11 @@ class SyncStreamingState extends ListeningEvent {
   const SyncStreamingState(this.interimText, this.segments);
 }
 
+class SetListenMode extends ListeningEvent {
+  final ListenMode mode;
+  const SetListenMode(this.mode);
+}
+
 class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   final ListeningRepository _repository;
   StreamSubscription<Map<String, dynamic>>? _jobStreamSub;
@@ -176,6 +187,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     on<AddFinalSegment>(_onAddFinalSegment);
     on<UpdateSegmentResult>(_onUpdateSegmentResult);
     on<SyncStreamingState>(_onSyncStreamingState);
+    on<SetListenMode>(_onSetListenMode);
 
     _interruptionBeganSub = _repository.onInterruptionBegan.listen((_) {
       if (state.status == ListeningStatus.listening) {
@@ -243,6 +255,11 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
       interimText: event.interimText,
       segments: event.segments,
     ));
+  }
+
+  void _onSetListenMode(SetListenMode event, Emitter<ListeningState> emit) {
+    if (state.status != ListeningStatus.idle) return;
+    emit(state.copyWith(listenMode: event.mode));
   }
 
   Future<void> _onStartListening(

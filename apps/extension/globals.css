@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@source "../../packages/ui";
+@import "@verificat/ui/tokens.css";
+
+@theme {
+  --color-canvas: var(--color-canvas);
+  --color-canvas-elevated: var(--color-canvas-elevated);
+  --color-ink: var(--color-ink);
+  --color-mid: var(--color-mid);
+  --color-subtle: var(--color-subtle);
+  --color-accent: var(--color-accent);
+  --color-blue: var(--color-blue);
+  --color-green: var(--color-green);
+
+  --color-surface-base: var(--surface-base);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-inset: var(--surface-inset);
+
+  --color-verdict-true: var(--verdict-true);
+  --color-verdict-mostly-true: var(--verdict-mostly-true);
+  --color-verdict-partial: var(--verdict-partial);
+  --color-verdict-misleading: var(--verdict-misleading);
+  --color-verdict-false: var(--verdict-false);
+  --color-verdict-unverified: var(--verdict-unverified);
+
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-canvas-elevated);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-canvas-elevated);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-canvas-elevated);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-subtle);
+  --color-muted-foreground: var(--color-mid);
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-subtle);
+  --color-input: var(--color-subtle);
+  --color-ring: var(--color-accent);
+
+  --radius: var(--rounded-md);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-subtle);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  margin: 0;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color 150ms ease-out, text-decoration 150ms ease-out;
+}
+
+a:hover {
+  color: var(--color-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+button a,
+[data-slot="button"] a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+button a:hover,
+[data-slot="button"] a:hover {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-subtle) transparent;
+}

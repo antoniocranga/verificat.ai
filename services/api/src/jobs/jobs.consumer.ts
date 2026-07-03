@@ -3,7 +3,10 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { SpeechService } from '../speech/speech.service';
-import { ClaimDetectionService } from '../fact-checks/claim-detection.service';
+import {
+  ClaimDetectionService,
+  NormalizedClaim,
+} from '../fact-checks/claim-detection.service';
 import {
   EvidenceRetrievalService,
   EvidenceResult,
@@ -28,23 +31,15 @@ export interface FactVerificationJobResult {
   success: boolean;
   transcript?: string;
   claims: Array<{
-    assertion: string;
-    verdict: VerdictValue;
-    confidenceScore: number;
-    explanation: string;
-    evidence: Array<{
-      title: string;
-      url: string;
-      snippet: string;
-      source: string;
-      similarityScore: number;
-      trustScore?: number;
-      trustReason?: string;
-      sourceId?: string;
-      sourceName?: string;
-      articleUrl?: string;
-      publishedAt?: string;
-    }>;
+    claimId: string;
+    text: string;
+    status: 'true' | 'false' | 'uncertain';
+    confidence: number;
+    offset: {
+      start: number;
+      end: number;
+    };
+    reportId: string;
   }>;
 }
 
@@ -109,7 +104,18 @@ export class JobsConsumer extends WorkerHost {
     this.logger.log(`Detected ${detectedClaims.length} claim(s).`);
     await job.updateProgress({ stage: 'claim_detection', progress: 100 });
 
-    const claimsResults: FactVerificationJobResult['claims'] = [];
+    const internalClaimsResults: Array<{
+      claimId: string;
+      factCheckId: string;
+      verdictId: string;
+      claim: NormalizedClaim;
+      verdict: VerdictValue;
+      confidenceScore: number;
+      explanation: string;
+      evidence: Array<
+        EvidenceResult & { trustScore?: number; trustReason?: string }
+      >;
+    }> = [];
 
     for (let i = 0; i < detectedClaims.length; i++) {
       const claim = detectedClaims[i];
@@ -161,64 +167,108 @@ export class JobsConsumer extends WorkerHost {
         rawEvidence,
       );
 
-      claimsResults.push({
-        assertion: claim.assertion,
+      const claimId =
+        i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
+      const factCheckId = crypto.randomUUID();
+      const verdictId = crypto.randomUUID();
+
+      internalClaimsResults.push({
+        claimId,
+        factCheckId,
+        verdictId,
+        claim,
         verdict: verdictResult.verdict,
         confidenceScore: verdictResult.confidenceScore,
         explanation: verdictResult.explanation,
-        evidence: evidenceWithTrust.map((e) => ({
-          title: e.title,
-          url: e.url,
-          snippet: e.snippet,
-          source: e.source,
-          similarityScore: e.similarityScore,
-          trustScore: e.trustScore,
-          trustReason: e.trustReason,
-          sourceId: e.sourceId,
-          sourceName: e.sourceName,
-          articleUrl: e.articleUrl,
-          publishedAt: e.publishedAt,
-        })),
+        evidence: evidenceWithTrust,
       });
+    }
+
+    // Offset mapping & building return payload
+    const finalClaims: FactVerificationJobResult['claims'] = [];
+    let lastSearchIndex = 0;
+
+    for (const internalRes of internalClaimsResults) {
+      const textToSearch =
+        internalRes.claim.exactQuote || internalRes.claim.assertion;
+
+      let start = textToAnalyze.indexOf(textToSearch, lastSearchIndex);
+      if (start === -1 && lastSearchIndex > 0) {
+        start = textToAnalyze.indexOf(textToSearch, 0);
+      }
+
+      if (start !== -1) {
+        const end = start + textToSearch.length;
+        if (start < end && end <= textToAnalyze.length) {
+          lastSearchIndex = end;
+
+          let mappedStatus: 'true' | 'false' | 'uncertain' = 'uncertain';
+          if (
+            internalRes.verdict === 'True' ||
+            internalRes.verdict === 'Mostly True'
+          ) {
+            mappedStatus = 'true';
+          } else if (
+            internalRes.verdict === 'False' ||
+            internalRes.verdict === 'Misleading'
+          ) {
+            mappedStatus = 'false';
+          } else {
+            mappedStatus = 'uncertain';
+          }
+
+          finalClaims.push({
+            claimId: internalRes.claimId,
+            text: textToSearch,
+            status: mappedStatus,
+            confidence: internalRes.confidenceScore,
+            offset: {
+              start,
+              end,
+            },
+            reportId: internalRes.verdictId,
+          });
+        } else {
+          this.logger.warn(
+            `Invalid offset bounds for claim ${internalRes.claimId}: start=${start}, end=${end}. Discarding claim from final payload.`,
+          );
+        }
+      } else {
+        this.logger.warn(
+          `Could not locate exactQuote or assertion in text for claim ${internalRes.claimId}. Discarding from final payload.`,
+        );
+      }
     }
 
     // Save to Supabase
     try {
       const supabase = this.supabaseService.getClient();
-      for (let i = 0; i < claimsResults.length; i++) {
-        const claimResult = claimsResults[i];
-
-        // Ensure first claim uses the job's predefined claimId if available
-        const claimId =
-          i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
-
+      for (const internalRes of internalClaimsResults) {
         // 1. Insert claim
         await supabase.from('claims').insert({
-          id: claimId,
-          text: claimResult.assertion,
+          id: internalRes.claimId,
+          text: internalRes.claim.assertion,
           language: 'ro',
         } as any);
 
         // 2. Insert fact check
-        const factCheckId = crypto.randomUUID();
         await supabase.from('fact_checks').insert({
-          id: factCheckId,
-          claim_id: claimId,
+          id: internalRes.factCheckId,
+          claim_id: internalRes.claimId,
           status: 'completed',
         } as any);
 
         // 3. Insert verdict
-        const verdictId = crypto.randomUUID();
         await supabase.from('verdicts').insert({
-          id: verdictId,
-          fact_check_id: factCheckId,
-          verdict: claimResult.verdict,
-          confidence_score: claimResult.confidenceScore,
-          explanation: claimResult.explanation,
+          id: internalRes.verdictId,
+          fact_check_id: internalRes.factCheckId,
+          verdict: internalRes.verdict,
+          confidence_score: internalRes.confidenceScore,
+          explanation: internalRes.explanation,
         } as any);
 
         // 4. Insert sources and verdict_sources
-        for (const evidence of claimResult.evidence) {
+        for (const evidence of internalRes.evidence) {
           if (!evidence.url) continue;
 
           let sourceId = evidence.sourceId;
@@ -247,7 +297,7 @@ export class JobsConsumer extends WorkerHost {
           await supabase
             .from('verdict_sources')
             .insert({
-              verdict_id: verdictId,
+              verdict_id: internalRes.verdictId,
               source_id: sourceId,
             } as any)
             .select()
@@ -264,7 +314,8 @@ export class JobsConsumer extends WorkerHost {
         duration_ms: durationMs,
         metadata: {
           jobId: job.id,
-          claimsCount: claimsResults.length,
+          claimsCount: internalClaimsResults.length,
+          returnedClaimsCount: finalClaims.length,
           engine: job.data.preferredEngine,
         },
       } as any);
@@ -276,7 +327,7 @@ export class JobsConsumer extends WorkerHost {
     return {
       success: true,
       transcript: job.data.audioPath ? textToAnalyze : undefined,
-      claims: claimsResults,
+      claims: finalClaims,
     };
   }
 }

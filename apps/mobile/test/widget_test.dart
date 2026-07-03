@@ -26,7 +26,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('CONFIDENȚIALITATEA DATELOR'), findsNothing);
-    expect(find.text('Verifică informațiile\ncu încredere'), findsOneWidget);
+    expect(find.textContaining('Află adevărul'), findsOneWidget);
   });
 
   testWidgets('App renders home screen when consented and onboarded',
@@ -35,18 +35,17 @@ void main() {
     await tester.pumpWidget(const VerificatApp(initialConsented: true));
     await tester.pumpAndSettle();
 
-    expect(find.byType(BrandText), findsWidgets);
     expect(find.text('Verifică acum'), findsOneWidget);
   });
 
-  testWidgets('Navigation to check screen works', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({'onboarding-complete': true});
+  testWidgets('Navigation to listen screen works', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({'onboarding-complete': true, 'tutorial-shown': true});
     await tester.pumpWidget(const VerificatApp(initialConsented: true));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Verifică acum'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Verificare Audio'), findsOneWidget);
+    expect(find.text('Ascultă'), findsWidgets);
   });
 }

@@ -21,7 +21,7 @@ export function NavLink({ children, href, active, onClick, id }: NavLinkProps) {
         justifyContent: 'center',
         height: 44,
         padding: '0 12px',
-        borderRadius: 'var(--radius-sm, 6px)',
+        borderRadius: 'var(--radius-sm)',
         border: 'none',
         backgroundColor: active ? 'var(--color-accent-soft)' : 'transparent',
         color: active ? 'var(--color-accent)' : 'var(--color-ink)',

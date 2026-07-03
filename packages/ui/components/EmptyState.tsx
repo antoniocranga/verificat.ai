@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button } from './Button';
-import './button.css';
+import { Button } from "./ui/button";
 
 interface EmptyStateAction {
   label: string;
@@ -19,16 +18,10 @@ interface EmptyStateProps {
   id?: string;
 }
 
-const containerColors = {
-  empty:         'rgba(232, 230, 220, 0.6)',   // --color-subtle/60
-  error:         'rgba(201, 64, 64, 0.08)',
-  'network-error': 'rgba(201, 64, 64, 0.08)',
-};
-
-const iconColors = {
-  empty:         'var(--color-mid)',
-  error:         'var(--color-error, #c94040)',
-  'network-error': 'var(--color-error, #c94040)',
+const containerClasses = {
+  empty: 'bg-muted/60 text-muted-foreground',
+  error: 'bg-destructive/10 text-destructive',
+  'network-error': 'bg-destructive/10 text-destructive',
 };
 
 export function EmptyState({
@@ -43,58 +36,22 @@ export function EmptyState({
     <div
       id={id}
       role="status"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '16px',
-        padding: '64px 32px',
-        textAlign: 'center',
-      }}
+      className="flex flex-col items-center justify-center gap-4 py-16 px-8 text-center"
     >
       {/* Icon container */}
       <div
         aria-hidden="true"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 64,
-          height: 64,
-          borderRadius: 16,
-          backgroundColor: containerColors[type],
-          color: iconColors[type],
-          flexShrink: 0,
-        }}
+        className={`flex items-center justify-center w-16 h-16 rounded-2xl shrink-0 ${containerClasses[type]}`}
       >
         {icon}
       </div>
 
       {/* Text */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 280 }}>
-        <h3
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-            fontSize: '16px',
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-            color: 'var(--color-ink)',
-          }}
-        >
+      <div className="flex flex-col gap-1.5 max-w-[280px]">
+        <h3 className="m-0 font-display text-base font-semibold tracking-tight text-foreground">
           {title}
         </h3>
-        <p
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-body)',
-            fontSize: '14px',
-            fontWeight: 400,
-            lineHeight: 1.65,
-            color: 'var(--color-mid)',
-          }}
-        >
+        <p className="m-0 font-body text-sm font-normal leading-relaxed text-muted-foreground">
           {description}
         </p>
       </div>
@@ -102,7 +59,7 @@ export function EmptyState({
       {/* CTA */}
       {action && (
         <Button
-          variant={action.variant ?? 'secondary'}
+          variant={action.variant === 'secondary' ? 'secondary' : 'default'}
           size="sm"
           onClick={action.onClick}
         >

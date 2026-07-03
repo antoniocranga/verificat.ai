@@ -5,4 +5,5 @@ abstract class SavedChecksRepository {
   Future<void> save({required String verdictId});
   Future<void> remove({required String verdictId});
   Future<bool> isSaved({required String verdictId});
+  Future<void> clearAll();
 }
