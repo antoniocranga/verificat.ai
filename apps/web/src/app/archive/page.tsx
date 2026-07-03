@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ButtonPrimarySmall, ButtonGhostSmall, TextInput } from "@verificat/ui";
+import { Button, TextInput } from "@verificat/ui";
 
 import { getApiBase } from "@/lib/api";
 
@@ -100,7 +100,9 @@ export default function ArchivePage() {
             }
           />
         </div>
-        <ButtonPrimarySmall id="search-btn">Caută</ButtonPrimarySmall>
+        <Button size="sm" id="search-btn">
+          Caută
+        </Button>
       </form>
 
       {loading && (
@@ -171,25 +173,29 @@ export default function ArchivePage() {
             marginTop: 24,
           }}
         >
-          <ButtonGhostSmall
+          <Button
+            variant="ghost"
+            size="sm"
             id="prev-btn"
             onClick={() => {
               void fetchResults(query, page - 1);
             }}
           >
             Anterior
-          </ButtonGhostSmall>
+          </Button>
           <span style={{ padding: "8px 0", color: "#4d4d4d" }}>
             Pagina {page} din {totalPages}
           </span>
-          <ButtonGhostSmall
+          <Button
+            variant="ghost"
+            size="sm"
             id="next-btn"
             onClick={() => {
               void fetchResults(query, page + 1);
             }}
           >
             Următoarea
-          </ButtonGhostSmall>
+          </Button>
         </div>
       )}
     </main>

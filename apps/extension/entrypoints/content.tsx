@@ -2,7 +2,7 @@ import { defineContentScript } from "wxt/sandbox";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { OverlayApp } from "../components/OverlayApp";
-import "@verificat/ui/tokens.css";
+import tokensCss from "@verificat/ui/tokens.css?raw";
 
 export default defineContentScript({
   matches: ["*://*.youtube.com/*", "*://*.twitch.tv/*", "*://*.vimeo.com/*"],
@@ -24,14 +24,12 @@ export default defineContentScript({
         `;
         const shadow = host.attachShadow({ mode: "closed" });
 
-        // Add font
-        const fontLink = document.createElement("link");
-        fontLink.rel = "stylesheet";
-        fontLink.href = chrome.runtime.getURL("/tokens.css");
-        shadow.appendChild(fontLink);
+        const style = document.createElement("style");
+        style.textContent = tokensCss;
+        shadow.appendChild(style);
 
         const rootDiv = document.createElement("div");
-        rootDiv.style.all = "initial"; // Reset styles for the root
+        rootDiv.style.all = "initial";
         shadow.appendChild(rootDiv);
 
         createRoot(rootDiv).render(<OverlayApp />);
@@ -40,7 +38,6 @@ export default defineContentScript({
       return host;
     }
 
-    // Ensure the overlay exists to listen to state
     getOrCreateOverlay();
   },
 });

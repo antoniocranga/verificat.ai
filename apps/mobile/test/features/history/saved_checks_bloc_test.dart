@@ -25,6 +25,11 @@ class MockSavedChecksRepository implements SavedChecksRepository {
   Future<bool> isSaved({required String verdictId}) async {
     return _checks.any((c) => c.id == verdictId);
   }
+
+  @override
+  Future<void> clearAll() async {
+    _checks.clear();
+  }
 }
 
 void main() {

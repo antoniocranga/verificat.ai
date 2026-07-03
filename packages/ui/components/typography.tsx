@@ -45,8 +45,6 @@ export const DisplayXL = createTypography(
     fontWeight: 700,
     lineHeight: 1.1,
     letterSpacing: '-0.04em',
-    margin: 0,
-    color: 'var(--color-ink)',
   },
   'DisplayXL',
 );
@@ -60,8 +58,6 @@ export const HeadingLg = createTypography(
     fontWeight: 700,
     lineHeight: 1.1,
     letterSpacing: '-0.04em',
-    margin: 0,
-    color: 'var(--color-ink)',
   },
   'HeadingLg',
 );
@@ -75,8 +71,6 @@ export const HeadingMd = createTypography(
     fontWeight: 600,
     lineHeight: 1.2,
     letterSpacing: '-0.025em',
-    margin: 0,
-    color: 'var(--color-ink)',
   },
   'HeadingMd',
 );
@@ -90,7 +84,6 @@ export const LabelSm = createTypography(
     fontWeight: 500,
     lineHeight: 1.4,
     letterSpacing: '-0.01em',
-    margin: 0,
   },
   'LabelSm',
 );
@@ -104,7 +97,6 @@ export const BodyLg = createTypography(
     fontWeight: 400,
     lineHeight: 1.75,
     letterSpacing: 0,
-    margin: 0,
   },
   'BodyLg',
 );
@@ -118,7 +110,6 @@ export const BodyMd = createTypography(
     fontWeight: 400,
     lineHeight: 1.75,
     letterSpacing: 0,
-    margin: 0,
   },
   'BodyMd',
 );
@@ -132,7 +123,6 @@ export const BodySm = createTypography(
     fontWeight: 400,
     lineHeight: 1.65,
     letterSpacing: 0,
-    margin: 0,
   },
   'BodySm',
 );
@@ -147,7 +137,6 @@ export const MonoEyebrow = createTypography(
     lineHeight: 1.4,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    margin: 0,
   },
   'MonoEyebrow',
 );

@@ -12,7 +12,7 @@ The most important performance constraint in this system is the end-to-end laten
 
 | Stage | Budget | Notes |
 |---|---|---|
-| STT transcription (streaming, first-word) | < 300 ms | Deepgram Nova-3 streaming latency target (ADR-006) |
+| STT transcription (streaming, first-word) | < 300 ms | Deepgram Nova-2 streaming latency target (ADR-006) |
 | Claim detection | < 200 ms | In-process NestJS service; should not require a network round-trip |
 | Claim normalisation | < 150 ms | LLM sub-task call; scoped, logged, not an end-to-end prompt |
 | Evidence retrieval | < 1 500 ms | pgvector + OpenSearch combined; P50 target |

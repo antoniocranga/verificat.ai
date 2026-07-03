@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
+import { ThemeProvider } from "@verificat/ui";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://staging.verificat.xyz"),
@@ -43,10 +44,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ro">
+    <html lang="ro" suppressHydrationWarning>
       <body className="antialiased grain-overlay min-h-screen">
-        {children}
-        <CookieConsentBanner />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <CookieConsentBanner />
+        </ThemeProvider>
       </body>
     </html>
   );

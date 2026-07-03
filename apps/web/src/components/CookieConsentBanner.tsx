@@ -1,6 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import {
+  Button,
+  Switch,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Card,
+} from "@verificat/ui";
 
 const CONSENT_KEY = "vcai_cookie_consent";
 
@@ -27,56 +38,6 @@ if (typeof window !== "undefined") {
       return false;
     }
   };
-}
-
-function Toggle({
-  id,
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  id: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      id={id}
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && onChange(!checked)}
-      style={{
-        width: 44,
-        height: 24,
-        borderRadius: "var(--radius-pill)",
-        border: "none",
-        background: checked ? "var(--color-accent)" : "var(--color-subtle)",
-        cursor: disabled ? "not-allowed" : "pointer",
-        position: "relative",
-        transition: "background var(--transition-base)",
-        flexShrink: 0,
-        opacity: disabled ? 0.5 : 1,
-        padding: 0,
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: 2,
-          left: checked ? 22 : 2,
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          background: "white",
-          boxShadow: "var(--shadow-sm)",
-          transition: "left var(--transition-base)",
-        }}
-      />
-    </button>
-  );
 }
 
 export function CookieConsentBanner() {
@@ -144,216 +105,78 @@ export function CookieConsentBanner() {
     <>
       {/* ── Banner ───────────────────────────────────────────── */}
       <div
+        className={`fixed z-[200] bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] transition-all duration-500 md:left-auto md:p-5 md:pb-[calc(20px+env(safe-area-inset-bottom,0px))] xl:pr-8 xl:pb-8 ${
+          visible
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-6 pointer-events-none"
+        }`}
         role="dialog"
         aria-label="Consimțământ cookie-uri"
-        aria-modal="false"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 9998,
-          display: "flex",
-          justifyContent: "center",
-          pointerEvents: visible ? "auto" : "none",
-        }}
+        aria-describedby="cookieDesc"
       >
-        <div
-          style={{
-            maxWidth: 960,
-            width: "100%",
-            background: "var(--color-canvas-elevated)",
-            borderTop: "1px solid var(--color-subtle)",
-            borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
-            boxShadow:
-              "0 -16px 48px rgba(20,20,19,0.12), 0 -4px 12px rgba(20,20,19,0.06)",
-            padding: "var(--space-6, 24px)",
-            transform: visible ? "translateY(0)" : "translateY(110%)",
-            opacity: visible ? 1 : 0,
-            transition: "transform 300ms ease-out, opacity 300ms ease-out",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "var(--space-5, 20px)",
-              justifyContent: "space-between",
-            }}
-          >
-            {/* Description */}
-            <p
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 14,
-                color: "var(--color-mid)",
-                margin: 0,
-                flex: "1 1 320px",
-                lineHeight: 1.6,
-              }}
-            >
-              Folosim cookie-uri esențiale pentru funcționarea site-ului și, cu
-              acordul dumneavoastră, cookie-uri pentru analiză și marketing.{" "}
-              <a
-                href="/privacy#cookie"
-                style={{
-                  color: "var(--color-primary)",
-                  textDecoration: "none",
-                }}
+        <Card className="max-w-[440px] md:max-w-[360px] mx-auto md:ml-auto p-5 pb-4 shadow-lg flex flex-col gap-4 bg-card/95 backdrop-blur-xl">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-7 h-7 rounded-md bg-primary flex items-center justify-center mt-0.5">
+              <svg viewBox="0 0 16 16" className="w-4 h-4 fill-white">
+                <path d="M8 0a8 8 0 1016 8A8 8 0 008 0zm3.5 11.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm-4 1a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM6 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="font-medium text-base leading-snug text-foreground mb-1">
+                Confidențialitatea dumneavoastră
+              </div>
+              <div
+                className="text-[13px] leading-relaxed text-muted-foreground"
+                id="cookieDesc"
               >
-                Politica de confidențialitate
-              </a>
-            </p>
-
-            {/* Button row */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "var(--space-3, 12px)",
-              }}
-            >
-              <button
-                id="btn-cookie-accept-all"
-                onClick={acceptAll}
-                style={{
-                  height: 40,
-                  padding: "0 20px",
-                  background: "var(--color-ink)",
-                  color: "var(--color-canvas)",
-                  borderRadius: "var(--radius-pill)",
-                  border: "none",
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "background var(--transition-fast)",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#2a2a28")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "var(--color-ink)")
-                }
-              >
-                Acceptă tot
-              </button>
-
-              <button
-                id="btn-cookie-reject"
-                onClick={rejectNonEssential}
-                style={{
-                  height: 40,
-                  padding: "0 20px",
-                  background: "transparent",
-                  color: "var(--color-ink)",
-                  borderRadius: "var(--radius-pill)",
-                  border: "1.5px solid var(--color-subtle)",
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "border-color var(--transition-fast)",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-mid)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-subtle)")
-                }
-              >
-                Refuz non-esențiale
-              </button>
-
-              <button
-                id="btn-cookie-manage"
-                onClick={() => setModalOpen(true)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontFamily: "var(--font-heading)",
-                  fontSize: 14,
-                  color: "var(--color-ink)",
-                  cursor: "pointer",
-                  padding: 0,
-                  textUnderlineOffset: 3,
-                  transition: "color var(--transition-fast)",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--color-accent)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--color-ink)")
-                }
-              >
-                Gestionează preferințe
-              </button>
+                Folosim cookie-uri pentru a vă oferi o experiență mai bună.{" "}
+                <a
+                  href="/privacy#cookie"
+                  aria-label="Mai multe despre cookie-uri"
+                  className="text-primary hover:underline"
+                >
+                  Află mai multe
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+          <div className="flex flex-col gap-2">
+            <Button variant="default" onClick={acceptAll} className="w-full">
+              Acceptă tot
+            </Button>
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="outline"
+                onClick={() => setModalOpen(true)}
+                className="flex-1"
+              >
+                Preferințe
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={rejectNonEssential}
+                className="flex-1"
+              >
+                Refuză
+              </Button>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* ── Preferences Modal ────────────────────────────────── */}
-      {modalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Preferințe cookie-uri"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "var(--space-6, 24px)",
-            background: "rgba(20,20,19,0.4)",
-            backdropFilter: "blur(4px)",
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setModalOpen(false);
-          }}
-        >
-          <div
-            style={{
-              background: "var(--color-canvas-elevated)",
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-lg)",
-              padding: "var(--space-8, 32px)",
-              width: "100%",
-              maxWidth: 520,
-            }}
-          >
-            <h2
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: 22,
-                letterSpacing: "-0.02em",
-                color: "var(--color-ink)",
-                margin: "0 0 var(--space-2, 8px)",
-              }}
-            >
-              Preferințe cookie-uri
-            </h2>
-            <p
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 14,
-                color: "var(--color-mid)",
-                margin: "0 0 var(--space-6, 24px)",
-                lineHeight: 1.6,
-              }}
-            >
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Preferințe cookie-uri</DialogTitle>
+            <DialogDescription>
               Alegeți ce tipuri de cookie-uri acceptați. Cookie-urile esențiale
               nu pot fi dezactivate — sunt necesare pentru funcționarea
               site-ului.
-            </p>
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="flex flex-col gap-6 py-4">
             {/* Category: Essential */}
             {[
               {
@@ -380,120 +203,45 @@ export function CookieConsentBanner() {
                 checked: prefs.marketing,
                 disabled: false,
               },
-            ].map((item) => (
+            ].map((item, index) => (
               <div
                 key={item.id}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  gap: "var(--space-5, 20px)",
-                  padding: "var(--space-5, 20px) 0",
-                  borderTop: "1px solid var(--color-subtle)",
-                }}
+                className={`flex items-start justify-between gap-4 ${index > 0 ? "pt-6 border-t border-border" : ""}`}
               >
-                <div>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 600,
-                      fontSize: 15,
-                      color: "var(--color-ink)",
-                      margin: "0 0 4px",
-                    }}
-                  >
+                <div className="flex flex-col gap-1 pr-4">
+                  <h4 className="font-medium text-[15px] leading-none">
                     {item.title}
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: 13,
-                      color: "var(--color-mid)",
-                      margin: 0,
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  </h4>
+                  <p className="text-[13px] text-muted-foreground leading-snug">
                     {item.desc}
                   </p>
                 </div>
-                <Toggle
+                <Switch
                   id={item.id}
                   checked={item.checked}
                   disabled={item.disabled}
-                  onChange={(v) => {
+                  onCheckedChange={(v) => {
                     if (item.category === "analytics")
                       setPrefs((p) => ({ ...p, analytics: v }));
                     if (item.category === "marketing")
                       setPrefs((p) => ({ ...p, marketing: v }));
                   }}
+                  className="mt-1"
                 />
               </div>
             ))}
-
-            {/* Save */}
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--space-3, 12px)",
-                marginTop: "var(--space-6, 24px)",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                id="btn-cookie-save-prefs"
-                onClick={savePreferences}
-                style={{
-                  height: 44,
-                  padding: "0 24px",
-                  background: "var(--color-ink)",
-                  color: "var(--color-canvas)",
-                  borderRadius: "var(--radius-pill)",
-                  border: "none",
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  transition: "background var(--transition-fast)",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#2a2a28")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "var(--color-ink)")
-                }
-              >
-                Salvează preferințele
-              </button>
-
-              <button
-                id="btn-cookie-modal-accept-all"
-                onClick={acceptAll}
-                style={{
-                  height: 44,
-                  padding: "0 24px",
-                  background: "transparent",
-                  color: "var(--color-ink)",
-                  borderRadius: "var(--radius-pill)",
-                  border: "1.5px solid var(--color-subtle)",
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  transition: "border-color var(--transition-fast)",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-mid)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-subtle)")
-                }
-              >
-                Acceptă tot
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+            <Button variant="outline" onClick={savePreferences}>
+              Salvează preferințele
+            </Button>
+            <Button variant="default" onClick={acceptAll}>
+              Acceptă tot
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -1,7 +1,6 @@
-import type { CSSProperties } from 'react';
-import './button.css'; // pulls token vars
+import type { CSSProperties, HTMLAttributes } from 'react';
 
-interface SkeletonProps {
+interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   width?: string | number;
   height?: string | number;
   borderRadius?: string | number;

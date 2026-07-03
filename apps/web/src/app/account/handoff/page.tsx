@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ButtonPrimarySmall } from "@verificat/ui";
+import { Button } from "@verificat/ui";
 
 import { getApiBase } from "@/lib/api";
 
@@ -70,14 +70,15 @@ export default function HandoffPage() {
         </p>
 
         {!handoffUrl && (
-          <ButtonPrimarySmall
+          <Button
+            size="sm"
             id="generate-btn"
             onClick={() => {
               void generateLink();
             }}
           >
             {loading ? "Se generează..." : "Generează link de transfer"}
-          </ButtonPrimarySmall>
+          </Button>
         )}
 
         {error && (

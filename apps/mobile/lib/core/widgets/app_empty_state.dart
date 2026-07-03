@@ -27,14 +27,14 @@ class AppEmptyState extends StatelessWidget {
     this.type = AppEmptyStateType.empty,
   });
 
-  Color get _iconContainerColor => switch (type) {
-    AppEmptyStateType.empty        => AppColors.subtle.withValues(alpha: 0.6),
+  Color _iconContainerColor(BuildContext context) => switch (type) {
+    AppEmptyStateType.empty        => Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
     AppEmptyStateType.error        => AppColors.error.withValues(alpha: 0.08),
     AppEmptyStateType.networkError => AppColors.error.withValues(alpha: 0.08),
   };
 
-  Color get _iconColor => switch (type) {
-    AppEmptyStateType.empty        => AppColors.mid,
+  Color _iconColor(BuildContext context) => switch (type) {
+    AppEmptyStateType.empty        => Theme.of(context).colorScheme.outlineVariant,
     AppEmptyStateType.error        => AppColors.error,
     AppEmptyStateType.networkError => AppColors.error,
   };
@@ -52,10 +52,10 @@ class AppEmptyState extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: _iconContainerColor,
+                color: _iconContainerColor(context),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, size: 28, color: _iconColor),
+              child: Icon(icon, size: 28, color: _iconColor(context)),
             ),
             const SizedBox(height: 20),
 
@@ -76,7 +76,7 @@ class AppEmptyState extends StatelessWidget {
               child: Text(
                 description,
                 style: AppTextStyles.bodyMd.copyWith(
-                  color: AppColors.mid,
+                  color: Theme.of(context).colorScheme.outlineVariant,
                   height: 1.65,
                 ),
                 textAlign: TextAlign.center,

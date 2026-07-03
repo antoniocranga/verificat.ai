@@ -1,19 +1,17 @@
-// New unified components
-export { Button } from './Button';
+export { Button, buttonVariants } from './ui/button';
+export { ThemeProvider } from './theme-provider';
 export { Surface } from './Surface';
+export { Squircle } from './Squircle';
 export { EmptyState } from './EmptyState';
 export { Skeleton, SkeletonText, SkeletonCard } from './Skeleton';
-
-// Legacy button components (deprecated — use <Button variant="..." /> instead)
-export { ButtonPrimary } from './button-primary';
-export { ButtonSecondary } from './button-secondary';
-export { ButtonPrimarySmall } from './button-primary-small';
-export { ButtonGhostSmall } from './button-ghost-small';
-export { ButtonCategoryPill } from './button-category-pill';
-export { ButtonIconCircular } from './button-icon-circular';
-
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
+export { Dialog, DialogPortal, DialogOverlay, DialogTrigger, DialogClose, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from './ui/dialog';
+export { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from './ui/sheet';
+export { Switch } from './ui/switch';
+export { Badge, badgeVariants } from './ui/badge';
 // Navigation
 export { Logo } from './Logo';
+export { SiteLogo } from './site-logo';
 export { NavLink } from './nav-link';
 export { NavBar } from './nav-bar';
 
