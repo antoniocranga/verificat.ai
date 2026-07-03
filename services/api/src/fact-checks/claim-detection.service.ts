@@ -6,6 +6,7 @@ import * as https from 'https';
 export interface NormalizedClaim {
   entities: string[];
   assertion: string;
+  exactQuote?: string;
   qualifiers: string[];
 }
 
@@ -48,7 +49,7 @@ export class ClaimDetectionService {
 
     // Fallback default in case of path mismatches in different run modes
     this.systemPrompt = `You are a precise fact-checking claim detector. Identify checkable claims in Romanian and return them in JSON format.
-Format: { "claims": [ { "entities": [], "assertion": "", "qualifiers": [] } ] }`;
+Format: { "claims": [ { "entities": [], "assertion": "", "exactQuote": "", "qualifiers": [] } ] }`;
     this.logger.warn(
       'Could not find system prompt file. Used fallback prompt.',
     );
@@ -63,6 +64,7 @@ Format: { "claims": [ { "entities": [], "assertion": "", "qualifiers": [] } ] }`
             entities: ['Guvern', 'deficit'],
             assertion:
               'Deficitul bugetar al României a depășit valoarea de 5,6% din PIB în 2023.',
+            exactQuote: 'deficitul bugetar a depășit 5,6%',
             qualifiers: ['în primele zece luni ale anului 2023'],
           },
         ];
@@ -72,6 +74,7 @@ Format: { "claims": [ { "entities": [], "assertion": "", "qualifiers": [] } ] }`
           {
             entities: ['INS', 'inflație'],
             assertion: 'Rata inflației a scăzut la 6,7% în noiembrie 2023.',
+            exactQuote: 'rata inflației a scăzut la 6,7%',
             qualifiers: ['în noiembrie 2023'],
           },
         ];
