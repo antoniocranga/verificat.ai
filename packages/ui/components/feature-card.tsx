@@ -1,10 +1,8 @@
-import type { ReactNode } from 'react';
-import './button.css'; // pulls in token vars
+import type { ReactNode, HTMLAttributes } from 'react';
 
-interface FeatureCardProps {
+interface FeatureCardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   shadow?: boolean;
-  id?: string;
   hover?: boolean;
 }
 
