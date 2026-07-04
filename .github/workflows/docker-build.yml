@@ -34,7 +34,7 @@ jobs:
 
       - name: Extract metadata for Web
         id: meta-web
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/web
           tags: |
@@ -84,7 +84,7 @@ jobs:
 
       - name: Extract metadata for API
         id: meta-api
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/api
           tags: |
