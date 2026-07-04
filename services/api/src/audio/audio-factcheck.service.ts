@@ -28,6 +28,7 @@ export type StreamingResult = Omit<ResultMessage, 'type'> & {
   claimId: string;
   reportId: string;
   status: 'true' | 'false' | 'uncertain';
+  offset?: { start: number; end: number };
 };
 
 export type FactcheckResponse =
