@@ -34,8 +34,8 @@
     "@types/react": "^19",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.4.1",
-    "react": "19.2.4",
-    "shadcn": "^4.12.0",
+    "react": "19.2.7",
+    "shadcn": "^4.13.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.3.3"
   },
