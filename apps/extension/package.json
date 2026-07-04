@@ -31,7 +31,7 @@
     "sharp": "^0.35.2",
     "tailwindcss": "^4",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.5.0",
+    "typescript": "^6.0.3",
     "wxt": "^0.19.16"
   },
   "dependencies": {
