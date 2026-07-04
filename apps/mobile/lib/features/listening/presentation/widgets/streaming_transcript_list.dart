@@ -82,7 +82,7 @@ class _StreamingTranscriptListState extends State<StreamingTranscriptList> {
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Text(
             'Vorbiți pentru a vedea transcrierea...',
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
+            style: AppTextStyles.bodyMd.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -127,7 +127,7 @@ class _StreamingTranscriptListState extends State<StreamingTranscriptList> {
               right: 20,
               child: FloatingActionButton.small(
                 heroTag: 'transcript-scroll',
-                backgroundColor: AppColors.accent,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 onPressed: () {
                   setState(() => _userScrolling = false);
                   _scrollToBottom();
@@ -162,7 +162,7 @@ class _InterimTextWidget extends StatelessWidget {
                   delay: disableAnimations ? Duration.zero : Duration(milliseconds: (i * 20).clamp(0, 200)),
                   disableAnimations: disableAnimations,
                   style: AppTextStyles.bodyMd.copyWith(
-                    color: AppColors.mid,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
                     fontSize: 16,
                     height: 1.6,
@@ -310,7 +310,8 @@ class _HighlightedSegmentState extends State<_HighlightedSegment>
     final seg = widget.segment;
     final isError = seg.claimError != null;
     final bgColor = isError ? Colors.red.withValues(alpha: 0.12) : AppColors.streamingVerdictBg(seg.verdict);
-    final fgColor = isError ? Colors.red : AppColors.streamingVerdictFg(seg.verdict);
+    final baseFgColor = isError ? Colors.red : AppColors.streamingVerdictFg(seg.verdict);
+    final fgColor = baseFgColor ?? Theme.of(context).colorScheme.onSurface;
 
     String beforeText = '';
     String highlightText = seg.text;
@@ -404,7 +405,8 @@ class _VerdictLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = AppColors.streamingVerdictLabel(verdict);
-    final color = AppColors.streamingVerdictFg(verdict);
+    final baseColor = AppColors.streamingVerdictFg(verdict);
+    final color = baseColor ?? Theme.of(context).colorScheme.onSurface;
     return Text(
       label,
       style: AppTextStyles.labelCaps.copyWith(

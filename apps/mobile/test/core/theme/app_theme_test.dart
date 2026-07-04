@@ -87,7 +87,7 @@ void main() {
       expect(style.letterSpacing, 0);
     });
 
-    test('bodyMedium uses Lora 400 14px h:1.6 ls:0', () {
+    test('bodyMedium uses Poppins 400 14px h:1.6 ls:0', () {
       final style = appTheme.textTheme.bodyMedium!;
       expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w400);
@@ -96,9 +96,9 @@ void main() {
       expect(style.letterSpacing, 0);
     });
 
-    test('bodySmall uses Lora 400 12px h:1.5 ls:0', () {
+    test('bodySmall uses Poppins 400 12px h:1.5 ls:0', () {
       final style = appTheme.textTheme.bodySmall!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 12);
       expect(style.height, 1.5);

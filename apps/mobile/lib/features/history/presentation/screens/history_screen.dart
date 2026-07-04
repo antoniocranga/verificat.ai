@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/verdict_utils.dart';
 import '../../domain/models/saved_check.dart';
 import '../bloc/saved_checks_bloc.dart';
 
@@ -30,7 +31,9 @@ class HistoryScreen extends StatelessWidget {
               title: 'Eroare',
               description: state.error!,
               actionLabel: 'Reîncearcă',
-              onAction: () => context.read<SavedChecksBloc>().add(const SavedChecksLoaded()),
+              onAction: () => context
+                  .read<SavedChecksBloc>()
+                  .add(const SavedChecksLoaded()),
             );
           }
           if (state.checks.isEmpty) {
@@ -38,7 +41,8 @@ class HistoryScreen extends StatelessWidget {
               type: AppEmptyStateType.empty,
               icon: Icons.history_rounded,
               title: 'Nicio sesiune salvată',
-              description: 'Sesiunile de verificare vor apărea aici automat după ce folosești aplicația.',
+              description:
+                  'Sesiunile de verificare vor apărea aici automat după ce folosești aplicația.',
             );
           }
 
@@ -48,7 +52,8 @@ class HistoryScreen extends StatelessWidget {
               context.read<SavedChecksBloc>().add(const SavedChecksLoaded());
             },
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              physics: const AlwaysScrollableScrollPhysics(),
               itemCount: state.checks.length,
               itemBuilder: (context, index) {
                 final check = state.checks[index];
@@ -99,7 +104,9 @@ class _SessionItemState extends State<_SessionItem>
   @override
   void initState() {
     super.initState();
-    final dur = widget.disableAnimations ? Duration.zero : const Duration(milliseconds: 300);
+    final dur = widget.disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: 300);
     _controller = AnimationController(vsync: this, duration: dur);
     _opacity = CurvedAnimation(
       parent: _controller,
@@ -109,7 +116,8 @@ class _SessionItemState extends State<_SessionItem>
       begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: (widget.index * 20).clamp(0, 200)), () {
+    Future.delayed(Duration(milliseconds: (widget.index * 20).clamp(0, 200)),
+        () {
       if (mounted) _controller.forward();
     });
   }
@@ -124,7 +132,20 @@ class _SessionItemState extends State<_SessionItem>
     if (iso == null) return '';
     final dt = DateTime.tryParse(iso);
     if (dt == null) return iso;
-    final months = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'noi', 'dec'];
+    final months = [
+      'ian',
+      'feb',
+      'mar',
+      'apr',
+      'mai',
+      'iun',
+      'iul',
+      'aug',
+      'sep',
+      'oct',
+      'noi',
+      'dec'
+    ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
@@ -149,7 +170,8 @@ class _SessionItemState extends State<_SessionItem>
               color: AppColors.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+            child: const Icon(Icons.delete_outline_rounded,
+                color: AppColors.error),
           ),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -188,7 +210,6 @@ class _SessionItemState extends State<_SessionItem>
                             _formatDate(s.startedAt),
                             style: AppTextStyles.labelMd.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.ink,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -197,19 +218,20 @@ class _SessionItemState extends State<_SessionItem>
                           Row(
                             children: [
                               Text(
-                                '${s.claimCount ?? 0} ${(s.claimCount ?? 0) == 1 ? 'afirmație' : 'afirmații'}',
-                                style: AppTextStyles.labelSm.copyWith(color: AppColors.mid),
-                              ),
+                                  '${s.claimCount ?? 0} ${(s.claimCount ?? 0) == 1 ? 'afirmație' : 'afirmații'}',
+                                  style: AppTextStyles.labelSm),
                               if (s.mode != null) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: AppColors.subtle,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    s.mode == 'recording' ? 'Înregistrare' : 'Timp real',
+                                    s.mode == 'recording'
+                                        ? 'Înregistrare'
+                                        : 'Timp real',
                                     style: AppTextStyles.labelSm.copyWith(
                                       fontSize: 9,
                                       color: AppColors.mid,
@@ -225,20 +247,16 @@ class _SessionItemState extends State<_SessionItem>
                               spacing: 4,
                               runSpacing: 4,
                               children: summary.entries.map((e) {
-                                final color = switch (e.key) {
-                                  'true' => AppColors.verdictTrue,
-                                  'false' => AppColors.verdictFalse,
-                                  'uncertain' => AppColors.verdictPartial,
-                                  _ => AppColors.mid,
-                                };
+                                final color = VerdictUtils.getColor(e.key);
                                 return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 1),
                                   decoration: BoxDecoration(
                                     color: color.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    '${e.value}',
+                                    '${e.value} ${VerdictUtils.translate(e.key)}',
                                     style: AppTextStyles.labelSm.copyWith(
                                       color: color,
                                       fontWeight: FontWeight.w700,
@@ -252,7 +270,8 @@ class _SessionItemState extends State<_SessionItem>
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, size: 18, color: AppColors.mid),
+                    const Icon(Icons.chevron_right,
+                        size: 18, color: AppColors.mid),
                   ],
                 ),
               ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_text_styles.dart';
 
@@ -49,40 +48,40 @@ class AppTextInput extends StatelessWidget {
       textInputAction: textInputAction,
       onEditingComplete: onEditingComplete,
       style: AppTextStyles.bodyMd.copyWith(
-        color: AppColors.ink,
+        color: Theme.of(context).colorScheme.onSurface,
         fontFamily: 'Poppins', // labels use Poppins for input text
         fontWeight: FontWeight.w400,
         fontSize: 14,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
+        labelStyle: AppTextStyles.labelMd.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         floatingLabelStyle: AppTextStyles.labelMd.copyWith(
-          color: AppColors.accent,
+          color: Theme.of(context).colorScheme.primary,
           fontSize: 11,
         ),
         hintText: hintText,
         hintStyle: AppTextStyles.labelMd.copyWith(
-          color: AppColors.mid,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w400,
         ),
         errorText: errorText,
-        errorStyle: const TextStyle(
+        errorStyle: TextStyle(
           fontFamily: 'Poppins',
           fontSize: 12,
-          color: AppColors.error,
+          color: Theme.of(context).colorScheme.error,
         ),
-        fillColor: AppColors.surfaceRaised,
+        fillColor: Theme.of(context).colorScheme.surface,
         filled: true,
         prefixIcon: prefixIcon != null
             ? IconTheme(
-                data: const IconThemeData(color: AppColors.mid, size: 18),
+                data: IconThemeData(color: Theme.of(context).colorScheme.onSurfaceVariant, size: 18),
                 child: prefixIcon!,
               )
             : null,
         suffixIcon: suffixIcon != null
             ? IconTheme(
-                data: const IconThemeData(color: AppColors.mid, size: 18),
+                data: IconThemeData(color: Theme.of(context).colorScheme.onSurfaceVariant, size: 18),
                 child: suffixIcon!,
               )
             : null,
@@ -93,27 +92,27 @@ class AppTextInput extends StatelessWidget {
         // 1. Default
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.subtle, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1.5),
         ),
         // 2. Focused — accent colour + simulated glow via BoxDecoration overlay
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5),
         ),
         // 3. Error
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 1.5),
         ),
         // 4. Disabled
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(
-            color: AppColors.subtle.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
             width: 1.5,
           ),
         ),

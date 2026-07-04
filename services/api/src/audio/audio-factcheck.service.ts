@@ -27,7 +27,7 @@ function mapVerdict(v: VerdictValue): AudioVerdictValue {
 export type StreamingResult = Omit<ResultMessage, 'type'> & {
   claimId: string;
   reportId: string;
-  status: 'true' | 'false' | 'uncertain';
+  status: AudioVerdictValue;
   offset?: { start: number; end: number };
 };
 
@@ -96,14 +96,14 @@ export class AudioFactcheckService {
       const topEvidence = evidence[0];
       const matchedFact = topEvidence ? topEvidence.snippet : null;
 
-      let status: 'true' | 'false' | 'uncertain' = 'uncertain';
+      let status: AudioVerdictValue = 'UNCERTAIN';
       if (verdict.verdict === 'True' || verdict.verdict === 'Mostly True') {
-        status = 'true';
+        status = 'TRUE';
       } else if (
         verdict.verdict === 'False' ||
         verdict.verdict === 'Misleading'
       ) {
-        status = 'false';
+        status = 'FALSE';
       }
 
       this.metrics.factcheckVerdictsTotal.inc({ status });

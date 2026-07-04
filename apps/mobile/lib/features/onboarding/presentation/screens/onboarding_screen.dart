@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/presentation/widgets/brand_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -64,7 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildCarouselStep() {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -74,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _skipToEnd,
                 child: Text(
                   'Sari peste',
-                  style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
+                  style: AppTextStyles.labelMd.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -119,7 +118,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.subtle.withValues(alpha: 0.6),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(20),
             ),
             child: showLogo
@@ -130,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 36,
                     ),
                   )
-                : Icon(icon, size: 36, color: AppColors.ink),
+                : Icon(icon, size: 36, color: Theme.of(context).colorScheme.onSurface),
           ),
           const SizedBox(height: 36),
           Text(
@@ -141,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 16),
           BrandText(
             body,
-            style: AppTextStyles.bodyLg.copyWith(color: AppColors.mid),
+            style: AppTextStyles.bodyLg.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
         ],
@@ -164,7 +163,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: isActive ? 24 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: isActive ? AppColors.ink : AppColors.subtle,
+                  color: isActive ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.outline,
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -191,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildScreenStep() {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -233,7 +232,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         const SizedBox(height: 8),
         Text(
           'Ne ajuți să îți personalizăm sugestiile. Poți schimba oricând din setări.',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid, height: 1.65),
+          style: AppTextStyles.bodyMd.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.65),
         ),
         const SizedBox(height: 24),
         ...options.map(
@@ -295,15 +294,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: AppColors.subtle.withValues(alpha: 0.6),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(Icons.mic_rounded, size: 36, color: AppColors.ink),
+          child: Icon(Icons.mic_rounded, size: 36, color: Theme.of(context).colorScheme.onSurface),
         ),
         const SizedBox(height: 24),
         BrandText(
           'Audio-ul tău este procesat în timp real și nu este stocat după verificare. Nu ascultăm conversațiile private — analizăm doar afirmațiile factuale.\n\nPoți folosi și modul Înregistrare, unde tu controlezi când pornești și oprești captura.',
-          style: AppTextStyles.bodyLg.copyWith(color: AppColors.mid, height: 1.7),
+          style: AppTextStyles.bodyLg.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.7),
         ),
         const Spacer(),
         SafeArea(
@@ -355,16 +354,16 @@ class _StyleCard extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? AppColors.accent.withValues(alpha: 0.08) : AppColors.surfaceRaised,
+          color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.accent : AppColors.subtle,
+            color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
             width: selected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: selected ? AppColors.accent : AppColors.ink),
+            Icon(icon, size: 22, color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -374,19 +373,19 @@ class _StyleCard extends StatelessWidget {
                     title,
                     style: AppTextStyles.labelLg.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: selected ? AppColors.accent : AppColors.ink,
+                      color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: AppTextStyles.bodySm.copyWith(color: AppColors.mid),
+                    style: AppTextStyles.bodySm.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle, size: 20, color: AppColors.accent),
+              Icon(Icons.check_circle, size: 20, color: Theme.of(context).colorScheme.primary),
           ],
         ),
       ),

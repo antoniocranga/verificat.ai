@@ -207,7 +207,7 @@ describe('AudioGateway', () => {
     const mockResult = {
       segmentId: 'some-seg',
       verdict: 'TRUE' as const,
-      status: 'true' as const,
+      status: 'TRUE' as const,
       confidence: 0.9,
       explanation: 'Afirmație confirmată.',
       sources: ['https://insse.ro'],

@@ -81,7 +81,7 @@ TextTheme _buildTextTheme(Color inkColor) {
       letterSpacing: 0,
     ),
     bodySmall: TextStyle(
-      fontFamily: 'Lora',
+      fontFamily: 'Poppins',
       fontWeight: FontWeight.w400,
       fontSize: 12,
       height: 1.5,

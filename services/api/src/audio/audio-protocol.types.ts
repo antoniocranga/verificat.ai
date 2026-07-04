@@ -65,7 +65,7 @@ export interface ClaimResultMessage {
   type: 'claim_result';
   sessionId: string;
   claimId: string;
-  status: 'true' | 'false' | 'uncertain';
+  status: AudioVerdictValue;
   confidence: number;
   offset: { start: number; end: number };
   transcriptVersion: number;

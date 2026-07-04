@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/transcript_segment.dart';
 import 'verdict_badge.dart';
@@ -15,10 +14,10 @@ class ExplanationSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-      decoration: const BoxDecoration(
-        color: AppColors.canvas,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        boxShadow: const [
           BoxShadow(color: Color(0x33000000), blurRadius: 20),
         ],
       ),
@@ -37,7 +36,7 @@ class ExplanationSheet extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.mid,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -54,7 +53,7 @@ class ExplanationSheet extends StatelessWidget {
                       Text(
                         '${(segment.confidence! * 100).round()}% încredere',
                         style: AppTextStyles.labelMd.copyWith(
-                          color: AppColors.mid,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -71,7 +70,7 @@ class ExplanationSheet extends StatelessWidget {
                   '"${segment.text}"',
                   style: AppTextStyles.bodyMd.copyWith(
                     fontStyle: FontStyle.italic,
-                    color: AppColors.mid,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.6,
                   ),
                 ),
@@ -97,7 +96,7 @@ class ExplanationSheet extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.subtle,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -133,10 +132,10 @@ class ExplanationSheet extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             s,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'JetBrains Mono',
                               fontSize: 12,
-                              color: AppColors.blue,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),

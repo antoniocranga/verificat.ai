@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'app_button.dart';
 
@@ -29,14 +28,14 @@ class AppEmptyState extends StatelessWidget {
 
   Color _iconContainerColor(BuildContext context) => switch (type) {
     AppEmptyStateType.empty        => Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
-    AppEmptyStateType.error        => AppColors.error.withValues(alpha: 0.08),
-    AppEmptyStateType.networkError => AppColors.error.withValues(alpha: 0.08),
+    AppEmptyStateType.error        => Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+    AppEmptyStateType.networkError => Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
   };
 
   Color _iconColor(BuildContext context) => switch (type) {
     AppEmptyStateType.empty        => Theme.of(context).colorScheme.outlineVariant,
-    AppEmptyStateType.error        => AppColors.error,
-    AppEmptyStateType.networkError => AppColors.error,
+    AppEmptyStateType.error        => Theme.of(context).colorScheme.error,
+    AppEmptyStateType.networkError => Theme.of(context).colorScheme.error,
   };
 
   @override
@@ -70,7 +69,6 @@ class AppEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Description — Lora, generous leading
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 280),
               child: Text(
