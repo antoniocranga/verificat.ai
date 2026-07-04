@@ -4,8 +4,10 @@ import { DeepgramSttAdapter } from './adapters/deepgram-stt.adapter';
 import { AzureSttAdapter } from './adapters/azure-stt.adapter';
 import { WhisperSttAdapter } from './adapters/whisper-stt.adapter';
 import { SpeechController } from './speech.controller';
+import { MetricsModule } from '../metrics/metrics.module';
 
 @Module({
+  imports: [MetricsModule],
   controllers: [SpeechController],
   providers: [
     SpeechService,

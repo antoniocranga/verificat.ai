@@ -264,8 +264,10 @@ export class AudioGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
                 this.send(client, { type: 'result', ...result });
 
-                const canonicalStart = checkStartOffset;
-                const canonicalEnd = checkStartOffset + utterance.length;
+                const relStart = result.offset?.start ?? 0;
+                const relEnd = result.offset?.end ?? utterance.length;
+                const canonicalStart = checkStartOffset + relStart;
+                const canonicalEnd = checkStartOffset + relEnd;
 
                 this.logger.log('Computed canonical offset', {
                   sessionId: handle.sessionId,

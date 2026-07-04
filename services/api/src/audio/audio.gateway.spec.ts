@@ -138,11 +138,20 @@ describe('AudioGateway', () => {
   });
 
   it('cleans up the session on disconnect', async () => {
-    const client = makeMockWs();
-    await gateway.handleConnection(client, makeMockRequest());
-    await gateway.handleDisconnect(client);
+    jest.useFakeTimers();
+    try {
+      const client = makeMockWs();
+      await gateway.handleConnection(client, makeMockRequest());
+      
+      const p = gateway.handleDisconnect(client);
+      jest.advanceTimersByTime(20000);
+      await p;
+      await Promise.resolve(); // drain microtasks
 
-    expect(sttSession.close).toHaveBeenCalled();
+      expect(sttSession.close).toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   // ─── Transcript & Offset Logic ─────────────────────────────────────────────
@@ -211,7 +220,7 @@ describe('AudioGateway', () => {
 
     // Send second segment
     sttSession.subject$.next({
-      text: 'a doua parte',
+      text: 'a doua parte.',
       isFinal: true,
       confidence: 0.95,
       language: 'ro',
