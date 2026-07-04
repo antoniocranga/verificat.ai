@@ -43,6 +43,15 @@ paths:
           description: ''
       tags:
         - Speech
+  /metrics:
+    get:
+      operationId: PrometheusController_index
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Prometheus
   /fact-checks/search:
     get:
       operationId: FactChecksController_searchVerdicts
@@ -245,15 +254,6 @@ paths:
         '200':
           description: ''
       tags: *ref_6
-  /metrics:
-    get:
-      operationId: PrometheusController_index
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - Prometheus
 info:
   title: verificat.xyz API
   description: verificat.xyz fact-checking platform API
