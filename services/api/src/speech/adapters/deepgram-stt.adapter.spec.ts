@@ -2,6 +2,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeepgramSttAdapter } from './deepgram-stt.adapter';
 import { firstValueFrom, take } from 'rxjs';
+import { MetricsService } from '../../metrics/metrics.service';
 
 jest.mock('ws', () => {
   const mockOnHandlers: Record<string, (...args: any[]) => void> = {};
@@ -40,7 +41,20 @@ describe('DeepgramSttAdapter', () => {
     (globalThis as any).fetch = globalFetchMock;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DeepgramSttAdapter],
+      providers: [
+        DeepgramSttAdapter,
+        {
+          provide: MetricsService,
+          useValue: {
+            sttLowConfidenceSegmentsTotal: { inc: jest.fn() },
+            sttSegmentsFinalizedTotal: { inc: jest.fn() },
+            sttConnectionsTotal: { inc: jest.fn() },
+            sttDisconnectionsTotal: { inc: jest.fn() },
+            sttMockSessionsTotal: { inc: jest.fn() },
+            sttSessionsTotal: { inc: jest.fn() },
+          },
+        },
+      ],
     }).compile();
 
     adapter = module.get<DeepgramSttAdapter>(DeepgramSttAdapter);

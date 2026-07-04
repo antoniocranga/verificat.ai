@@ -1,3 +1,17 @@
+-- ╔═══════════════════════════════════════════════════════════════════════════╗
+-- ║  INTENTIONALLY INERT — DO NOT APPLY                                     ║
+-- ║                                                                          ║
+-- ║  This migration was written for a feature that was never completed.      ║
+-- ║  The `facts` table it references was never created. This RPC is never    ║
+-- ║  called from any code path. Migration version 20250627 (pre-dating the   ║
+-- ║  project's real migration series) was confirmed NOT applied to           ║
+-- ║  production via supabase_migrations.schema_migrations.                    ║
+-- ║                                                                          ║
+-- ║  Do not apply this migration. It is kept in the repository solely for    ║
+-- ║  historical reference. If the `facts` feature is ever revived, write a   ║
+-- ║  fresh migration with the current date.                                  ║
+-- ╚═══════════════════════════════════════════════════════════════════════════╝
+
 -- Migration: add match_facts RPC for real-time audio fact-checking pipeline
 --
 -- This function is called by AudioFactcheckService (via EvidenceRetrievalService's

@@ -11,6 +11,7 @@ import { SpeechModule } from '../speech/speech.module';
 import { FactChecksModule } from '../fact-checks/fact-checks.module';
 import { SourcesModule } from '../sources/sources.module';
 import { SupabaseModule } from '../supabase/supabase.module';
+import { SessionsModule } from '../sessions/sessions.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SupabaseModule } from '../supabase/supabase.module';
     FactChecksModule,
     SourcesModule,
     SupabaseModule,
+    SessionsModule,
   ],
   controllers: [JobsController],
   providers: [

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
@@ -15,7 +15,9 @@ import {
   VerdictGenerationService,
   VerdictValue,
 } from '../fact-checks/verdict-generation.service';
+import { FactCheckPersistenceService } from '../fact-checks/fact-check-persistence.service';
 import { SourceTrustService } from '../sources/source-trust.service';
+import { SessionsService } from '../sessions/sessions.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -25,6 +27,7 @@ export interface FactVerificationJobData {
   text?: string;
   audioPath?: string;
   preferredEngine?: 'deepgram' | 'azure' | 'whisper';
+  sessionId?: string;
 }
 
 export interface FactVerificationJobResult {
@@ -52,7 +55,9 @@ export class JobsConsumer extends WorkerHost {
     private readonly claimDetectionService: ClaimDetectionService,
     private readonly evidenceRetrievalService: EvidenceRetrievalService,
     private readonly verdictGenerationService: VerdictGenerationService,
+    private readonly persistenceService: FactCheckPersistenceService,
     private readonly sourceTrustService: SourceTrustService,
+    private readonly sessionsService: SessionsService,
     private readonly supabaseService: SupabaseService,
   ) {
     super();
@@ -63,6 +68,7 @@ export class JobsConsumer extends WorkerHost {
   ): Promise<FactVerificationJobResult> {
     const startTime = Date.now();
     this.logger.log(`Processing job ${job.id} for claimId ${job.data.claimId}`);
+    const { sessionId } = job.data;
 
     let textToAnalyze = job.data.text || '';
 
@@ -106,8 +112,6 @@ export class JobsConsumer extends WorkerHost {
 
     const internalClaimsResults: Array<{
       claimId: string;
-      factCheckId: string;
-      verdictId: string;
       claim: NormalizedClaim;
       verdict: VerdictValue;
       confidenceScore: number;
@@ -169,13 +173,9 @@ export class JobsConsumer extends WorkerHost {
 
       const claimId =
         i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
-      const factCheckId = crypto.randomUUID();
-      const verdictId = crypto.randomUUID();
 
       internalClaimsResults.push({
         claimId,
-        factCheckId,
-        verdictId,
         claim,
         verdict: verdictResult.verdict,
         confidenceScore: verdictResult.confidenceScore,
@@ -184,11 +184,62 @@ export class JobsConsumer extends WorkerHost {
       });
     }
 
+    // Persist via shared service — replaces inline Supabase writes
+    const persistedResults: Array<{
+      claimId: string;
+      verdictId: string;
+      verdict: VerdictValue;
+      confidenceScore: number;
+      explanation: string;
+    }> = [];
+
+    for (const internalRes of internalClaimsResults) {
+      try {
+        const persisted = await this.persistenceService.persistCheckCycle({
+          sessionId,
+          claimText: internalRes.claim.assertion,
+          verdict: internalRes.verdict,
+          confidenceScore: internalRes.confidenceScore,
+          explanation: internalRes.explanation,
+          evidence: internalRes.evidence,
+        });
+        persistedResults.push({
+          claimId: persisted.claimId,
+          verdictId: persisted.verdictId,
+          verdict: internalRes.verdict,
+          confidenceScore: internalRes.confidenceScore,
+          explanation: internalRes.explanation,
+        });
+      } catch (err) {
+        this.logger.error(
+          `Failed to persist check cycle for claim ${internalRes.claimId}: ${String(err)}`,
+        );
+      }
+    }
+
+    // If this is a recording-mode session, finalize it now
+    if (sessionId) {
+      await this.sessionsService
+        .updateSessionOnDisconnect(
+          sessionId,
+          persistedResults.map((r) => ({ verdict: r.verdict })),
+        )
+        .catch((err) =>
+          this.logger.warn(
+            `Failed to finalize session ${sessionId}: ${err.message}`,
+          ),
+        );
+    }
+
     // Offset mapping & building return payload
     const finalClaims: FactVerificationJobResult['claims'] = [];
     let lastSearchIndex = 0;
 
-    for (const internalRes of internalClaimsResults) {
+    for (let i = 0; i < internalClaimsResults.length; i++) {
+      const internalRes = internalClaimsResults[i];
+      const persisted = persistedResults[i];
+      if (!persisted) continue;
+
       const textToSearch =
         internalRes.claim.exactQuote || internalRes.claim.assertion;
 
@@ -218,7 +269,7 @@ export class JobsConsumer extends WorkerHost {
           }
 
           finalClaims.push({
-            claimId: internalRes.claimId,
+            claimId: persisted.claimId,
             text: textToSearch,
             status: mappedStatus,
             confidence: internalRes.confidenceScore,
@@ -226,7 +277,7 @@ export class JobsConsumer extends WorkerHost {
               start,
               end,
             },
-            reportId: internalRes.verdictId,
+            reportId: persisted.verdictId,
           });
         } else {
           this.logger.warn(
@@ -240,72 +291,9 @@ export class JobsConsumer extends WorkerHost {
       }
     }
 
-    // Save to Supabase
+    // 5. Insert usage log
     try {
       const supabase = this.supabaseService.getClient();
-      for (const internalRes of internalClaimsResults) {
-        // 1. Insert claim
-        await supabase.from('claims').insert({
-          id: internalRes.claimId,
-          text: internalRes.claim.assertion,
-          language: 'ro',
-        } as any);
-
-        // 2. Insert fact check
-        await supabase.from('fact_checks').insert({
-          id: internalRes.factCheckId,
-          claim_id: internalRes.claimId,
-          status: 'completed',
-        } as any);
-
-        // 3. Insert verdict
-        await supabase.from('verdicts').insert({
-          id: internalRes.verdictId,
-          fact_check_id: internalRes.factCheckId,
-          verdict: internalRes.verdict,
-          confidence_score: internalRes.confidenceScore,
-          explanation: internalRes.explanation,
-        } as any);
-
-        // 4. Insert sources and verdict_sources
-        for (const evidence of internalRes.evidence) {
-          if (!evidence.url) continue;
-
-          let sourceId = evidence.sourceId;
-          if (!sourceId) {
-            // Check if source exists by URL
-            const { data: existingSource } = await (supabase
-              .from('sources')
-              .select('id')
-              .eq('url', evidence.url)
-              .maybeSingle() as any);
-
-            if (existingSource) {
-              sourceId = existingSource.id;
-            } else {
-              sourceId = crypto.randomUUID();
-              await supabase.from('sources').insert({
-                id: sourceId,
-                name: evidence.sourceName || evidence.source || 'Unknown',
-                url: evidence.url,
-                trust_score: evidence.trustScore || null,
-              } as any);
-            }
-          }
-
-          // Link verdict and source
-          await supabase
-            .from('verdict_sources')
-            .insert({
-              verdict_id: internalRes.verdictId,
-              source_id: sourceId,
-            } as any)
-            .select()
-            .maybeSingle(); // Ignore errors if already exists
-        }
-      }
-
-      // 5. Insert usage log
       const durationMs = Date.now() - startTime;
       await supabase.from('usage_logs').insert({
         service: job.data.audioPath
@@ -318,10 +306,9 @@ export class JobsConsumer extends WorkerHost {
           returnedClaimsCount: finalClaims.length,
           engine: job.data.preferredEngine,
         },
-      } as any);
+      } as never);
     } catch (dbErr) {
-      this.logger.error(`Failed to save results to database: ${String(dbErr)}`);
-      // Do not throw, return the results to user anyway
+      this.logger.error(`Failed to save usage log: ${String(dbErr)}`);
     }
 
     return {
