@@ -1,10 +1,8 @@
-import type { ReactNode } from 'react';
-import './button.css'; // pulls in token vars
+import type { ReactNode, HTMLAttributes } from 'react';
 
-interface FeatureCardProps {
+interface FeatureCardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   shadow?: boolean;
-  id?: string;
   hover?: boolean;
 }
 
@@ -14,11 +12,11 @@ export function FeatureCard({ children, shadow = true, hover = true, id }: Featu
       id={id}
       className={hover ? 'card' : undefined}
       style={{
-        borderRadius: 'var(--rounded-md, 12px)',
+        borderRadius: 'var(--rounded-md)',
         padding: 'var(--spacing-lg, 24px)',
-        backgroundColor: 'var(--surface-raised, #ffffff)',
-        border: '1px solid var(--color-subtle, #e8e6dc)',
-        fontFamily: 'var(--font-display, Poppins, Arial, sans-serif)',
+        backgroundColor: 'var(--surface-raised)',
+        border: '1px solid var(--color-subtle)',
+        fontFamily: 'var(--font-display)',
         boxShadow: shadow ? 'var(--shadow-sm)' : undefined,
       }}
     >

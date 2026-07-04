@@ -4,12 +4,10 @@ import {
   VerdictGenerationService,
   VerdictValue,
 } from '../fact-checks/verdict-generation.service';
+import { FactCheckPersistenceService } from '../fact-checks/fact-check-persistence.service';
+import { MetricsService } from '../metrics/metrics.service';
 import { AudioVerdictValue, ResultMessage } from './audio-protocol.types';
 
-/**
- * Maps the 6-value Constitution verdict to the 4-value streaming protocol.
- * See AudioVerdictValue in audio-protocol.types.ts for the rationale.
- */
 function mapVerdict(v: VerdictValue): AudioVerdictValue {
   switch (v) {
     case 'True':
@@ -26,7 +24,16 @@ function mapVerdict(v: VerdictValue): AudioVerdictValue {
   }
 }
 
-export type StreamingResult = Omit<ResultMessage, 'type'>;
+export type StreamingResult = Omit<ResultMessage, 'type'> & {
+  claimId: string;
+  reportId: string;
+  status: AudioVerdictValue;
+  offset?: { start: number; end: number };
+};
+
+export type FactcheckResponse =
+  | StreamingResult
+  | { error: true; code: string; message: string };
 
 @Injectable()
 export class AudioFactcheckService {
@@ -36,28 +43,34 @@ export class AudioFactcheckService {
   constructor(
     private readonly evidenceRetrieval: EvidenceRetrievalService,
     private readonly verdictGeneration: VerdictGenerationService,
+    private readonly persistenceService: FactCheckPersistenceService,
+    private readonly metrics: MetricsService,
   ) {}
 
-  /**
-   * Runs the fact-check pipeline on a committed transcript segment.
-   * Returns null if the segment is too short to be worth checking.
-   * Never throws — errors are logged and null is returned.
-   */
   async check(
     text: string,
     segmentId: string,
-  ): Promise<StreamingResult | null> {
-    if (text.trim().split(/\s+/).length < this.MIN_WORDS) {
-      this.logger.debug(
-        `Segment ${segmentId} skipped — fewer than ${this.MIN_WORDS} words`,
-      );
+    sessionId: string,
+  ): Promise<FactcheckResponse | null> {
+    const startTime = process.hrtime();
+    this.logger.log('Starting fact-check call', { sessionId, segmentId });
+
+    const words = text.trim().split(/\s+/);
+    const hasCapitalized = /[A-ZĂÂÎȘȚ]/.test(text);
+
+    if (words.length < this.MIN_WORDS && !hasCapitalized) {
+      this.metrics.sttSegmentsDroppedTotal.inc({
+        reason: 'no_entity_detected',
+      });
+      this.logger.log('Segment dropped', {
+        sessionId,
+        segmentId,
+        reason: 'no_entity_detected',
+      });
       return null;
     }
 
     try {
-      // Build a NormalizedClaim from the raw transcript text.
-      // The audio pipeline does not run claim-detection (that stage is for the batch flow).
-      // We treat the entire utterance as the assertion to keep streaming latency low.
       const claim = { assertion: text, entities: [], qualifiers: [] };
 
       const evidence = await this.evidenceRetrieval.retrieveEvidence(claim);
@@ -66,27 +79,80 @@ export class AudioFactcheckService {
         evidence,
       );
 
+      // Persist via shared service — writes to Supabase with session_id
+      const persisted = await this.persistenceService.persistCheckCycle({
+        sessionId,
+        claimText: text,
+        verdict: verdict.verdict,
+        confidenceScore: verdict.confidenceScore,
+        explanation: verdict.explanation,
+        evidence,
+      });
+
       const sources = evidence
         .map((e) => e.articleUrl ?? e.url)
         .filter((u): u is string => Boolean(u));
 
-      // matchedFact: use the top-similarity evidence snippet as the "matched fact"
       const topEvidence = evidence[0];
       const matchedFact = topEvidence ? topEvidence.snippet : null;
+
+      let status: AudioVerdictValue = 'UNCERTAIN';
+      if (verdict.verdict === 'True' || verdict.verdict === 'Mostly True') {
+        status = 'TRUE';
+      } else if (
+        verdict.verdict === 'False' ||
+        verdict.verdict === 'Misleading'
+      ) {
+        status = 'FALSE';
+      }
+
+      this.metrics.factcheckVerdictsTotal.inc({ status });
+
+      const duration = process.hrtime(startTime);
+      this.logger.log('Fact-check persisted', {
+        sessionId,
+        segmentId,
+        claimId: persisted.claimId,
+        verdictId: persisted.verdictId,
+        status,
+        latencyMs: Math.round(duration[0] * 1000 + duration[1] / 1e6),
+      });
+
+      this.metrics.factcheckRequestsTotal.inc({ outcome: 'success' });
+      this.metrics.factcheckRequestDurationSeconds.observe(
+        duration[0] + duration[1] / 1e9,
+      );
 
       return {
         segmentId,
         verdict: mapVerdict(verdict.verdict),
+        status,
         confidence: verdict.confidenceScore / 100,
         explanation: verdict.explanation,
         sources,
         matchedFact,
+        claimId: persisted.claimId,
+        reportId: persisted.verdictId,
       };
     } catch (err) {
-      this.logger.error(
-        `Fact-check failed for segment ${segmentId}: ${String(err)}`,
+      const duration = process.hrtime(startTime);
+      this.logger.error('Fact-check failed', {
+        sessionId,
+        segmentId,
+        error: err instanceof Error ? err.message : String(err),
+        latencyMs: Math.round(duration[0] * 1000 + duration[1] / 1e6),
+      });
+
+      this.metrics.factcheckRequestsTotal.inc({ outcome: 'error' });
+      this.metrics.factcheckRequestDurationSeconds.observe(
+        duration[0] + duration[1] / 1e9,
       );
-      return null;
+
+      return {
+        error: true,
+        code: 'CLAIM_ERROR',
+        message: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 }

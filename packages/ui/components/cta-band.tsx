@@ -14,10 +14,10 @@ export function CTABand({ children, id }: CTABandProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 'var(--space-6, 24px)',
-        padding: 'var(--space-24, 96px) var(--space-6, 24px)',
+        gap: 'var(--spacing-lg)',
+        padding: 'var(--spacing-4xl) var(--spacing-lg)',
         background: 'var(--color-canvas-inset, #f0ede6)',
-        fontFamily: 'var(--font-heading, var(--font-display, Poppins, Arial, sans-serif))',
+        fontFamily: 'var(--font-display)',
         textAlign: 'center',
       }}
     >

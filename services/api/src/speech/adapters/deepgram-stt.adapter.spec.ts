@@ -2,6 +2,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeepgramSttAdapter } from './deepgram-stt.adapter';
 import { firstValueFrom, take } from 'rxjs';
+import { MetricsService } from '../../metrics/metrics.service';
 
 jest.mock('ws', () => {
   const mockOnHandlers: Record<string, (...args: any[]) => void> = {};
@@ -14,10 +15,10 @@ jest.mock('ws', () => {
     }),
     _mockHandlers: mockOnHandlers,
   }));
-  WebSocketMock.CONNECTING = 0;
-  WebSocketMock.OPEN = 1;
-  WebSocketMock.CLOSING = 2;
-  WebSocketMock.CLOSED = 3;
+  (WebSocketMock as any).CONNECTING = 0;
+  (WebSocketMock as any).OPEN = 1;
+  (WebSocketMock as any).CLOSING = 2;
+  (WebSocketMock as any).CLOSED = 3;
   return { WebSocket: WebSocketMock };
 });
 
@@ -40,7 +41,20 @@ describe('DeepgramSttAdapter', () => {
     (globalThis as any).fetch = globalFetchMock;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DeepgramSttAdapter],
+      providers: [
+        DeepgramSttAdapter,
+        {
+          provide: MetricsService,
+          useValue: {
+            sttLowConfidenceSegmentsTotal: { inc: jest.fn() },
+            sttSegmentsFinalizedTotal: { inc: jest.fn() },
+            sttConnectionsTotal: { inc: jest.fn() },
+            sttDisconnectionsTotal: { inc: jest.fn() },
+            sttMockSessionsTotal: { inc: jest.fn() },
+            sttSessionsTotal: { inc: jest.fn() },
+          },
+        },
+      ],
     }).compile();
 
     adapter = module.get<DeepgramSttAdapter>(DeepgramSttAdapter);
@@ -67,7 +81,8 @@ describe('DeepgramSttAdapter', () => {
     const session = await sessionPromise;
     expect(session.constructor.name).toBe('DeepgramSession');
     expect(wsMock.WebSocket).toHaveBeenCalledWith(
-      expect.stringContaining('api.deepgram.com/v1/listen?model=nova-2&language=ro&numerals=true&encoding=linear16&sample_rate=8000&api_key=test-dg-key'),
+      expect.stringContaining('api.deepgram.com/v1/listen?model=nova-3&language=ro&numerals=true&encoding=linear16&sample_rate=8000&interim_results=true&endpointing=800'),
+      expect.objectContaining({ headers: { Authorization: 'Token test-dg-key' } })
     );
   });
 
@@ -124,6 +139,9 @@ describe('DeepgramSttAdapter', () => {
       process.env.DEEPGRAM_API_KEY = 'test-key';
       globalFetchMock.mockResolvedValueOnce({
         ok: true,
+        headers: {
+          get: jest.fn().mockReturnValue('mock-request-id')
+        },
         json: async () => ({
           results: {
             channels: [{
@@ -137,7 +155,7 @@ describe('DeepgramSttAdapter', () => {
       expect(res.text).toBe('fetch test transcript');
       expect(res.confidence).toBe(0.95);
       expect(globalFetchMock).toHaveBeenCalledWith(
-        expect.stringContaining('api.deepgram.com/v1/listen?model=nova-2&language=ro&smart_format=true'),
+        expect.stringContaining('api.deepgram.com/v1/listen?model=nova-3&language=ro&smart_format=true'),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({ 'Authorization': 'Token test-key' }),

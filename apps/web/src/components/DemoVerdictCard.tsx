@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Card, CardHeader, CardContent, CardFooter } from "@verificat/ui";
 
 type VerdictLabel =
   | "True"
@@ -124,205 +125,91 @@ export function DemoVerdictCard() {
   const config = VERDICT_CONFIG[verdict.label];
 
   return (
-    <div
+    <Card
       aria-live="polite"
       aria-label="Exemplu de verificare a afirmațiilor"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(6px)",
-        transition: "opacity 300ms ease-out, transform 300ms ease-out",
-        background: "var(--color-canvas-elevated, #ffffff)",
-        border: "1px solid var(--color-subtle, #e8e6dc)",
-        borderRadius: "var(--radius-xl, 24px)",
-        padding: "var(--space-8, 32px)",
-        boxShadow: "var(--shadow-lg)",
-        minHeight: 400,
-        width: "100%",
-      }}
+      className={`min-h-100 w-full transition-all duration-300 ease-out shadow-lg ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1.5"
+      }`}
     >
-      {/* Header: pipeline label */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-2, 8px)",
-          marginBottom: "var(--space-5, 20px)",
-        }}
-      >
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontFamily: "var(--font-heading, var(--font-display))",
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--color-mid)",
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "var(--color-accent)",
-              display: "inline-block",
-              animation: "pulse-dot 2s ease-in-out infinite",
-            }}
-          />
-          verificat.xyz
-        </span>
-        <span
-          style={{
-            marginLeft: "auto",
-            fontFamily: "var(--font-heading)",
-            fontSize: 11,
-            color: "var(--color-mid)",
-            letterSpacing: "0.04em",
-          }}
-        >
-          {index + 1} / {DEMO_VERDICTS.length}
-        </span>
-      </div>
-
-      {/* Claim */}
-      <p
-        style={{
-          fontFamily: "var(--font-body, Lora, Georgia, serif)",
-          fontSize: 15,
-          fontWeight: 500,
-          color: "var(--color-ink)",
-          lineHeight: 1.6,
-          margin: "0 0 var(--space-6, 24px)",
-        }}
-      >
-        &ldquo;{verdict.claim}&rdquo;
-      </p>
-
-      {/* Verdict badge + confidence */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-3, 12px)",
-          marginBottom: "var(--space-5, 20px)",
-        }}
-      >
-        <span
-          role="status"
-          aria-label={config.a11yLabel}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "4px 12px",
-            borderRadius: "var(--radius-sm, 6px)",
-            background: config.bg,
-            color: config.color,
-            fontFamily: "var(--font-heading)",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          <span aria-hidden="true">{config.icon}</span>
-          {config.label}
-        </span>
-
-        {/* Confidence */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              flex: 1,
-              height: 4,
-              background: "var(--color-subtle)",
-              borderRadius: 2,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              aria-label={`Scor de încredere: ${verdict.confidence}%`}
-              style={{
-                height: "100%",
-                width: `${verdict.confidence}%`,
-                background: config.color,
-                borderRadius: 2,
-                transition: "width 600ms ease-out",
-              }}
-            />
-          </div>
-          <span
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: 12,
-              fontWeight: 600,
-              color: config.color,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {verdict.confidence}%
+      <CardHeader className="pb-4">
+        {/* Header: pipeline label */}
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 font-heading text-[11px] font-medium tracking-widest uppercase text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block animate-[pulse-dot_2s_ease-in-out_infinite]" />
+            verificat.xyz
+          </span>
+          <span className="ml-auto font-heading text-[11px] text-muted-foreground tracking-wide">
+            {index + 1} / {DEMO_VERDICTS.length}
           </span>
         </div>
-      </div>
 
-      {/* Explanation */}
-      <p
-        style={{
-          fontFamily: "var(--font-body)",
-          fontSize: 13,
-          color: "var(--color-ink)",
-          lineHeight: 1.65,
-          margin: "0 0 var(--space-5, 20px)",
-        }}
-      >
-        {verdict.explanation}
-      </p>
+        {/* Claim */}
+        <p className="font-body text-[15px] font-medium text-foreground leading-relaxed mt-5">
+          &ldquo;{verdict.claim}&rdquo;
+        </p>
+      </CardHeader>
 
-      {/* Sources */}
-      <div
-        style={{
-          borderTop: "1px solid var(--color-subtle)",
-          paddingTop: "var(--space-4, 16px)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--space-2, 8px)",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 10,
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--color-mid)",
-          }}
-        >
+      <CardContent className="pb-4">
+        {/* Verdict badge + confidence */}
+        <div className="flex items-center gap-3 mb-5">
+          <span
+            role="status"
+            aria-label={config.a11yLabel}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-heading text-[13px] font-semibold tracking-tight"
+            style={{ background: config.bg, color: config.color }}
+          >
+            <span aria-hidden="true">{config.icon}</span>
+            {config.label}
+          </span>
+
+          {/* Confidence */}
+          <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 h-1 bg-muted rounded-sm overflow-hidden">
+              <div
+                aria-label={`Scor de încredere: ${verdict.confidence}%`}
+                className="h-full rounded-sm transition-all duration-700 ease-out"
+                style={{
+                  width: `${verdict.confidence}%`,
+                  background: config.color,
+                }}
+              />
+            </div>
+            <span
+              className="font-heading text-[12px] font-semibold whitespace-nowrap"
+              style={{ color: config.color }}
+            >
+              {verdict.confidence}%
+            </span>
+          </div>
+        </div>
+
+        {/* Explanation */}
+        <p className="font-body text-[13px] text-foreground leading-relaxed m-0">
+          {verdict.explanation}
+        </p>
+      </CardContent>
+
+      <CardFooter className="flex flex-col items-start gap-2 pt-4 border-t border-border mt-1">
+        <span className="font-heading text-[10px] font-medium tracking-widest uppercase text-muted-foreground">
           Surse
         </span>
-        {verdict.sources.map((source, i) => (
-          <a
-            key={i}
-            href={source.url}
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: 12,
-              color: "var(--color-blue, #6a9bcc)",
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: 10 }}>
-              ↗
-            </span>
-            {source.title}
-          </a>
-        ))}
-      </div>
+        <div className="flex flex-col gap-2 w-full">
+          {verdict.sources.map((source, i) => (
+            <a
+              key={i}
+              href={source.url}
+              className="font-body text-[12px] no-underline flex items-center gap-1"
+              style={{ color: "var(--color-blue, #6a9bcc)" }}
+            >
+              <span aria-hidden="true" className="text-[10px]">
+                ↗
+              </span>
+              {source.title}
+            </a>
+          ))}
+        </div>
+      </CardFooter>
 
       <style>{`
         @keyframes pulse-dot {
@@ -330,6 +217,6 @@ export function DemoVerdictCard() {
           50% { opacity: 0.5; transform: scale(0.8); }
         }
       `}</style>
-    </div>
+    </Card>
   );
 }

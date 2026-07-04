@@ -43,6 +43,15 @@ paths:
           description: ''
       tags:
         - Speech
+  /metrics:
+    get:
+      operationId: PrometheusController_index
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Prometheus
   /fact-checks/search:
     get:
       operationId: FactChecksController_searchVerdicts
@@ -115,6 +124,52 @@ paths:
         '201':
           description: ''
       tags: *ref_2
+  /sessions:
+    post:
+      operationId: SessionsController_createSession
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags: &ref_3
+        - Sessions
+    get:
+      operationId: SessionsController_listSessions
+      parameters:
+        - name: deviceId
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_3
+  /sessions/{id}:
+    get:
+      operationId: SessionsController_getSessionById
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_3
+    delete:
+      operationId: SessionsController_deleteSession
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+      tags: *ref_3
   /users/profile:
     get:
       operationId: UsersController_getProfile
@@ -122,7 +177,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_3
+      tags: &ref_4
         - Users
   /users/test-validation:
     post:
@@ -137,7 +192,7 @@ paths:
       responses:
         '201':
           description: ''
-      tags: *ref_3
+      tags: *ref_4
   /sources:
     get:
       operationId: SourcesController_getSources
@@ -154,7 +209,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_4
+      tags: &ref_5
         - Admin
   /admin/reports/{id}/resolve:
     patch:
@@ -168,7 +223,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_4
+      tags: *ref_5
   /jobs/verify-text:
     post:
       operationId: JobsController_verifyText
@@ -176,7 +231,7 @@ paths:
       responses:
         '202':
           description: ''
-      tags: &ref_5
+      tags: &ref_6
         - Jobs
   /jobs/upload:
     post:
@@ -185,7 +240,7 @@ paths:
       responses:
         '202':
           description: ''
-      tags: *ref_5
+      tags: *ref_6
   /jobs/{jobId}/stream:
     get:
       operationId: JobsController_streamJob
@@ -198,7 +253,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_5
+      tags: *ref_6
 info:
   title: verificat.xyz API
   description: verificat.xyz fact-checking platform API

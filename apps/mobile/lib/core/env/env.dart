@@ -14,6 +14,16 @@ class AppEnv {
         defaultValue: 'http://localhost:3000',
       );
 
+  static String get privacyUrl => const String.fromEnvironment(
+        'PRIVACY_URL',
+        defaultValue: 'https://verificat.xyz/privacy',
+      );
+
+  static String get termsUrl => const String.fromEnvironment(
+        'TERMS_URL',
+        defaultValue: 'https://verificat.xyz/terms',
+      );
+
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 }

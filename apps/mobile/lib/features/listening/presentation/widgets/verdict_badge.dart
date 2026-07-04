@@ -14,16 +14,20 @@ class StreamingVerdictBadge extends StatelessWidget {
     final label = AppColors.streamingVerdictLabel(verdict);
     if (label.isEmpty) return const SizedBox.shrink();
 
+    final fgColor = AppColors.streamingVerdictFg(verdict);
+    final bgColor = fgColor ?? Theme.of(context).colorScheme.onSurface;
+    final textColor = fgColor != null ? Colors.white : Theme.of(context).colorScheme.surface;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.streamingVerdictFg(verdict),
+        color: bgColor,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Text(
         label,
         style: AppTextStyles.labelCaps.copyWith(
-          color: Colors.white,
+          color: textColor,
           fontWeight: FontWeight.w700,
           fontSize: 9,
         ),

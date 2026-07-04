@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/audio/audio_session_service.dart';
-import '../core/auth/auth_bloc.dart';
 import '../core/theme/app_theme.dart';
 import '../features/consent/presentation/screens/consent_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'router.dart';
+
+ThemeMode _themeModeFromPref(String value) {
+  switch (value) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}
+
+String _themeModeToPref(ThemeMode mode) {
+  switch (mode) {
+    case ThemeMode.light:
+      return 'light';
+    case ThemeMode.dark:
+      return 'dark';
+    default:
+      return 'system';
+  }
+}
 
 class VerificatApp extends StatefulWidget {
   final bool initialConsented;
@@ -21,17 +41,26 @@ class _VerificatAppState extends State<VerificatApp>
     with WidgetsBindingObserver {
   late bool _consented;
   bool? _onboardingComplete;
-  late final AuthBloc _authBloc;
+  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   void initState() {
     super.initState();
     _consented = widget.initialConsented;
-    _authBloc = AuthBloc();
     WidgetsBinding.instance.addObserver(this);
     if (_consented) {
-      _authBloc.add(AuthCheckRequested());
       _checkOnboarding();
+      _loadTheme();
+    }
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString('theme_mode') ?? 'system';
+    if (mounted) {
+      setState(() {
+        _themeMode = _themeModeFromPref(value);
+      });
     }
   }
 
@@ -44,18 +73,13 @@ class _VerificatAppState extends State<VerificatApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _authBloc.close();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _consented) {
-      _authBloc.add(AuthSessionCheckRequested());
-    }
-  }
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
 
-  void _acceptConsent() async {
+  Future<void> _acceptConsent() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('privacy-consent', true);
     final onboarded = prefs.getBool('onboarding-complete') ?? false;
@@ -64,25 +88,33 @@ class _VerificatAppState extends State<VerificatApp>
         _consented = true;
         _onboardingComplete = onboarded;
       });
-      _authBloc.add(AuthCheckRequested());
     }
     final sessionService = AudioSessionService();
     await sessionService.setCategoryPlayAndRecord();
     sessionService.dispose();
   }
 
-  void _completeOnboarding() async {
+  Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding-complete', true);
     if (mounted) setState(() => _onboardingComplete = true);
+  }
+
+  void _changeTheme(ThemeMode mode) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('theme_mode', _themeModeToPref(mode));
+    });
+    if (mounted) setState(() => _themeMode = mode);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_consented) {
       return MaterialApp(
-        title: 'verificat.xyz',
-        theme: appTheme,
+        title: 'VerificatAI',
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         home: ConsentScreen(onAccept: _acceptConsent),
       );
@@ -90,21 +122,46 @@ class _VerificatAppState extends State<VerificatApp>
 
     if (_onboardingComplete == false) {
       return MaterialApp(
-        title: 'verificat.xyz',
-        theme: appTheme,
+        title: 'VerificatAI',
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         home: OnboardingScreen(onComplete: _completeOnboarding),
       );
     }
 
-    return BlocProvider<AuthBloc>.value(
-      value: _authBloc,
+    return AppThemeProvider(
+      themeMode: _themeMode,
+      onThemeChanged: _changeTheme,
       child: MaterialApp.router(
-        title: 'verificat.xyz',
-        theme: appTheme,
+        title: 'VerificatAI',
+        theme: appThemeLight,
+        darkTheme: appThemeDark,
+        themeMode: _themeMode,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),
     );
   }
+}
+
+class AppThemeProvider extends InheritedWidget {
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeChanged;
+
+  const AppThemeProvider({
+    super.key,
+    required this.themeMode,
+    required this.onThemeChanged,
+    required super.child,
+  });
+
+  static AppThemeProvider of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppThemeProvider>()!;
+  }
+
+  @override
+  bool updateShouldNotify(AppThemeProvider oldWidget) =>
+      themeMode != oldWidget.themeMode;
 }

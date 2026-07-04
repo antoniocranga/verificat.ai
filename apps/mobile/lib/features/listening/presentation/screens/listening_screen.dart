@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../domain/entities/transcript_segment.dart';
 import '../bloc/listening_bloc.dart';
+import '../widgets/streaming_transcript_list.dart';
+import '../widgets/session_summary_screen.dart';
+import '../widgets/tutorial_overlay.dart';
 
 class ListeningScreen extends StatefulWidget {
   const ListeningScreen({super.key});
@@ -14,18 +17,56 @@ class ListeningScreen extends StatefulWidget {
   State<ListeningScreen> createState() => _ListeningScreenState();
 }
 
-class _ListeningScreenState extends State<ListeningScreen> {
+class _ListeningScreenState extends State<ListeningScreen> with WidgetsBindingObserver {
   Timer? _uiTimer;
   int _displaySeconds = 0;
+  bool _showTutorial = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkTutorial();
+    _loadDefaultMode();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      context.read<ListeningBloc>().add(const AppBackgrounded());
+    } else if (state == AppLifecycleState.resumed) {
+      context.read<ListeningBloc>().add(const AppForegrounded());
+    }
+  }
+
+  Future<void> _checkTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tutorialShown = prefs.getBool('tutorial-shown') ?? false;
+    if (mounted && !tutorialShown) {
+      setState(() => _showTutorial = true);
+    }
+  }
+
+  Future<void> _loadDefaultMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('default-listen-mode');
+    final mode =
+        saved == 'recording' ? ListenMode.recording : ListenMode.streaming;
+    if (mounted) {
+      context.read<ListeningBloc>().add(SetListenMode(mode));
+    }
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _uiTimer?.cancel();
     super.dispose();
   }
 
   void _syncTimer(ListeningStatus status) {
-    if (status == ListeningStatus.listening || status == ListeningStatus.streaming) {
+    if (status == ListeningStatus.listening ||
+        status == ListeningStatus.streaming) {
       if (_uiTimer != null) return;
       _displaySeconds = 0;
       _uiTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -45,89 +86,205 @@ class _ListeningScreenState extends State<ListeningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        title: const Text('Verificare Audio'),
-        centerTitle: true,
-      ),
-      body: BlocConsumer<ListeningBloc, ListeningState>(
-        listener: (context, state) {
-          _syncTimer(state.status);
-          if (state.status == ListeningStatus.verdictReady) {
-            _uiTimer?.cancel();
-            _uiTimer = null;
-          }
-        },
-        builder: (context, state) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [_buildBody(context, state)],
-              ),
-            ),
+    final disableAnimations = MediaQuery.of(context).disableAnimations;
+
+    final screen = BlocConsumer<ListeningBloc, ListeningState>(
+      listener: (context, state) {
+        _syncTimer(state.status);
+        if (state.status == ListeningStatus.verdictReady) {
+          _uiTimer?.cancel();
+          _uiTimer = null;
+        } else if (state.status == ListeningStatus.reconnecting) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Se reconectează...')),
           );
+        }
+      },
+      builder: (context, state) {
+        if (state.status == ListeningStatus.verdictReady) {
+          return SessionSummaryScreen(
+            segments: state.segments,
+            modeLabel: state.listenMode == ListenMode.streaming
+                ? 'Timp real'
+                : 'Înregistrare',
+            disableAnimations: disableAnimations,
+            onVerifyAgain: () {
+              context.read<ListeningBloc>().add(const ResetListening());
+            },
+          );
+        }
+
+        final showStop = state.status == ListeningStatus.streaming ||
+            state.status == ListeningStatus.listening;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Ascultă'),
+            centerTitle: true,
+          ),
+          body: Column(
+            children: [
+              if (state.status == ListeningStatus.idle ||
+                  state.status == ListeningStatus.error)
+                _buildModeSwitch(context, state),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  child: SizedBox(
+                    key: ValueKey(state.status),
+                    child: _buildContent(context, state, disableAnimations),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          floatingActionButtonLocation: const _AboveBottomNavFabLocation(),
+          floatingActionButton: showStop
+              ? Builder(
+                  builder: (context) {
+                    final cs = Theme.of(context).colorScheme;
+                    return FloatingActionButton(
+                      heroTag: 'stop-fab',
+                      backgroundColor: cs.error,
+                      foregroundColor: cs.onError,
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        if (state.status == ListeningStatus.streaming) {
+                          context.read<ListeningBloc>().add(const StopStreaming());
+                        } else {
+                          context.read<ListeningBloc>().add(const StopListening());
+                        }
+                      },
+                      child: const Icon(Icons.stop_rounded),
+                    );
+                  },
+                )
+              : null,
+        );
+      },
+    );
+
+    if (_showTutorial) {
+      return TutorialOverlay(
+        child: screen,
+        onDismissed: () {
+          if (mounted) setState(() => _showTutorial = false);
         },
+      );
+    }
+
+    return screen;
+  }
+
+  // Replaces the earlier segmented-control design (see §3.3 of the original spec).
+  // SelectorTrigger is preferred — it stays legible at all widths and uses the
+  // shared bottom-sheet pattern consistent with the rest of the UI.
+  Widget _buildModeSwitch(BuildContext context, ListeningState state) {
+    final isActive = state.status == ListeningStatus.streaming ||
+        state.status == ListeningStatus.listening;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: AppSurface(
+        elevation: AppSurfaceElevation.raised,
+        borderRadius: 12,
+        padding: EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SelectorTrigger<ListenMode>(
+              title: 'Mod',
+              currentValue: state.listenMode,
+              disabled: isActive,
+              options: const [
+                SelectorOption(
+                  value: ListenMode.streaming,
+                  label: 'Timp real',
+                  icon: Icons.wifi_rounded,
+                  subtitle: 'Verificare în timp ce vorbești',
+                ),
+                SelectorOption(
+                  value: ListenMode.recording,
+                  label: 'Înregistrare',
+                  icon: Icons.radio_button_checked_rounded,
+                  subtitle: 'Înregistrează și trimite',
+                ),
+              ],
+              onChanged: (mode) {
+                context.read<ListeningBloc>().add(SetListenMode(mode));
+                _saveDefaultMode(
+                    mode == ListenMode.streaming ? 'streaming' : 'recording');
+              },
+            ),
+            if (isActive)
+              const Padding(
+                padding: EdgeInsets.only(left: 20, right: 20, bottom: 12),
+                child: Text(
+                  'Oprește sesiunea curentă pentru a schimba modul',
+                  style: AppTextStyles.labelSm,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, ListeningState state) {
+  Future<void> _saveDefaultMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('default-listen-mode', mode);
+  }
+
+  Widget _buildContent(
+      BuildContext context, ListeningState state, bool disableAnimations) {
     return switch (state.status) {
-      ListeningStatus.idle        => _buildIdle(context),
-      ListeningStatus.listening   => _buildRecording(context, state),
-      ListeningStatus.streaming   => _buildStreaming(context, state),
-      ListeningStatus.processing  => _buildProcessing(context, state),
-      ListeningStatus.transcriptionReady => _buildTranscriptionEdit(context, state),
-      ListeningStatus.verdictReady => _buildVerdict(context, state),
-      ListeningStatus.error       => _buildError(context, state),
+      ListeningStatus.idle => _buildIdle(context, state, disableAnimations),
+      ListeningStatus.listening => _buildRecording(state, disableAnimations),
+      ListeningStatus.streaming => _buildStreaming(state, disableAnimations),
+      ListeningStatus.reconnecting => _buildStreaming(state, disableAnimations),
+      ListeningStatus.processing => _buildProcessing(),
+      ListeningStatus.transcriptionReady =>
+        _buildTranscriptionEdit(context, state),
+      ListeningStatus.verdictReady => const SizedBox.shrink(),
+      ListeningStatus.error => _buildError(context, state),
     };
   }
 
-  Widget _buildIdle(BuildContext context) {
+  Widget _buildIdle(
+      BuildContext context, ListeningState state, bool disableAnimations) {
+    final isStreaming = state.listenMode == ListenMode.streaming;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.subtle.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.mic_none_rounded, size: 28, color: AppColors.mid),
-            ),
-            const SizedBox(height: 20),
+            const SoundWaveIndicator(active: false),
+            const SizedBox(height: 24),
             Text(
-              'Pregătit pentru verificare',
-              style: AppTextStyles.headingSubsection.copyWith(fontSize: 16, letterSpacing: -0.3),
-              textAlign: TextAlign.center,
+              isStreaming ? 'Flux în timp real' : 'Înregistrare audio',
+              style: AppTextStyles.headingSubsection.copyWith(fontSize: 18),
             ),
             const SizedBox(height: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 280),
-              child: Text(
-                'Alege modul de captură audio pentru a verifica afirmațiile.',
-                style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid, height: 1.65),
-                textAlign: TextAlign.center,
-              ),
+            Text(
+              isStreaming
+                  ? 'Pornește și începe să vorbești. Verificăm afirmațiile pe loc.'
+                  : 'Înregistrează și trimite pentru verificare.',
+              style: AppTextStyles.bodyMd,
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            AppButton.primary(
-              label: 'Înregistrare Audio',
-              onPressed: () => context.read<ListeningBloc>().add(const StartListening()),
-              width: null,
-            ),
-            const SizedBox(height: 12),
-            AppButton.secondary(
-              label: 'Flux în Timp Real',
-              onPressed: () => context.read<ListeningBloc>().add(const StartStreaming()),
-              width: null,
+            const SizedBox(height: 32),
+            _LargeMicButton(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                if (isStreaming) {
+                  context.read<ListeningBloc>().add(const StartStreaming());
+                } else {
+                  context.read<ListeningBloc>().add(const StartListening());
+                }
+              },
             ),
           ],
         ),
@@ -135,43 +292,8 @@ class _ListeningScreenState extends State<ListeningScreen> {
     );
   }
 
-  Widget _buildRecording(BuildContext context, ListeningState state) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SoundWaveIndicator(
-          active: true,
-          amplitudeStream: context.read<ListeningBloc>().amplitudeStream,
-        ),
-        const SizedBox(height: 24),
-        Text(
-          _formatTime(_displaySeconds),
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 36,
-            fontWeight: FontWeight.w700,
-            color: AppColors.ink,
-            letterSpacing: -0.72,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Se înregistrează...',
-          style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
-        ),
-        const SizedBox(height: 32),
-        AppButton.destructive(
-          label: 'Oprește',
-          onPressed: () =>
-              context.read<ListeningBloc>().add(const StopListening()),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStreaming(BuildContext context, ListeningState state) {
-    return SingleChildScrollView(
+  Widget _buildRecording(ListeningState state, bool disableAnimations) {
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -179,163 +301,61 @@ class _ListeningScreenState extends State<ListeningScreen> {
             active: true,
             amplitudeStream: context.read<ListeningBloc>().amplitudeStream,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             _formatTime(_displaySeconds),
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 36,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink,
-              letterSpacing: -0.72,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+            style: AppTextStyles.headingSubsection.copyWith(fontSize: 18),
           ),
           const SizedBox(height: 4),
-          Text(
-            'Ascultare în timp real...',
-            style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
-          ),
-          const SizedBox(height: 16),
-
-          if (state.segments.isNotEmpty)
-            ...state.segments.map((seg) => _buildSegmentCard(seg)),
-
-          if (state.interimText.isNotEmpty)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.subtle),
-              ),
-              child: Text(
-                state.interimText,
-                style: AppTextStyles.bodyMd.copyWith(
-                  color: AppColors.mid,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-
-          if (state.segments.isEmpty && state.interimText.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Text(
-                'Vorbiți pentru a vedea transcrierea...',
-                style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
-              ),
-            ),
-
-          const SizedBox(height: 24),
-          AppButton.destructive(
-            label: 'Oprește fluxul',
-            onPressed: () =>
-                context.read<ListeningBloc>().add(const StopStreaming()),
+          const Text(
+            'Se înregistrează...',
+            style: AppTextStyles.labelMd,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSegmentCard(TranscriptSegment seg) {
-    Color verdictColor;
-    IconData verdictIcon;
-    String verdictLabel;
+  Widget _buildStreaming(ListeningState state, bool disableAnimations) {
+    return StreamingTranscriptList(
+      segments: state.segments,
+      interimText: state.interimText,
+      disableAnimations: disableAnimations,
+    );
+  }
 
-    switch (seg.verdict) {
-      case StreamingVerdict.verdadero:
-        verdictColor = AppColors.verdictTrue;
-        verdictIcon = Icons.check_circle;
-        verdictLabel = 'Adevărat';
-      case StreamingVerdict.falso:
-        verdictColor = AppColors.verdictFalse;
-        verdictIcon = Icons.cancel;
-        verdictLabel = 'Fals';
-      case StreamingVerdict.uncertain:
-        verdictColor = AppColors.verdictPartial;
-        verdictIcon = Icons.help;
-        verdictLabel = 'Incert';
-      case StreamingVerdict.unverified:
-        verdictColor = AppColors.mid;
-        verdictIcon = Icons.hourglass_empty;
-        verdictLabel = 'Neverificat';
-      case null:
-        verdictColor = AppColors.mid;
-        verdictIcon = Icons.pending;
-        verdictLabel = 'În așteptare...';
-    }
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
-        borderRadius: BorderRadius.circular(8),
-      ),
+  Widget _buildProcessing() {
+    return const Padding(
+      padding: EdgeInsets.all(24),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(verdictIcon, size: 18, color: verdictColor),
-              const SizedBox(width: 6),
-              Text(
-                verdictLabel,
-                style: AppTextStyles.labelMd.copyWith(
-                  color: verdictColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
           Text(
-            seg.text,
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.ink),
+            'Se procesează...',
+            style: AppTextStyles.headingSubsection,
           ),
-          if (seg.explanation != null && seg.explanation!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              seg.explanation!,
-              style: AppTextStyles.bodyMd.copyWith(
-                color: AppColors.inkSub,
-                fontSize: 13,
-              ),
+          SizedBox(height: 8),
+          Text(
+            'Audio se analizează. Se verifică afirmațiile.',
+            style: AppTextStyles.bodyMd,
+          ),
+          SizedBox(height: 24),
+          AppFeatureCard(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonText(lines: 1),
+                SizedBox(height: 16),
+                SkeletonText(lines: 3),
+                SizedBox(height: 24),
+                SkeletonText(lines: 2),
+              ],
             ),
-          ],
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildProcessing(BuildContext context, ListeningState state) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Se procesează...',
-          style: AppTextStyles.headingSubsection,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Audio a fost trimis. Se analizează conținutul.',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 
@@ -343,165 +363,8 @@ class _ListeningScreenState extends State<ListeningScreen> {
     return _TranscriptionEditWidget(
       initialText: state.transcript ?? '',
       onCancel: () => context.read<ListeningBloc>().add(const ResetListening()),
-      onSubmit: (text) => context.read<ListeningBloc>().add(SubmitTranscription(text)),
-    );
-  }
-
-  Widget _buildVerdict(BuildContext context, ListeningState state) {
-    final claims = state.claimsData ?? [];
-    final firstClaim = claims.isNotEmpty ? claims.first : null;
-
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.verdictTrue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.check_rounded,
-              size: 32,
-              color: AppColors.verdictTrue,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            claims.isEmpty ? 'Nicio afirmație găsită' : 'Rezultatul este gata!', 
-            style: AppTextStyles.headingSubsection,
-          ),
-          if (claims.isEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Nu am identificat nicio afirmație care să poată fi verificată.',
-              style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
-              textAlign: TextAlign.center,
-            ),
-          ],
-          if (firstClaim != null) ...[
-            const SizedBox(height: 24),
-            _buildClaimVerdict(context, firstClaim),
-          ],
-          if (claims.length > 1) ...[
-            const SizedBox(height: 12),
-            Text(
-              '${claims.length} afirmații verificate',
-              style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
-            ),
-          ],
-          const SizedBox(height: 24),
-          AppButton.secondary(
-            label: 'Verifică din nou',
-            onPressed: () =>
-                context.read<ListeningBloc>().add(const ResetListening()),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClaimVerdict(
-      BuildContext context, Map<String, dynamic> claim) {
-    final label = claim['verdict'] as String? ?? 'Unverified';
-    final confidence = claim['confidenceScore'] as num? ?? 0;
-    final explanation = claim['explanation'] as String? ?? '';
-    final evidence = claim['evidence'] as List<dynamic>? ?? [];
-    final color = AppColors.forVerdict(label);
-
-    return AppFeatureCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: Text(
-              label,
-              style: AppTextStyles.labelMd.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                'Nivel de încredere: ',
-                style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
-              ),
-              Text(
-                '$confidence%',
-                style: AppTextStyles.labelMd.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: confidence.toDouble() / 100,
-              backgroundColor: AppColors.subtle,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 4,
-            ),
-          ),
-          if (explanation.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              explanation,
-              style: AppTextStyles.bodyMd.copyWith(
-                color: AppColors.inkSub,
-                height: 1.65,
-              ),
-            ),
-          ],
-          if (evidence.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            const Text(
-              'SURSE',
-              style: AppTextStyles.labelCaps,
-            ),
-            const SizedBox(height: 8),
-            ...evidence.take(3).map((e) {
-              final eMap = e as Map<String, dynamic>;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      eMap['title'] as String? ?? '',
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    if (eMap['url'] != null)
-                      Text(
-                        eMap['url'] as String,
-                        style: AppTextStyles.bodyMd.copyWith(
-                          color: AppColors.blue,
-                          fontSize: 12,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ],
-      ),
+      onSubmit: (text) =>
+          context.read<ListeningBloc>().add(SubmitTranscription(text)),
     );
   }
 
@@ -510,12 +373,60 @@ class _ListeningScreenState extends State<ListeningScreen> {
       type: AppEmptyStateType.error,
       icon: Icons.error_outline_rounded,
       title: 'A apărut o eroare',
-      description: state.errorMessage ??
-          'Nu am putut procesa audio-ul. Vă rugăm să încercați din nou.',
+      description: state.errorMessage ?? 'Nu am putut procesa audio-ul.',
       actionLabel: 'Încearcă din Nou',
-      onAction: () =>
-          context.read<ListeningBloc>().add(const StartListening()),
+      onAction: () => context.read<ListeningBloc>().add(const ResetListening()),
     );
+  }
+}
+
+class _LargeMicButton extends StatefulWidget {
+  final VoidCallback? onPressed;
+
+  const _LargeMicButton({this.onPressed});
+
+  @override
+  State<_LargeMicButton> createState() => _LargeMicButtonState();
+}
+
+class _LargeMicButtonState extends State<_LargeMicButton> {
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: 'Pornește',
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: Container(
+          width: 76,
+          height: 76,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: cs.secondary,
+            boxShadow: [
+              BoxShadow(
+                color: cs.secondary.withValues(alpha: 0.3),
+                blurRadius: 16,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Icon(Icons.mic_rounded, size: 32, color: cs.onSecondary),
+        ),
+      ),
+    );
+  }
+}
+
+class _AboveBottomNavFabLocation extends FloatingActionButtonLocation {
+  const _AboveBottomNavFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final standardOffset =
+        FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
+    return Offset(standardOffset.dx, standardOffset.dy - 90.0);
   }
 }
 
@@ -531,7 +442,8 @@ class _TranscriptionEditWidget extends StatefulWidget {
   });
 
   @override
-  State<_TranscriptionEditWidget> createState() => _TranscriptionEditWidgetState();
+  State<_TranscriptionEditWidget> createState() =>
+      _TranscriptionEditWidgetState();
 }
 
 class _TranscriptionEditWidgetState extends State<_TranscriptionEditWidget> {
@@ -551,63 +463,52 @@ class _TranscriptionEditWidgetState extends State<_TranscriptionEditWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          'Verifică textul',
-          style: AppTextStyles.headingSubsection,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Acesta este textul detectat. Îl poți edita înainte de a-l trimite pentru verificare.',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _controller,
-          maxLines: 6,
-          minLines: 3,
-          decoration: InputDecoration(
-            hintText: 'Textul transcris va apărea aici...',
-            filled: true,
-            fillColor: AppColors.surfaceRaised,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.subtle),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.subtle),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.accent),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Verifică textul',
+            style: AppTextStyles.headingSubsection,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Textul detectat. Îl poți edita înainte de verificare.',
+            style: AppTextStyles.bodyMd,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _controller,
+            maxLines: 6,
+            minLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'Textul transcris va apărea aici...',
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: AppButton.secondary(
-                label: 'Anulează',
-                onPressed: widget.onCancel,
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  label: 'Anulează',
+                  onPressed: widget.onCancel,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: AppButton.primary(
-                label: 'Trimite',
-                onPressed: () => widget.onSubmit(_controller.text),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppButton.primary(
+                  label: 'Trimite',
+                  onPressed: () => widget.onSubmit(_controller.text),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

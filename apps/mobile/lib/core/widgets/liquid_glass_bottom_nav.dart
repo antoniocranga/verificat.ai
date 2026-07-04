@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/app_colors.dart';
 
 class NavTab {
   final String label;
@@ -20,8 +19,8 @@ class NavTab {
 const navTabs = [
   NavTab(label: 'Acasă', icon: Icons.home_outlined, activeIcon: Icons.home, route: '/'),
   NavTab(label: 'Ascultă', icon: Icons.mic_outlined, activeIcon: Icons.mic, route: '/listen'),
-  NavTab(label: 'Caută', icon: Icons.search_outlined, activeIcon: Icons.search, route: '/search'),
-  NavTab(label: 'Salvate', icon: Icons.bookmark_border, activeIcon: Icons.bookmark, route: '/saved'),
+  NavTab(label: 'Istoric', icon: Icons.history_outlined, activeIcon: Icons.history, route: '/history'),
+  NavTab(label: 'Setări', icon: Icons.settings_outlined, activeIcon: Icons.settings, route: '/settings'),
 ];
 
 class LiquidGlassBottomNav extends StatelessWidget {
@@ -29,6 +28,7 @@ class LiquidGlassBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = navTabs.indexWhere((t) => t.route == location);
     final index = currentIndex >= 0 ? currentIndex : 0;
@@ -38,9 +38,9 @@ class LiquidGlassBottomNav extends StatelessWidget {
       return CupertinoTabBar(
         currentIndex: index,
         onTap: (i) => context.go(navTabs[i].route),
-        activeColor: AppColors.accent,
-        inactiveColor: const Color(0xFF8F8F8F),
-        backgroundColor: const Color(0xE6FFFFFF),
+        activeColor: cs.primary,
+        inactiveColor: cs.onSurfaceVariant,
+        backgroundColor: cs.surfaceContainerHighest,
         items: navTabs.map((tab) => BottomNavigationBarItem(
           icon: Icon(tab.icon),
           activeIcon: Icon(tab.activeIcon),
@@ -52,8 +52,8 @@ class LiquidGlassBottomNav extends StatelessWidget {
       key: ValueKey(index),
       selectedIndex: index,
       onDestinationSelected: (i) => context.go(navTabs[i].route),
-      backgroundColor: const Color(0xE6FFFFFF),
-      indicatorColor: AppColors.accent.withValues(alpha: 0.3),
+      backgroundColor: cs.surfaceContainerHighest,
+      indicatorColor: cs.primary.withValues(alpha: 0.3),
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       animationDuration: const Duration(milliseconds: 100),

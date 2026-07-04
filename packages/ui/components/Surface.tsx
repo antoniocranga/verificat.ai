@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react';
-import './button.css'; // imports the token vars
+import { forwardRef } from 'react';
 
 type SurfaceElevation = 'base' | 'raised' | 'overlay' | 'inset';
 
@@ -14,10 +14,10 @@ interface SurfaceProps {
 }
 
 const bgMap: Record<SurfaceElevation, string> = {
-  base:    'var(--surface-base, #faf9f5)',
-  raised:  'var(--surface-raised, #ffffff)',
-  overlay: 'var(--surface-raised, #ffffff)',
-  inset:   'var(--surface-inset, #f0ede6)',
+  base:    'var(--surface-base)',
+  raised:  'var(--surface-raised)',
+  overlay: 'var(--surface-raised)',
+  inset:   'var(--surface-inset)',
 };
 
 const shadowMap: Record<SurfaceElevation, string | undefined> = {
@@ -29,9 +29,9 @@ const shadowMap: Record<SurfaceElevation, string | undefined> = {
 
 const radiusMap = {
   none: '0px',
-  sm:   'var(--rounded-sm, 6px)',
-  md:   'var(--rounded-md, 12px)',
-  lg:   'var(--rounded-lg, 16px)',
+  sm:   'var(--rounded-sm)',
+  md:   'var(--rounded-md)',
+  lg:   'var(--rounded-lg)',
 };
 
 export function Surface({

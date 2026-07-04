@@ -12,9 +12,10 @@ class ListeningRepositoryImpl implements ListeningRepository {
   final AudioRecorderService _recorder;
   final JobApiService _api;
   final PermissionService _permissionService;
-  final TranscriptStreamService? _streamingService;
+  TranscriptStreamService? _streamingService;
   final StreamController<void> _interruptionBeganController = StreamController<void>.broadcast();
   final StreamController<void> _interruptionEndedController = StreamController<void>.broadcast();
+  final StreamController<String> _streamErrorController = StreamController<String>.broadcast();
   // ignore: unused_field
   StreamSubscription<AudioSessionInterruption>? _interruptionSub;
   File? _audioFile;
@@ -26,8 +27,11 @@ class ListeningRepositoryImpl implements ListeningRepository {
     TranscriptStreamService? streamingService,
   }) : _recorder = recorder ?? AudioRecorderService(),
        _api = api ?? JobApiService(),
-        _permissionService = permissionService ?? const PermissionService(),
-        _streamingService = streamingService {
+       _permissionService = permissionService ?? const PermissionService() {
+    _streamingService = streamingService ?? TranscriptStreamService(
+      recorder: _recorder.rawRecorder,
+      onError: (msg) => _streamErrorController.add(msg),
+    );
     _interruptionSub = _recorder.onInterruption.listen((event) {
       switch (event) {
         case AudioSessionInterruption.began:
@@ -43,6 +47,9 @@ class ListeningRepositoryImpl implements ListeningRepository {
 
   @override
   Stream<void> get onInterruptionEnded => _interruptionEndedController.stream;
+
+  @override
+  Stream<String> get onStreamError => _streamErrorController.stream;
 
   @override
   Future<String> startRecording() => _recorder.startRecording();
@@ -98,8 +105,7 @@ class ListeningRepositoryImpl implements ListeningRepository {
   Future<void> startStreaming() async {
     final granted = await _permissionService.requestMicPermission();
     if (!granted) throw Exception('Microphone permission denied');
-    if (_streamingService == null) throw Exception('Streaming service not available');
-    await _streamingService.start();
+    await _streamingService!.start();
   }
 
   @override

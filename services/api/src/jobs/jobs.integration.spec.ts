@@ -5,7 +5,9 @@ import { SpeechService } from '../speech/speech.service';
 import { ClaimDetectionService } from '../fact-checks/claim-detection.service';
 import { EvidenceRetrievalService } from '../fact-checks/evidence-retrieval.service';
 import { VerdictGenerationService } from '../fact-checks/verdict-generation.service';
+import { FactCheckPersistenceService } from '../fact-checks/fact-check-persistence.service';
 import { SourceTrustService } from '../sources/source-trust.service';
+import { SessionsService } from '../sessions/sessions.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Job } from 'bullmq';
 
@@ -31,6 +33,7 @@ describe('JobsConsumer Integration', () => {
         {
           entities: ['Guvern'],
           assertion: 'Inflația a scăzut în 2023 la wikipedia.org',
+          exactQuote: 'Inflația a scăzut în 2023 la wikipedia.org',
           qualifiers: ['anul 2023'],
         },
       ]),
@@ -80,6 +83,23 @@ describe('JobsConsumer Integration', () => {
         },
         { provide: SourceTrustService, useValue: mockSourceTrustService },
         {
+          provide: FactCheckPersistenceService,
+          useValue: {
+            persistCheckCycle: jest.fn().mockResolvedValue({
+              claimId: 'mock-claim-id',
+              factCheckId: 'mock-factcheck-id',
+              verdictId: 'mock-verdict-id',
+              sourceIds: ['mock-source-id'],
+            }),
+          },
+        },
+        {
+          provide: SessionsService,
+          useValue: {
+            updateSessionOnDisconnect: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
           provide: SupabaseService,
           useValue: {
             getClient: jest.fn().mockReturnValue({
@@ -125,11 +145,74 @@ describe('JobsConsumer Integration', () => {
     expect(verdictGenerationService.generateVerdict).toHaveBeenCalled();
 
     expect(result.claims).toHaveLength(1);
-    expect(result.claims[0].assertion).toBe(
+    expect(result.claims[0].text).toBe(
       'Inflația a scăzut în 2023 la wikipedia.org',
     );
-    expect(result.claims[0].verdict).toBe('True');
-    expect(result.claims[0].confidenceScore).toBe(85);
-    expect(result.claims[0].evidence[0].trustScore).toBe(80);
+    expect(result.claims[0].status).toBe('true');
+    expect(result.claims[0].confidence).toBe(85);
+    expect(result.claims[0].offset.start).toBe(0);
+    expect(result.claims[0].offset.end).toBe(42);
+    expect(result.claims[0].reportId).toBeDefined();
+    expect(result.claims[0].claimId).toBeDefined();
+  });
+
+  it('should match claims chronologically when quotes appear multiple times', async () => {
+    claimDetectionService.detectClaims.mockResolvedValueOnce([
+      {
+        entities: ['Test'],
+        assertion: 'test claim',
+        exactQuote: 'repeat',
+        qualifiers: [],
+      },
+      {
+        entities: ['Test2'],
+        assertion: 'test claim 2',
+        exactQuote: 'repeat',
+        qualifiers: [],
+      },
+    ]);
+
+    const mockJob = {
+      id: 'job-124',
+      data: {
+        claimId: 'claim-def',
+        text: 'some repeat and another repeat here',
+      },
+      updateProgress: jest.fn().mockResolvedValue(undefined),
+    } as unknown as Job<FactVerificationJobData, unknown, string>;
+
+    const result = await consumer.process(mockJob);
+
+    expect(result.claims).toHaveLength(2);
+    expect(result.claims[0].text).toBe('repeat');
+    expect(result.claims[0].offset.start).toBe(5);
+    expect(result.claims[0].offset.end).toBe(11);
+    expect(result.claims[1].text).toBe('repeat');
+    expect(result.claims[1].offset.start).toBe(24);
+    expect(result.claims[1].offset.end).toBe(30);
+  });
+
+  it('should reject and not return claims where exact quote cannot be found', async () => {
+    claimDetectionService.detectClaims.mockResolvedValueOnce([
+      {
+        entities: ['Missing'],
+        assertion: 'this claim is not in the text',
+        exactQuote: 'totally fabricated quote',
+        qualifiers: [],
+      },
+    ]);
+
+    const mockJob = {
+      id: 'job-125',
+      data: {
+        claimId: 'claim-ghi',
+        text: 'the text does not contain the fabricated quote',
+      },
+      updateProgress: jest.fn().mockResolvedValue(undefined),
+    } as unknown as Job<FactVerificationJobData, unknown, string>;
+
+    const result = await consumer.process(mockJob);
+
+    expect(result.claims).toHaveLength(0); // Should be filtered out
   });
 });

@@ -3,6 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AudioFactcheckService } from './audio-factcheck.service';
 import { EvidenceRetrievalService } from '../fact-checks/evidence-retrieval.service';
 import { VerdictGenerationService } from '../fact-checks/verdict-generation.service';
+import { FactCheckPersistenceService } from '../fact-checks/fact-check-persistence.service';
+import { MetricsService } from '../metrics/metrics.service';
 
 const makeEvidence = (overrides: Partial<Record<string, unknown>> = {}) => ({
   title: 'Sursa de test',
@@ -43,6 +45,36 @@ describe('AudioFactcheckService', () => {
             generateVerdict: jest.fn().mockResolvedValue(makeVerdict()),
           },
         },
+        {
+          provide: FactCheckPersistenceService,
+          useValue: {
+            persistCheckCycle: jest.fn().mockResolvedValue({
+              claimId: 'mock-claim-id',
+              factCheckId: 'mock-factcheck-id',
+              verdictId: 'mock-verdict-id',
+              sourceIds: [],
+            }),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            factcheckRequestsTotal: { inc: jest.fn() },
+            factcheckRequestDurationSeconds: { observe: jest.fn() },
+            factcheckVerdictsTotal: { inc: jest.fn() },
+            claimResultSentTotal: { inc: jest.fn() },
+            sessionsPersistedTotal: { inc: jest.fn() },
+            httpRequestsTotal: { inc: jest.fn() },
+            httpRequestDurationSeconds: { observe: jest.fn() },
+            activeWsConnections: { inc: jest.fn(), dec: jest.fn() },
+            sttSessionsTotal: { inc: jest.fn() },
+            sttMockSessionsTotal: { inc: jest.fn() },
+            sttLowConfidenceSegmentsTotal: { inc: jest.fn() },
+            sttSessionDurationSeconds: { observe: jest.fn() },
+            sttSegmentsFinalizedTotal: { inc: jest.fn() },
+            sttSegmentsDroppedTotal: { inc: jest.fn() },
+          },
+        },
       ],
     }).compile();
 
@@ -58,18 +90,18 @@ describe('AudioFactcheckService', () => {
   // ─── Word-count guard ────────────────────────────────────────────────────
 
   it('returns null for segments shorter than 5 words', async () => {
-    const result = await service.check('Scurt.', 'seg-001');
+    const result = await service.check('scurt.', 'seg-001', 'session-1');
     expect(result).toBeNull();
     expect(evidenceRetrieval.retrieveEvidence).not.toHaveBeenCalled();
   });
 
   it('returns null for a four-word segment', async () => {
-    const result = await service.check('Unu doi trei patru', 'seg-002');
+    const result = await service.check('unu doi trei patru', 'seg-002', 'session-1');
     expect(result).toBeNull();
   });
 
   it('processes a segment that meets the 5-word minimum', async () => {
-    const result = await service.check('Unu doi trei patru cinci', 'seg-003');
+    const result = await service.check('Unu doi trei patru cinci', 'seg-003', 'session-1');
     expect(result).not.toBeNull();
     expect(evidenceRetrieval.retrieveEvidence).toHaveBeenCalledTimes(1);
   });
@@ -92,6 +124,7 @@ describe('AudioFactcheckService', () => {
       const result = await service.check(
         'Acesta este un text suficient de lung',
         'seg-map',
+        'session-1',
       );
       expect(result?.verdict).toBe(expected);
     },
@@ -106,6 +139,7 @@ describe('AudioFactcheckService', () => {
     const result = await service.check(
       'Deficitul bugetar al României a crescut semnificativ',
       'seg-conf',
+      'session-1',
     );
     expect(result?.confidence).toBeCloseTo(0.75);
   });
@@ -114,6 +148,7 @@ describe('AudioFactcheckService', () => {
     const result = await service.check(
       'Premierul a declarat că economia este stabilă',
       'my-segment-id',
+      'session-1',
     );
     expect(result?.segmentId).toBe('my-segment-id');
   });
@@ -126,6 +161,7 @@ describe('AudioFactcheckService', () => {
     const result = await service.check(
       'Producția industrială a scăzut față de anul trecut',
       'seg-top',
+      'session-1',
     );
     expect(result?.matchedFact).toBe('Snippet principal');
   });
@@ -138,6 +174,7 @@ describe('AudioFactcheckService', () => {
     const result = await service.check(
       'Inflația anuală a depășit pragul de cinci procente',
       'seg-empty-ev',
+      'session-1',
     );
     expect(result?.matchedFact).toBeNull();
   });
@@ -149,31 +186,40 @@ describe('AudioFactcheckService', () => {
     const result = await service.check(
       'Legea bugetului a fost adoptată de Parlament ieri',
       'seg-url',
+      'session-1',
     );
     expect(result?.sources).toContain('https://gov.ro/stire');
   });
 
   // ─── Error resilience ────────────────────────────────────────────────────
 
-  it('returns null (does not throw) when EvidenceRetrievalService throws', async () => {
+  it('returns error object (does not throw) when EvidenceRetrievalService throws', async () => {
     evidenceRetrieval.retrieveEvidence.mockRejectedValue(
       new Error('DB connection failed'),
     );
     const result = await service.check(
       'Ministrul a anunțat o nouă politică fiscală importantă',
       'seg-err',
+      'session-1',
     );
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    if (result && 'error' in result) {
+      expect((result as { error: boolean }).error).toBe(true);
+    }
   });
 
-  it('returns null (does not throw) when VerdictGenerationService throws', async () => {
+  it('returns error object (does not throw) when VerdictGenerationService throws', async () => {
     verdictGeneration.generateVerdict.mockRejectedValue(
       new Error('OpenAI rate limit'),
     );
     const result = await service.check(
       'Rata inflației a scăzut pentru prima dată din 2020',
       'seg-llm-err',
+      'session-1',
     );
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    if (result && 'error' in result) {
+      expect((result as { error: boolean }).error).toBe(true);
+    }
   });
 });

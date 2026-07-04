@@ -1,8 +1,11 @@
 import { SttSession } from './stt-session.interface';
 
 export interface SttConfig {
+  sessionId?: string;
   language?: string; // Default 'ro-RO'
   sampleRate?: number; // Default 16000
+  keyterms?: string[]; // Deepgram proper noun boosting
+  contentType?: string; // e.g. 'audio/webm', 'audio/wav'
 }
 
 export interface SttAdapter {

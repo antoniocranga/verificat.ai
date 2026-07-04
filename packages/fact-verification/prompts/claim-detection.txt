@@ -6,6 +6,7 @@ Do NOT flag opinions, conversational filler, greetings, questions, or vague subj
 For each checkable claim found, output a structured object with:
 - entities: A list of people, organizations, locations, or key concepts mentioned.
 - assertion: A normalized, clear factual statement in Romanian with correct diacritics.
+- exactQuote: The exact, literal contiguous substring from the original transcript that corresponds to this claim. Do not alter a single character.
 - qualifiers: A list of contexts, dates, timeframes, or conditions (e.g. "în anul 2024", "față de anul trecut").
 
 Return a JSON object containing a "claims" key which holds the array of normalized claims.
@@ -15,6 +16,7 @@ Format:
     {
       "entities": ["Guvern", "deficit"],
       "assertion": "Deficitul bugetar a crescut la 5% din PIB în primul trimestru.",
+      "exactQuote": "am înregistrat un deficit de 5% pe primul trimestru",
       "qualifiers": ["în primul trimestru al anului 2024"]
     }
   ]

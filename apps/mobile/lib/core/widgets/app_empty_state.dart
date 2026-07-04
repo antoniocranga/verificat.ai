@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'app_button.dart';
 
@@ -27,16 +26,16 @@ class AppEmptyState extends StatelessWidget {
     this.type = AppEmptyStateType.empty,
   });
 
-  Color get _iconContainerColor => switch (type) {
-    AppEmptyStateType.empty        => AppColors.subtle.withValues(alpha: 0.6),
-    AppEmptyStateType.error        => AppColors.error.withValues(alpha: 0.08),
-    AppEmptyStateType.networkError => AppColors.error.withValues(alpha: 0.08),
+  Color _iconContainerColor(BuildContext context) => switch (type) {
+    AppEmptyStateType.empty        => Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
+    AppEmptyStateType.error        => Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+    AppEmptyStateType.networkError => Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
   };
 
-  Color get _iconColor => switch (type) {
-    AppEmptyStateType.empty        => AppColors.mid,
-    AppEmptyStateType.error        => AppColors.error,
-    AppEmptyStateType.networkError => AppColors.error,
+  Color _iconColor(BuildContext context) => switch (type) {
+    AppEmptyStateType.empty        => Theme.of(context).colorScheme.outlineVariant,
+    AppEmptyStateType.error        => Theme.of(context).colorScheme.error,
+    AppEmptyStateType.networkError => Theme.of(context).colorScheme.error,
   };
 
   @override
@@ -52,10 +51,10 @@ class AppEmptyState extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: _iconContainerColor,
+                color: _iconContainerColor(context),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, size: 28, color: _iconColor),
+              child: Icon(icon, size: 28, color: _iconColor(context)),
             ),
             const SizedBox(height: 20),
 
@@ -70,13 +69,12 @@ class AppEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Description — Lora, generous leading
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 280),
               child: Text(
                 description,
                 style: AppTextStyles.bodyMd.copyWith(
-                  color: AppColors.mid,
+                  color: Theme.of(context).colorScheme.outlineVariant,
                   height: 1.65,
                 ),
                 textAlign: TextAlign.center,

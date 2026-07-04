@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { SpeechService } from '../speech/speech.service';
-import { ClaimDetectionService } from '../fact-checks/claim-detection.service';
+import {
+  ClaimDetectionService,
+  NormalizedClaim,
+} from '../fact-checks/claim-detection.service';
 import {
   EvidenceRetrievalService,
   EvidenceResult,
@@ -12,7 +15,9 @@ import {
   VerdictGenerationService,
   VerdictValue,
 } from '../fact-checks/verdict-generation.service';
+import { FactCheckPersistenceService } from '../fact-checks/fact-check-persistence.service';
 import { SourceTrustService } from '../sources/source-trust.service';
+import { SessionsService } from '../sessions/sessions.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -22,29 +27,22 @@ export interface FactVerificationJobData {
   text?: string;
   audioPath?: string;
   preferredEngine?: 'deepgram' | 'azure' | 'whisper';
+  sessionId?: string;
 }
 
 export interface FactVerificationJobResult {
   success: boolean;
   transcript?: string;
   claims: Array<{
-    assertion: string;
-    verdict: VerdictValue;
-    confidenceScore: number;
-    explanation: string;
-    evidence: Array<{
-      title: string;
-      url: string;
-      snippet: string;
-      source: string;
-      similarityScore: number;
-      trustScore?: number;
-      trustReason?: string;
-      sourceId?: string;
-      sourceName?: string;
-      articleUrl?: string;
-      publishedAt?: string;
-    }>;
+    claimId: string;
+    text: string;
+    status: 'true' | 'false' | 'uncertain';
+    confidence: number;
+    offset: {
+      start: number;
+      end: number;
+    };
+    reportId: string;
   }>;
 }
 
@@ -57,7 +55,9 @@ export class JobsConsumer extends WorkerHost {
     private readonly claimDetectionService: ClaimDetectionService,
     private readonly evidenceRetrievalService: EvidenceRetrievalService,
     private readonly verdictGenerationService: VerdictGenerationService,
+    private readonly persistenceService: FactCheckPersistenceService,
     private readonly sourceTrustService: SourceTrustService,
+    private readonly sessionsService: SessionsService,
     private readonly supabaseService: SupabaseService,
   ) {
     super();
@@ -68,6 +68,7 @@ export class JobsConsumer extends WorkerHost {
   ): Promise<FactVerificationJobResult> {
     const startTime = Date.now();
     this.logger.log(`Processing job ${job.id} for claimId ${job.data.claimId}`);
+    const { sessionId } = job.data;
 
     let textToAnalyze = job.data.text || '';
 
@@ -109,7 +110,16 @@ export class JobsConsumer extends WorkerHost {
     this.logger.log(`Detected ${detectedClaims.length} claim(s).`);
     await job.updateProgress({ stage: 'claim_detection', progress: 100 });
 
-    const claimsResults: FactVerificationJobResult['claims'] = [];
+    const internalClaimsResults: Array<{
+      claimId: string;
+      claim: NormalizedClaim;
+      verdict: VerdictValue;
+      confidenceScore: number;
+      explanation: string;
+      evidence: Array<
+        EvidenceResult & { trustScore?: number; trustReason?: string }
+      >;
+    }> = [];
 
     for (let i = 0; i < detectedClaims.length; i++) {
       const claim = detectedClaims[i];
@@ -161,101 +171,129 @@ export class JobsConsumer extends WorkerHost {
         rawEvidence,
       );
 
-      claimsResults.push({
-        assertion: claim.assertion,
+      const claimId =
+        i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
+
+      internalClaimsResults.push({
+        claimId,
+        claim,
         verdict: verdictResult.verdict,
         confidenceScore: verdictResult.confidenceScore,
         explanation: verdictResult.explanation,
-        evidence: evidenceWithTrust.map((e) => ({
-          title: e.title,
-          url: e.url,
-          snippet: e.snippet,
-          source: e.source,
-          similarityScore: e.similarityScore,
-          trustScore: e.trustScore,
-          trustReason: e.trustReason,
-          sourceId: e.sourceId,
-          sourceName: e.sourceName,
-          articleUrl: e.articleUrl,
-          publishedAt: e.publishedAt,
-        })),
+        evidence: evidenceWithTrust,
       });
     }
 
-    // Save to Supabase
-    try {
-      const supabase = this.supabaseService.getClient();
-      for (let i = 0; i < claimsResults.length; i++) {
-        const claimResult = claimsResults[i];
+    // Persist via shared service — replaces inline Supabase writes
+    const persistedResults: Array<{
+      claimId: string;
+      verdictId: string;
+      verdict: VerdictValue;
+      confidenceScore: number;
+      explanation: string;
+    }> = [];
 
-        // Ensure first claim uses the job's predefined claimId if available
-        const claimId =
-          i === 0 && job.data.claimId ? job.data.claimId : crypto.randomUUID();
+    for (const internalRes of internalClaimsResults) {
+      try {
+        const persisted = await this.persistenceService.persistCheckCycle({
+          sessionId,
+          claimText: internalRes.claim.assertion,
+          verdict: internalRes.verdict,
+          confidenceScore: internalRes.confidenceScore,
+          explanation: internalRes.explanation,
+          evidence: internalRes.evidence,
+        });
+        persistedResults.push({
+          claimId: persisted.claimId,
+          verdictId: persisted.verdictId,
+          verdict: internalRes.verdict,
+          confidenceScore: internalRes.confidenceScore,
+          explanation: internalRes.explanation,
+        });
+      } catch (err) {
+        this.logger.error(
+          `Failed to persist check cycle for claim ${internalRes.claimId}: ${String(err)}`,
+        );
+      }
+    }
 
-        // 1. Insert claim
-        await supabase.from('claims').insert({
-          id: claimId,
-          text: claimResult.assertion,
-          language: 'ro',
-        } as any);
+    // If this is a recording-mode session, finalize it now
+    if (sessionId) {
+      await this.sessionsService
+        .updateSessionOnDisconnect(
+          sessionId,
+          persistedResults.map((r) => ({ verdict: r.verdict })),
+        )
+        .catch((err) =>
+          this.logger.warn(
+            `Failed to finalize session ${sessionId}: ${err.message}`,
+          ),
+        );
+    }
 
-        // 2. Insert fact check
-        const factCheckId = crypto.randomUUID();
-        await supabase.from('fact_checks').insert({
-          id: factCheckId,
-          claim_id: claimId,
-          status: 'completed',
-        } as any);
+    // Offset mapping & building return payload
+    const finalClaims: FactVerificationJobResult['claims'] = [];
+    let lastSearchIndex = 0;
 
-        // 3. Insert verdict
-        const verdictId = crypto.randomUUID();
-        await supabase.from('verdicts').insert({
-          id: verdictId,
-          fact_check_id: factCheckId,
-          verdict: claimResult.verdict,
-          confidence_score: claimResult.confidenceScore,
-          explanation: claimResult.explanation,
-        } as any);
+    for (let i = 0; i < internalClaimsResults.length; i++) {
+      const internalRes = internalClaimsResults[i];
+      const persisted = persistedResults[i];
+      if (!persisted) continue;
 
-        // 4. Insert sources and verdict_sources
-        for (const evidence of claimResult.evidence) {
-          if (!evidence.url) continue;
+      const textToSearch =
+        internalRes.claim.exactQuote || internalRes.claim.assertion;
 
-          let sourceId = evidence.sourceId;
-          if (!sourceId) {
-            // Check if source exists by URL
-            const { data: existingSource } = await (supabase
-              .from('sources')
-              .select('id')
-              .eq('url', evidence.url)
-              .maybeSingle() as any);
-
-            if (existingSource) {
-              sourceId = existingSource.id;
-            } else {
-              sourceId = crypto.randomUUID();
-              await supabase.from('sources').insert({
-                id: sourceId,
-                name: evidence.sourceName || evidence.source || 'Unknown',
-                url: evidence.url,
-                trust_score: evidence.trustScore || null,
-              } as any);
-            }
-          }
-
-          // Link verdict and source
-          await supabase
-            .from('verdict_sources')
-            .insert({
-              verdict_id: verdictId,
-              source_id: sourceId,
-            } as any)
-            .select()
-            .maybeSingle(); // Ignore errors if already exists
-        }
+      let start = textToAnalyze.indexOf(textToSearch, lastSearchIndex);
+      if (start === -1 && lastSearchIndex > 0) {
+        start = textToAnalyze.indexOf(textToSearch, 0);
       }
 
-      // 5. Insert usage log
+      if (start !== -1) {
+        const end = start + textToSearch.length;
+        if (start < end && end <= textToAnalyze.length) {
+          lastSearchIndex = end;
+
+          let mappedStatus: 'true' | 'false' | 'uncertain' = 'uncertain';
+          if (
+            internalRes.verdict === 'True' ||
+            internalRes.verdict === 'Mostly True'
+          ) {
+            mappedStatus = 'true';
+          } else if (
+            internalRes.verdict === 'False' ||
+            internalRes.verdict === 'Misleading'
+          ) {
+            mappedStatus = 'false';
+          } else {
+            mappedStatus = 'uncertain';
+          }
+
+          finalClaims.push({
+            claimId: persisted.claimId,
+            text: textToSearch,
+            status: mappedStatus,
+            confidence: internalRes.confidenceScore,
+            offset: {
+              start,
+              end,
+            },
+            reportId: persisted.verdictId,
+          });
+        } else {
+          this.logger.warn(
+            `Invalid offset bounds for claim ${internalRes.claimId}: start=${start}, end=${end}. Discarding claim from final payload.`,
+          );
+        }
+      } else {
+        this.logger.warn(
+          `Could not locate exactQuote or assertion in text for claim ${internalRes.claimId}. Discarding from final payload.`,
+        );
+      }
+    }
+
+    // 5. Insert usage log
+    try {
+      const supabase = this.supabaseService.getClient();
       const durationMs = Date.now() - startTime;
       await supabase.from('usage_logs').insert({
         service: job.data.audioPath
@@ -264,19 +302,19 @@ export class JobsConsumer extends WorkerHost {
         duration_ms: durationMs,
         metadata: {
           jobId: job.id,
-          claimsCount: claimsResults.length,
+          claimsCount: internalClaimsResults.length,
+          returnedClaimsCount: finalClaims.length,
           engine: job.data.preferredEngine,
         },
-      } as any);
+      } as never);
     } catch (dbErr) {
-      this.logger.error(`Failed to save results to database: ${String(dbErr)}`);
-      // Do not throw, return the results to user anyway
+      this.logger.error(`Failed to save usage log: ${String(dbErr)}`);
     }
 
     return {
       success: true,
       transcript: job.data.audioPath ? textToAnalyze : undefined,
-      claims: claimsResults,
+      claims: finalClaims,
     };
   }
 }

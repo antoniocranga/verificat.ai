@@ -20,7 +20,7 @@ enum StreamingVerdict {
 }
 
 /// Parses a server-side verdict string to the local enum.
-StreamingVerdict? streamingVerdictFromString(String? s) => switch (s) {
+StreamingVerdict? streamingVerdictFromString(String? s) => switch (s?.toUpperCase()) {
   'TRUE'       => StreamingVerdict.verdadero,
   'FALSE'      => StreamingVerdict.falso,
   'UNCERTAIN'  => StreamingVerdict.uncertain,
@@ -38,6 +38,11 @@ class TranscriptSegment {
   final String? explanation;
   final List<String> sources;
   final String? matchedFact;
+  final int? highlightStart;
+  final int? highlightEnd;
+  final int? canonicalStart;
+  final int? canonicalEnd;
+  final String? claimError;
 
   const TranscriptSegment({
     required this.segmentId,
@@ -48,6 +53,11 @@ class TranscriptSegment {
     this.explanation,
     this.sources = const [],
     this.matchedFact,
+    this.highlightStart,
+    this.highlightEnd,
+    this.canonicalStart,
+    this.canonicalEnd,
+    this.claimError,
   });
 
   /// Returns a copy with the fact-check result applied.
@@ -57,16 +67,24 @@ class TranscriptSegment {
     required String? explanation,
     required List<String> sources,
     required String? matchedFact,
+    int? highlightStart,
+    int? highlightEnd,
+    String? claimError,
   }) {
     return TranscriptSegment(
       segmentId: segmentId,
       text: text,
-      isInterim: false,
+      isInterim: isInterim,
       verdict: verdict,
       confidence: confidence,
       explanation: explanation,
       sources: sources,
       matchedFact: matchedFact,
+      highlightStart: highlightStart ?? this.highlightStart,
+      highlightEnd: highlightEnd ?? this.highlightEnd,
+      canonicalStart: canonicalStart,
+      canonicalEnd: canonicalEnd,
+      claimError: claimError ?? this.claimError,
     );
   }
 

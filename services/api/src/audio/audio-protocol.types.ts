@@ -54,8 +54,56 @@ export interface ErrorMessage {
   message: string;
 }
 
+export interface TranscriptSyncMessage {
+  type: 'transcript_sync';
+  sessionId: string;
+  transcriptVersion: number;
+  fullText: string;
+}
+
+export interface ClaimResultMessage {
+  type: 'claim_result';
+  sessionId: string;
+  claimId: string;
+  status: AudioVerdictValue;
+  confidence: number;
+  offset: { start: number; end: number };
+  transcriptVersion: number;
+  reportId: string;
+}
+
+export interface ClaimErrorMessage {
+  type: 'claim_error';
+  code: string;
+  sessionId: string;
+  segmentId: string;
+  message: string;
+}
+
+export interface ClientPauseMessage {
+  type: 'client_pause';
+  sessionId: string;
+}
+
+export interface ClientResumeMessage {
+  type: 'client_resume';
+  sessionId: string;
+}
+
+export interface WarningMessage {
+  type: 'warning';
+  code: string;
+  message: string;
+}
+
+export type ClientMessage = ClientPauseMessage | ClientResumeMessage;
+
 export type ServerMessage =
   | InterimMessage
   | FinalMessage
   | ResultMessage
-  | ErrorMessage;
+  | ErrorMessage
+  | TranscriptSyncMessage
+  | ClaimResultMessage
+  | ClaimErrorMessage
+  | WarningMessage;

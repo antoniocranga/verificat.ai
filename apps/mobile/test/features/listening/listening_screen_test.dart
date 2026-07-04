@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verificat_mobile/features/listening/data/services/transcript_stream_service.dart';
 import 'package:verificat_mobile/features/listening/domain/repositories/listening_repository.dart';
+import 'package:verificat_mobile/features/listening/domain/entities/transcript_segment.dart';
 import 'package:verificat_mobile/features/listening/presentation/bloc/listening_bloc.dart';
 import 'package:verificat_mobile/features/listening/presentation/screens/listening_screen.dart';
 
@@ -30,6 +31,9 @@ class MockRepository implements ListeningRepository {
 
   @override
   Stream<void> get onInterruptionEnded => const Stream.empty();
+
+  @override
+  Stream<String> get onStreamError => const Stream.empty();
 
   @override
   Stream<dynamic> onAmplitude() => const Stream.empty();
@@ -61,16 +65,16 @@ Widget createTestWidget(ListeningBloc bloc) {
 
 void main() {
   group('ListeningScreen', () {
-    testWidgets('renders idle state with start button', (tester) async {
+    testWidgets('renders idle state with mode selector', (tester) async {
       final bloc = ListeningBloc(repository: MockRepository());
       await tester.pumpWidget(createTestWidget(bloc));
 
-      expect(find.text('Pregătit pentru verificare'), findsOneWidget);
-      expect(find.text('Începe Verificarea'), findsOneWidget);
+      expect(find.text('Mod'), findsOneWidget);
+      expect(find.text('Timp real'), findsOneWidget);
       bloc.close();
     });
 
-    testWidgets('renders listening state with stop button', (tester) async {
+    testWidgets('renders listening state', (tester) async {
       final bloc = ListeningBloc(repository: MockRepository());
       bloc.emit(const ListeningState(
         status: ListeningStatus.listening,
@@ -79,7 +83,6 @@ void main() {
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Se înregistrează...'), findsOneWidget);
-      expect(find.text('Oprește'), findsOneWidget);
       bloc.close();
     });
 
@@ -92,7 +95,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(bloc));
 
       expect(find.text('Se procesează...'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.text('Audio se analizează. Se verifică afirmațiile.'), findsOneWidget);
       bloc.close();
     });
 
@@ -101,15 +104,20 @@ void main() {
       bloc.emit(const ListeningState(
         status: ListeningStatus.verdictReady,
         elapsedSeconds: 0,
-        claimsData: [
-          {'verdict': 'True', 'confidenceScore': 95, 'explanation': 'Corect', 'assertion': 'Test'},
+        segments: [
+          TranscriptSegment(
+            segmentId: 'test-1',
+            text: 'A claim to check',
+            verdict: StreamingVerdict.verdadero,
+            confidence: 0.95,
+            explanation: 'Corect',
+          ),
         ],
       ));
       await tester.pumpWidget(createTestWidget(bloc));
 
-      expect(find.text('Rezultatul este gata!'), findsOneWidget);
+      expect(find.text('Rezumat sesiune'), findsOneWidget);
       expect(find.text('Verifică din nou'), findsOneWidget);
-      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       bloc.close();
     });
 

@@ -30,11 +30,7 @@ describe("startTabCapture", () => {
 
     await startTabCapture();
     expect(mockSendMessage).toHaveBeenCalledWith(
-      {
-        type: "START_OFFSCREEN_RECORDING",
-        target: "tab",
-        streamId: "test-stream-id",
-      },
+      { type: "UI_START_STREAM_TAB" },
       expect.any(Function),
     );
   });

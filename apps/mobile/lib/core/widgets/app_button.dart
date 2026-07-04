@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_shadows.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_shadows.dart';
 
-enum AppButtonVariant { primary, secondary, ghost, accent, destructive }
+enum AppButtonVariant { primary, secondary, outline, ghost, accent, destructive }
 enum AppButtonSize { sm, md, lg }
 
 class AppButton extends StatefulWidget {
@@ -57,6 +56,16 @@ class AppButton extends StatefulWidget {
     this.width,
     this.size = AppButtonSize.md,
   }) : variant = AppButtonVariant.accent;
+
+  const AppButton.outline({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.loading = false,
+    this.icon,
+    this.width,
+    this.size = AppButtonSize.md,
+  }) : variant = AppButtonVariant.outline;
 
   const AppButton.ghost({
     super.key,
@@ -142,112 +151,131 @@ class _AppButtonState extends State<AppButton>
     AppButtonSize.lg => AppTextStyles.labelLg.copyWith(fontSize: 16),
   };
 
-  (Color bg, Color fg, Color? border, List<BoxShadow> shadows) get _colors =>
-      switch (widget.variant) {
-        AppButtonVariant.primary => (
-          _isHovered ? const Color(0xFF2A2A28) : AppColors.ink,
-          AppColors.surfaceRaised,
-          null,
-          _isHovered ? AppShadows.md : AppShadows.primaryButton,
-        ),
-        AppButtonVariant.secondary => (
-          AppColors.surfaceRaised,
-          AppColors.ink,
-          _isHovered ? AppColors.mid : AppColors.subtle,
-          _isHovered ? AppShadows.sm : const [],
-        ),
-        AppButtonVariant.ghost => (
-          _isHovered
-              ? AppColors.subtle.withValues(alpha: 0.6)
-              : Colors.transparent,
-          AppColors.ink,
-          null,
-          const [],
-        ),
-        AppButtonVariant.accent => (
-          _isHovered ? const Color(0xFFC5694A) : AppColors.accent,
-          Colors.white,
-          null,
-          AppShadows.accent,
-        ),
-        AppButtonVariant.destructive => (
-          _isHovered
-              ? AppColors.error.withValues(alpha: 0.06)
-              : Colors.transparent,
-          AppColors.error,
-          _isHovered
-              ? AppColors.error.withValues(alpha: 0.4)
-              : AppColors.error.withValues(alpha: 0.25),
-          const [],
-        ),
-      };
+  (Color bg, Color fg, Color? border, List<BoxShadow> shadows) _colors(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return switch (widget.variant) {
+      AppButtonVariant.primary => (
+        _isHovered 
+            ? (isDark ? const Color(0xFFE8E6E1) : const Color(0xFF2A2A28)) 
+            : cs.primary,
+        cs.onPrimary,
+        null,
+        _isHovered ? AppShadows.md : AppShadows.primaryButton,
+      ),
+      AppButtonVariant.secondary => (
+        cs.surface,
+        cs.onSurface,
+        _isHovered ? cs.outlineVariant : cs.outline,
+        _isHovered ? AppShadows.sm : const [],
+      ),
+      AppButtonVariant.outline => (
+        _isHovered ? cs.outline.withValues(alpha: 0.2) : Colors.transparent,
+        cs.onSurface,
+        _isHovered ? cs.outlineVariant : cs.outline,
+        const [],
+      ),
+      AppButtonVariant.ghost => (
+        _isHovered
+            ? cs.outline.withValues(alpha: 0.6)
+            : Colors.transparent,
+        cs.onSurface,
+        null,
+        const [],
+      ),
+      AppButtonVariant.accent => (
+        _isHovered 
+            ? (isDark ? const Color(0xFFE38A6C) : const Color(0xFFC5694A)) 
+            : cs.secondary,
+        cs.onSecondary,
+        null,
+        AppShadows.accent,
+      ),
+      AppButtonVariant.destructive => (
+        _isHovered
+            ? cs.error.withValues(alpha: 0.06)
+            : Colors.transparent,
+        cs.error,
+        _isHovered
+            ? cs.error.withValues(alpha: 0.4)
+            : cs.error.withValues(alpha: 0.25),
+        const [],
+      ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, border, shadows) = _colors;
+    final (bg, fg, border, shadows) = _colors(context);
 
-    return MouseRegion(
-      cursor: _isDisabled
-          ? SystemMouseCursors.forbidden
-          : SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: _isDisabled ? null : _onTapDown,
-        onTapUp: _isDisabled ? null : _onTapUp,
-        onTapCancel: _onTapCancel,
-        onTap: _isDisabled ? null : widget.onPressed,
-        child: AnimatedBuilder(
-          animation: _scale,
-          builder: (context, child) => Transform.scale(
-            scale: _scale.value,
-            child: child,
-          ),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 150),
-            opacity: _isDisabled ? 0.4 : 1.0,
-            child: AnimatedContainer(
+    return Semantics(
+      button: true,
+      enabled: !_isDisabled,
+      label: widget.label,
+      child: MouseRegion(
+        cursor: _isDisabled
+            ? SystemMouseCursors.forbidden
+            : SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTapDown: _isDisabled ? null : _onTapDown,
+          onTapUp: _isDisabled ? null : _onTapUp,
+          onTapCancel: _onTapCancel,
+          onTap: _isDisabled ? null : widget.onPressed,
+          child: AnimatedBuilder(
+            animation: _scale,
+            builder: (context, child) => Transform.scale(
+              scale: _scale.value,
+              child: child,
+            ),
+            child: AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              width: widget.width,
-              height: _height,
-              padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(_borderRadius),
-                border: border != null
-                    ? Border.all(color: border, width: 1.5)
-                    : null,
-                boxShadow: _isDisabled ? null : shadows,
-              ),
-              child: Row(
-                mainAxisSize:
-                    widget.width != null ? MainAxisSize.max : MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.loading)
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(fg),
+              opacity: _isDisabled ? 0.4 : 1.0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                width: widget.width,
+                height: _height,
+                padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                  border: border != null
+                      ? Border.all(color: border, width: 1.5)
+                      : null,
+                  boxShadow: _isDisabled ? null : shadows,
+                ),
+                child: Row(
+                  mainAxisSize:
+                      widget.width != null ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.loading)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(fg),
+                        ),
+                      )
+                    else ...[
+                      if (widget.icon != null) ...[
+                        IconTheme(
+                          data: IconThemeData(color: fg, size: 16),
+                          child: widget.icon!,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.label,
+                        style: _labelStyle.copyWith(color: fg),
                       ),
-                    )
-                  else ...[
-                    if (widget.icon != null) ...[
-                      IconTheme(
-                        data: IconThemeData(color: fg, size: 16),
-                        child: widget.icon!,
-                      ),
-                      const SizedBox(width: 8),
                     ],
-                    Text(
-                      widget.label,
-                      style: _labelStyle.copyWith(color: fg),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
           ),

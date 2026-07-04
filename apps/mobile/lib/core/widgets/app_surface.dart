@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_radius.dart';
+import '../theme/app_colors.dart';
 
 /// Surface elevation levels — mirror the CSS surface stack.
 enum AppSurfaceElevation { base, raised, overlay, inset }
@@ -31,12 +31,15 @@ class AppSurface extends StatelessWidget {
     this.border,
   });
 
-  Color get _bgColor => switch (elevation) {
-    AppSurfaceElevation.base    => AppColors.surfaceBase,
-    AppSurfaceElevation.raised  => AppColors.surfaceRaised,
-    AppSurfaceElevation.overlay => AppColors.surfaceOverlay,
-    AppSurfaceElevation.inset   => AppColors.surfaceInset,
-  };
+  Color _bgColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return switch (elevation) {
+      AppSurfaceElevation.base    => isDark ? AppColors.darkSurfaceBase : AppColors.surfaceBase,
+      AppSurfaceElevation.raised  => isDark ? AppColors.darkSurfaceRaised : AppColors.surfaceRaised,
+      AppSurfaceElevation.overlay => isDark ? AppColors.darkSurfaceOverlay : AppColors.surfaceOverlay,
+      AppSurfaceElevation.inset   => isDark ? AppColors.darkSurfaceInset : AppColors.surfaceInset,
+    };
+  }
 
   List<BoxShadow> get _shadows => switch (elevation) {
     AppSurfaceElevation.base    => const [],
@@ -52,22 +55,26 @@ class AppSurface extends StatelessWidget {
     ],
   };
 
-  Border? get _border => border ?? switch (elevation) {
-    AppSurfaceElevation.raised => Border.all(
-      color: AppColors.subtle,
-      width: 1,
-    ),
-    _ => null,
-  };
+  Border? _getBorder(BuildContext context) {
+    if (border != null) return border;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return switch (elevation) {
+      AppSurfaceElevation.raised => Border.all(
+        color: isDark ? AppColors.darkSubtle : AppColors.subtle,
+        width: 1,
+      ),
+      _ => null,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: _bgColor,
+        color: _bgColor(context),
         borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.md),
-        border: _border,
+        border: _getBorder(context),
         boxShadow: _shadows,
       ),
       child: child,

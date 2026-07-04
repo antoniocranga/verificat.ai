@@ -19,6 +19,7 @@ import * as os from 'os';
 import { Public } from '../auth/public.decorator';
 import { JobsService } from './jobs.service';
 import { JobsEventService } from './jobs-event.service';
+import { SessionsService } from '../sessions/sessions.service';
 import { Observable } from 'rxjs';
 
 interface SseMessageEvent {
@@ -36,16 +37,33 @@ export class JobsController {
   constructor(
     private readonly jobsService: JobsService,
     private readonly jobsEventService: JobsEventService,
+    private readonly sessionsService: SessionsService,
   ) {}
 
   @Post('verify-text')
   @HttpCode(HttpStatus.ACCEPTED)
-  async verifyText(@Body('text') text: string) {
+  async verifyText(
+    @Body('text') text: string,
+    @Body('sessionId') sessionId?: string,
+  ) {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       throw new UnprocessableEntityException('Text is required');
     }
+
+    // Create a recording-mode session if none provided
+    if (!sessionId) {
+      const created = await this.sessionsService.createSession({
+        mode: 'recording',
+      });
+      sessionId = created.id;
+    }
+
     const claimId = crypto.randomUUID();
-    return this.jobsService.enqueueVerification(claimId, text.trim());
+    return this.jobsService.enqueueVerification(
+      claimId,
+      text.trim(),
+      sessionId,
+    );
   }
 
   @Post('upload')

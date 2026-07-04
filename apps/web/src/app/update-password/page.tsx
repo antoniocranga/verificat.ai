@@ -143,16 +143,17 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
               id="btn-update-password-submit"
               type="submit"
               style={{
-                height: 48,
+                padding: "8px 18px",
                 background: "var(--color-ink)",
                 color: "var(--color-canvas)",
                 border: "none",
-                borderRadius: "var(--radius-sm)",
+                borderRadius: "8px",
                 fontFamily: "var(--font-heading)",
-                fontWeight: 600,
-                fontSize: 15,
+                fontWeight: 500,
+                fontSize: 14,
                 cursor: "pointer",
-                transition: "background var(--transition-fast)",
+                transition:
+                  "background var(--transition-fast), transform var(--transition-fast)",
               }}
             >
               Actualizează parola

@@ -1,4 +1,5 @@
 import { signInWithProvider } from "@/app/auth/actions";
+import { Button } from "@verificat/ui";
 
 function GoogleIcon() {
   return (
@@ -46,24 +47,6 @@ function GitHubIcon() {
     </svg>
   );
 }
-
-const oAuthBtnBase: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 8,
-  width: "100%",
-  height: 44,
-  borderRadius: "var(--radius-sm)",
-  fontFamily: "var(--font-heading)",
-  fontWeight: 500,
-  fontSize: 14,
-  cursor: "pointer",
-  transition:
-    "background var(--transition-fast), border-color var(--transition-fast)",
-  border: "1.5px solid var(--color-subtle)",
-  boxSizing: "border-box",
-};
 
 /**
  * Server component that renders OAuth provider sign-in buttons.
@@ -125,34 +108,27 @@ export function OAuthButtons() {
         }}
       >
         <form action={signInWithProvider.bind(null, "google")}>
-          <button
+          <Button
+            variant="outline"
             id="btn-oauth-google"
             type="submit"
-            style={{
-              ...oAuthBtnBase,
-              background: "var(--color-canvas-elevated)",
-              color: "var(--color-ink)",
-            }}
+            className="w-full font-heading h-10"
           >
             <GoogleIcon />
             Google
-          </button>
+          </Button>
         </form>
 
         <form action={signInWithProvider.bind(null, "github")}>
-          <button
+          <Button
+            variant="default"
             id="btn-oauth-github"
             type="submit"
-            style={{
-              ...oAuthBtnBase,
-              background: "var(--color-ink)",
-              color: "var(--color-canvas)",
-              border: "1.5px solid var(--color-ink)",
-            }}
+            className="w-full font-heading h-10"
           >
             <GitHubIcon />
             GitHub
-          </button>
+          </Button>
         </form>
       </div>
     </div>

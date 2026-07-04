@@ -60,13 +60,13 @@ void main() {
       expect(style.letterSpacing, -0.8);
     });
 
-    test('headlineMedium uses Poppins 600 24px h:1.25 ls:-0.48', () {
+    test('headlineMedium uses Poppins 600 20px h:1.3 ls:-0.4', () {
       final style = appTheme.textTheme.headlineMedium!;
       expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w600);
-      expect(style.fontSize, 24);
-      expect(style.height, 1.25);
-      expect(style.letterSpacing, -0.48);
+      expect(style.fontSize, 20);
+      expect(style.height, 1.3);
+      expect(style.letterSpacing, -0.4);
     });
 
     test('labelLarge uses Poppins 600 15px h:1.0 ls:-0.2', () {
@@ -78,30 +78,30 @@ void main() {
       expect(style.letterSpacing, -0.2);
     });
 
-    test('bodyLarge uses Lora 400 16px h:1.75 ls:0', () {
+    test('bodyLarge uses Poppins 400 16px h:1.75 ls:0', () {
       final style = appTheme.textTheme.bodyLarge!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 16);
       expect(style.height, 1.75);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodyMedium uses Lora 400 14px h:1.65 ls:0', () {
+    test('bodyMedium uses Poppins 400 14px h:1.6 ls:0', () {
       final style = appTheme.textTheme.bodyMedium!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 14);
-      expect(style.height, 1.65);
+      expect(style.height, 1.6);
       expect(style.letterSpacing, 0);
     });
 
-    test('bodySmall uses Lora 400 12px h:1.6 ls:0', () {
+    test('bodySmall uses Poppins 400 12px h:1.5 ls:0', () {
       final style = appTheme.textTheme.bodySmall!;
-      expect(style.fontFamily, 'Lora');
+      expect(style.fontFamily, 'Poppins');
       expect(style.fontWeight, FontWeight.w400);
       expect(style.fontSize, 12);
-      expect(style.height, 1.6);
+      expect(style.height, 1.5);
       expect(style.letterSpacing, 0);
     });
   });
