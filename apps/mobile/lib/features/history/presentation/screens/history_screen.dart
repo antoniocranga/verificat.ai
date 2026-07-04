@@ -52,11 +52,11 @@ class HistoryScreen extends StatelessWidget {
               itemCount: state.checks.length,
               itemBuilder: (context, index) {
                 final check = state.checks[index];
-                return _HistoryItem(
-                  check: check,
+                return _SessionItem(
+                  session: check,
                   index: index,
                   disableAnimations: MediaQuery.of(context).disableAnimations,
-                  onTap: () => context.push('/check/${check.id}'),
+                  onTap: () => context.push('/session/${check.id}'),
                   onDelete: () {
                     context.read<SavedChecksBloc>().add(CheckRemoved(check.id));
                     HapticFeedback.lightImpact();
@@ -71,15 +71,15 @@ class HistoryScreen extends StatelessWidget {
   }
 }
 
-class _HistoryItem extends StatefulWidget {
-  final SavedCheck check;
+class _SessionItem extends StatefulWidget {
+  final SavedCheck session;
   final int index;
   final bool disableAnimations;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  const _HistoryItem({
-    required this.check,
+  const _SessionItem({
+    required this.session,
     required this.index,
     required this.disableAnimations,
     required this.onTap,
@@ -87,10 +87,10 @@ class _HistoryItem extends StatefulWidget {
   });
 
   @override
-  State<_HistoryItem> createState() => _HistoryItemState();
+  State<_SessionItem> createState() => _SessionItemState();
 }
 
-class _HistoryItemState extends State<_HistoryItem>
+class _SessionItemState extends State<_SessionItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacity;
@@ -120,25 +120,25 @@ class _HistoryItemState extends State<_HistoryItem>
     super.dispose();
   }
 
-  Color _verdictColor(String? verdict) {
-    return switch (verdict) {
-      'True' => AppColors.verdictTrue,
-      'False' => AppColors.verdictFalse,
-      'Mostly True' => AppColors.verdictMostlyTrue,
-      'Partially True' => AppColors.verdictPartial,
-      'Misleading' => AppColors.verdictMisleading,
-      _ => AppColors.mid,
-    };
+  String _formatDate(String? iso) {
+    if (iso == null) return '';
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return iso;
+    final months = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'noi', 'dec'];
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = widget.session;
+    final summary = s.verdictSummary ?? {};
+
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(
         position: _slide,
         child: Dismissible(
-          key: ValueKey(widget.check.id),
+          key: ValueKey(s.id),
           direction: DismissDirection.endToStart,
           onDismissed: (_) => widget.onDelete(),
           background: Container(
@@ -164,13 +164,19 @@ class _HistoryItemState extends State<_HistoryItem>
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: _verdictColor(widget.check.verdict).withValues(alpha: 0.1),
+                        color: s.mode == 'recording'
+                            ? AppColors.verdictPartial.withValues(alpha: 0.1)
+                            : AppColors.verdictTrue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        _verdictIcon(widget.check.verdict),
+                        s.mode == 'recording'
+                            ? Icons.radio_button_checked_rounded
+                            : Icons.wifi_rounded,
                         size: 20,
-                        color: _verdictColor(widget.check.verdict),
+                        color: s.mode == 'recording'
+                            ? AppColors.verdictPartial
+                            : AppColors.verdictTrue,
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -179,7 +185,7 @@ class _HistoryItemState extends State<_HistoryItem>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.check.claimText ?? 'Verificare #${widget.check.id.substring(0, 8)}',
+                            _formatDate(s.startedAt),
                             style: AppTextStyles.labelMd.copyWith(
                               fontWeight: FontWeight.w600,
                               color: AppColors.ink,
@@ -190,32 +196,59 @@ class _HistoryItemState extends State<_HistoryItem>
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              if (widget.check.verdict != null) ...[
+                              Text(
+                                '${s.claimCount ?? 0} ${(s.claimCount ?? 0) == 1 ? 'afirmație' : 'afirmații'}',
+                                style: AppTextStyles.labelSm.copyWith(color: AppColors.mid),
+                              ),
+                              if (s.mode != null) ...[
+                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: _verdictColor(widget.check.verdict).withValues(alpha: 0.12),
+                                    color: AppColors.subtle,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    widget.check.verdict!,
+                                    s.mode == 'recording' ? 'Înregistrare' : 'Timp real',
                                     style: AppTextStyles.labelSm.copyWith(
-                                      color: _verdictColor(widget.check.verdict),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 10,
+                                      fontSize: 9,
+                                      color: AppColors.mid,
                                     ),
                                   ),
                                 ),
-                                if (widget.check.confidenceScore != null) ...[
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${widget.check.confidenceScore!.toStringAsFixed(0)}%',
-                                    style: AppTextStyles.labelSm.copyWith(color: AppColors.mid),
-                                  ),
-                                ],
                               ],
                             ],
                           ),
+                          if (summary.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 4,
+                              children: summary.entries.map((e) {
+                                final color = switch (e.key) {
+                                  'true' => AppColors.verdictTrue,
+                                  'false' => AppColors.verdictFalse,
+                                  'uncertain' => AppColors.verdictPartial,
+                                  _ => AppColors.mid,
+                                };
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '${e.value}',
+                                    style: AppTextStyles.labelSm.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -228,16 +261,5 @@ class _HistoryItemState extends State<_HistoryItem>
         ),
       ),
     );
-  }
-
-  IconData _verdictIcon(String? verdict) {
-    return switch (verdict) {
-      'True' => Icons.check_circle_rounded,
-      'Mostly True' => Icons.check_circle_outline_rounded,
-      'Partially True' => Icons.info_rounded,
-      'Misleading' => Icons.warning_amber_rounded,
-      'False' => Icons.cancel_rounded,
-      _ => Icons.help_rounded,
-    };
   }
 }

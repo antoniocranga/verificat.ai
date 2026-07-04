@@ -12,10 +12,10 @@ export class JobsService {
     private readonly factVerificationQueue: Queue,
   ) {}
 
-  async enqueueVerification(claimId: string, text: string) {
+  async enqueueVerification(claimId: string, text: string, sessionId?: string) {
     const job = await this.factVerificationQueue.add(
       'verify',
-      { claimId, text },
+      { claimId, text, sessionId },
       {
         attempts: 3,
         backoff: {
@@ -24,7 +24,7 @@ export class JobsService {
         },
       },
     );
-    return { jobId: job.id };
+    return { jobId: job.id, sessionId };
   }
 
   async enqueueFromAudio(audioPath: string) {

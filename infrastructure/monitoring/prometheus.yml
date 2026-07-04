@@ -24,3 +24,12 @@ scrape_configs:
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
+
+  - job_name: 'verificat-api'
+    static_configs:
+      - targets: ['verificat-prod-api:3000']
+        labels:
+          environment: 'production'
+      - targets: ['verificat-staging-api:3000']
+        labels:
+          environment: 'staging'

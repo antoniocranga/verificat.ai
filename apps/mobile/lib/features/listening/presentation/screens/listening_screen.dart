@@ -17,7 +17,7 @@ class ListeningScreen extends StatefulWidget {
   State<ListeningScreen> createState() => _ListeningScreenState();
 }
 
-class _ListeningScreenState extends State<ListeningScreen> {
+class _ListeningScreenState extends State<ListeningScreen> with WidgetsBindingObserver {
   Timer? _uiTimer;
   int _displaySeconds = 0;
   bool _showTutorial = false;
@@ -25,8 +25,18 @@ class _ListeningScreenState extends State<ListeningScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkTutorial();
     _loadDefaultMode();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      context.read<ListeningBloc>().add(const AppBackgrounded());
+    } else if (state == AppLifecycleState.resumed) {
+      context.read<ListeningBloc>().add(const AppForegrounded());
+    }
   }
 
   Future<void> _checkTutorial() async {
@@ -49,6 +59,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _uiTimer?.cancel();
     super.dispose();
   }
@@ -83,6 +94,10 @@ class _ListeningScreenState extends State<ListeningScreen> {
         if (state.status == ListeningStatus.verdictReady) {
           _uiTimer?.cancel();
           _uiTimer = null;
+        } else if (state.status == ListeningStatus.reconnecting) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Se reconectează...')),
+          );
         }
       },
       builder: (context, state) {
@@ -214,30 +229,6 @@ class _ListeningScreenState extends State<ListeningScreen> {
           ],
         ),
       ),
-      floatingActionButton: BlocBuilder<ListeningBloc, ListeningState>(
-        builder: (context, state) {
-          if (state.status == ListeningStatus.streaming || state.status == ListeningStatus.listening) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 100.0),
-              child: FloatingActionButton.extended(
-                onPressed: () {
-                  if (state.status == ListeningStatus.streaming) {
-                    context.read<ListeningBloc>().add(const StopStreaming());
-                  } else {
-                    context.read<ListeningBloc>().add(const StopListening());
-                  }
-                },
-                backgroundColor: AppColors.ink,
-                foregroundColor: AppColors.surfaceRaised,
-                icon: const Icon(Icons.stop_rounded),
-                label: const Text('Oprește', style: TextStyle(fontWeight: FontWeight.w600)),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -252,6 +243,7 @@ class _ListeningScreenState extends State<ListeningScreen> {
       ListeningStatus.idle => _buildIdle(context, state, disableAnimations),
       ListeningStatus.listening => _buildRecording(state, disableAnimations),
       ListeningStatus.streaming => _buildStreaming(state, disableAnimations),
+      ListeningStatus.reconnecting => _buildStreaming(state, disableAnimations),
       ListeningStatus.processing => _buildProcessing(),
       ListeningStatus.transcriptionReady =>
         _buildTranscriptionEdit(context, state),

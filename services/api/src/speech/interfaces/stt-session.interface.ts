@@ -22,4 +22,9 @@ export interface SttSession {
    * Stream of transcription events emitted by the engine.
    */
   getTranscript$(): Observable<SttTranscriptEvent>;
+
+  /**
+   * Indicates if this session is using a mock implementation.
+   */
+  readonly isMock?: boolean;
 }
