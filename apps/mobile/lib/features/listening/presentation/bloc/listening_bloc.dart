@@ -7,7 +7,7 @@ import '../../data/services/transcript_stream_service.dart';
 import '../../domain/entities/transcript_segment.dart';
 import '../../domain/repositories/listening_repository.dart';
 
-enum ListeningStatus { idle, listening, streaming, processing, transcriptionReady, verdictReady, error }
+enum ListeningStatus { idle, listening, streaming, reconnecting, processing, transcriptionReady, verdictReady, error }
 
 enum ListenMode { streaming, recording }
 
@@ -21,6 +21,7 @@ class ListeningState extends Equatable {
   final String? errorMessage;
   final String interimText;
   final List<TranscriptSegment> segments;
+  final String? sessionId;
 
   const ListeningState({
     this.status = ListeningStatus.idle,
@@ -32,6 +33,7 @@ class ListeningState extends Equatable {
     this.errorMessage,
     this.interimText = '',
     this.segments = const [],
+    this.sessionId,
   });
 
   ListeningState copyWith({
@@ -44,6 +46,7 @@ class ListeningState extends Equatable {
     String? errorMessage,
     String? interimText,
     List<TranscriptSegment>? segments,
+    String? sessionId,
   }) {
     return ListeningState(
       status: status ?? this.status,
@@ -55,11 +58,12 @@ class ListeningState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       interimText: interimText ?? this.interimText,
       segments: segments ?? this.segments,
+      sessionId: sessionId ?? this.sessionId,
     );
   }
 
   @override
-  List<Object?> get props => [status, listenMode, elapsedSeconds, verdictId, transcript, claimsData, errorMessage, interimText, segments];
+  List<Object?> get props => [status, listenMode, elapsedSeconds, verdictId, transcript, claimsData, errorMessage, interimText, segments, sessionId];
 }
 
 sealed class ListeningEvent {
@@ -112,6 +116,18 @@ class InterruptionEnded extends ListeningEvent {
 
 class ResetListening extends ListeningEvent {
   const ResetListening();
+}
+
+class AppBackgrounded extends ListeningEvent {
+  const AppBackgrounded();
+}
+
+class AppForegrounded extends ListeningEvent {
+  const AppForegrounded();
+}
+
+class ReconnectingStream extends ListeningEvent {
+  const ReconnectingStream();
 }
 
 class TickSecond extends ListeningEvent {
@@ -188,6 +204,9 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     on<UpdateSegmentResult>(_onUpdateSegmentResult);
     on<SyncStreamingState>(_onSyncStreamingState);
     on<SetListenMode>(_onSetListenMode);
+    on<AppBackgrounded>(_onAppBackgrounded);
+    on<AppForegrounded>(_onAppForegrounded);
+    on<ReconnectingStream>(_onReconnectingStream);
 
     _interruptionBeganSub = _repository.onInterruptionBegan.listen((_) {
       if (state.status == ListeningStatus.listening) {
@@ -247,11 +266,20 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
 
   void _onStreamingServiceUpdate() {
     if (_streamingService == null) return;
-    add(SyncStreamingState(_streamingService!.interimText, _streamingService!.segments));
+    if (_streamingService!.isReconnecting && state.status == ListeningStatus.streaming) {
+      add(const ReconnectingStream());
+    } else if (!_streamingService!.isReconnecting && state.status == ListeningStatus.reconnecting) {
+      // Re-enter streaming if it was reconnecting and is now no longer reconnecting
+      // Actually we just sync streaming state, the status should transition back.
+      add(SyncStreamingState(_streamingService!.interimText, _streamingService!.segments));
+    } else {
+      add(SyncStreamingState(_streamingService!.interimText, _streamingService!.segments));
+    }
   }
 
   void _onSyncStreamingState(SyncStreamingState event, Emitter<ListeningState> emit) {
     emit(state.copyWith(
+      status: state.status == ListeningStatus.reconnecting ? ListeningStatus.streaming : state.status,
       interimText: event.interimText,
       segments: event.segments,
     ));
@@ -260,6 +288,24 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
   void _onSetListenMode(SetListenMode event, Emitter<ListeningState> emit) {
     if (state.status != ListeningStatus.idle) return;
     emit(state.copyWith(listenMode: event.mode));
+  }
+
+  Future<void> _onAppBackgrounded(AppBackgrounded event, Emitter<ListeningState> emit) async {
+    if (state.status == ListeningStatus.streaming || state.status == ListeningStatus.reconnecting) {
+      await _streamingService?.pauseStream();
+    }
+  }
+
+  Future<void> _onAppForegrounded(AppForegrounded event, Emitter<ListeningState> emit) async {
+    if (state.status == ListeningStatus.streaming || state.status == ListeningStatus.reconnecting) {
+      await _streamingService?.resumeStream();
+    }
+  }
+
+  void _onReconnectingStream(ReconnectingStream event, Emitter<ListeningState> emit) {
+    if (state.status == ListeningStatus.streaming) {
+      emit(state.copyWith(status: ListeningStatus.reconnecting));
+    }
   }
 
   Future<void> _onStartListening(
@@ -418,6 +464,7 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     try {
       final result = await _repository.verifyText(text);
       final jobId = result['jobId']?.toString();
+      final sessionId = result['sessionId']?.toString();
       
       if (jobId == null) {
         emit(state.copyWith(
@@ -426,6 +473,8 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
         ));
         return;
       }
+
+      emit(state.copyWith(sessionId: sessionId));
 
       _jobStreamSub = _repository.streamJobEvents(jobId).listen(
         (event) {

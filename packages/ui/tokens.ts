@@ -54,9 +54,9 @@ export const tokens = {
   shadowFloating: '0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
 
   /* ---- Typography ---- */
-  fontSans: "'Anthropic Sans', system-ui, sans-serif",
+  fontSans: "'Poppins', system-ui, sans-serif",
   fontMono: "'JetBrains Mono', 'Fira Code', monospace",
-  fontSerif: "'Anthropic Serif', Georgia, serif",
+  fontSerif: "'Poppins', Georgia, serif",
 
   fontSizeDisplayXl: '72px',
   fontWeightDisplayXl: 600,

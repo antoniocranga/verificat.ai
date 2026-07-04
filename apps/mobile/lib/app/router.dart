@@ -9,6 +9,7 @@ import '../features/listening/presentation/bloc/listening_bloc.dart';
 import '../features/listening/presentation/screens/listening_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/history/presentation/screens/history_screen.dart';
+import '../features/history/presentation/screens/session_detail_screen.dart';
 import '../features/history/presentation/bloc/saved_checks_bloc.dart';
 import 'transitions.dart';
 
@@ -62,6 +63,14 @@ final router = GoRouter(
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
         return buildPage(CheckScreen(verdictId: id), state);
+      },
+    ),
+    GoRoute(
+      path: '/session/:id',
+      name: 'session',
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        return buildPage(SessionDetailScreen(sessionId: id), state);
       },
     ),
     GoRoute(

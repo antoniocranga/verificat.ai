@@ -222,7 +222,7 @@ class _AnimatedSegmentWidgetState extends State<_AnimatedSegmentWidget>
   @override
   Widget build(BuildContext context) {
     final seg = widget.segment;
-    final highlighted = seg.hasDisplayVerdict;
+    final highlighted = seg.hasDisplayVerdict || seg.claimError != null;
     final text = seg.text;
 
     return FadeTransition(
@@ -230,7 +230,7 @@ class _AnimatedSegmentWidgetState extends State<_AnimatedSegmentWidget>
       child: SlideTransition(
         position: _slide,
         child: GestureDetector(
-          onTap: highlighted
+          onTap: (highlighted && seg.claimError == null)
               ? () {
                   HapticFeedback.lightImpact();
                   showModalBottomSheet(
@@ -292,7 +292,7 @@ class _HighlightedSegmentState extends State<_HighlightedSegment>
     _highlightController.forward();
 
     final v = widget.segment.verdict;
-    if (v == StreamingVerdict.falso) {
+    if (v == StreamingVerdict.falso || widget.segment.claimError != null) {
       HapticFeedback.heavyImpact();
     } else {
       HapticFeedback.lightImpact();
@@ -308,44 +308,88 @@ class _HighlightedSegmentState extends State<_HighlightedSegment>
   @override
   Widget build(BuildContext context) {
     final seg = widget.segment;
-    final bgColor = AppColors.streamingVerdictBg(seg.verdict);
-    final fgColor = AppColors.streamingVerdictFg(seg.verdict);
+    final isError = seg.claimError != null;
+    final bgColor = isError ? Colors.red.withValues(alpha: 0.12) : AppColors.streamingVerdictBg(seg.verdict);
+    final fgColor = isError ? Colors.red : AppColors.streamingVerdictFg(seg.verdict);
+
+    String beforeText = '';
+    String highlightText = seg.text;
+    String afterText = '';
+
+    if (!isError && seg.highlightStart != null && seg.highlightEnd != null) {
+      final safeStart = seg.highlightStart!.clamp(0, seg.text.length);
+      final safeEnd = seg.highlightEnd!.clamp(safeStart, seg.text.length);
+
+      if (safeStart < safeEnd) {
+        beforeText = seg.text.substring(0, safeStart);
+        highlightText = seg.text.substring(safeStart, safeEnd);
+        afterText = seg.text.substring(safeEnd);
+      }
+    }
 
     return AnimatedBuilder(
       animation: _highlightController,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scale.value,
-          child: Opacity(
-            opacity: _opacity.value,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(6),
-                border: Border(
-                  bottom: BorderSide(color: fgColor, width: 2),
-                ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (beforeText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(beforeText, style: AppTextStyles.bodyLg),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    seg.text,
-                    style: AppTextStyles.bodyLg,
+            if (beforeText.isNotEmpty) const SizedBox(height: 4),
+            Transform.scale(
+              scale: _scale.value,
+              child: Opacity(
+                opacity: _opacity.value,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border(
+                      bottom: BorderSide(color: fgColor, width: 2),
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _VerdictLabel(verdict: seg.verdict),
-                      const SizedBox(width: 8),
-                      Icon(Icons.info_outline, size: 14, color: fgColor),
+                      Text(
+                        highlightText,
+                        style: AppTextStyles.bodyLg,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (isError)
+                            Text(
+                              'EROARE LA VERIFICARE',
+                              style: AppTextStyles.labelCaps.copyWith(
+                                color: fgColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            )
+                          else ...[
+                            _VerdictLabel(verdict: seg.verdict),
+                            const SizedBox(width: 8),
+                            Icon(Icons.info_outline, size: 14, color: fgColor),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            if (afterText.isNotEmpty) const SizedBox(height: 4),
+            if (afterText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(afterText, style: AppTextStyles.bodyLg),
+              ),
+          ],
         );
       },
     );

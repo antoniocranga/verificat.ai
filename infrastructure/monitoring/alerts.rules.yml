@@ -36,3 +36,21 @@ groups:
         annotations:
           summary: "Container {{ $labels.container }} down"
           description: "Container {{ $labels.container }} has been down for more than 1 minute."
+
+      - alert: MockSessionDetected
+        expr: increase(stt_mock_sessions_total{environment="production"}[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mock STT Session Detected in Production"
+          description: "A mock STT session was triggered in the production environment. Check API keys!"
+
+      - alert: HighFactcheckErrorRate
+        expr: sum(rate(factcheck_requests_total{environment="production", outcome="error"}[5m])) / sum(rate(factcheck_requests_total{environment="production"}[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Fact-Check Error Rate in Production"
+          description: "More than 10% of fact-check requests failed in the last 5 minutes in production."

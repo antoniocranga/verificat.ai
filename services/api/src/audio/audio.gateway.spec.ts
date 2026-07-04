@@ -4,6 +4,8 @@ import { EventEmitter } from 'events';
 import { AudioGateway } from './audio.gateway';
 import { SpeechService } from '../speech/speech.service';
 import { AudioFactcheckService } from './audio-factcheck.service';
+import { SessionsService } from '../sessions/sessions.service';
+import { MetricsService } from '../metrics/metrics.service';
 import { WebSocket } from 'ws';
 import { Subject } from 'rxjs';
 import { IncomingMessage } from 'http';
@@ -23,6 +25,10 @@ function makeMockRequest(url = '/audio'): IncomingMessage {
     url,
     headers: { host: 'localhost' }
   } as unknown as IncomingMessage;
+}
+
+function mockMetric() {
+  return { inc: jest.fn(), add: jest.fn(), observe: jest.fn(), set: jest.fn(), labels: jest.fn().mockReturnThis() };
 }
 
 function makeMockSttSession() {
@@ -66,6 +72,32 @@ describe('AudioGateway', () => {
             check: jest.fn().mockResolvedValue(null),
           },
         },
+        {
+          provide: SessionsService,
+          useValue: {
+            createSession: jest.fn().mockResolvedValue({ id: 'mock-session-id' }),
+            updateSessionOnDisconnect: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            activeWsConnections: { inc: jest.fn(), dec: jest.fn() },
+            sttSessionsTotal: { inc: jest.fn() },
+            sttMockSessionsTotal: { inc: jest.fn() },
+            sttLowConfidenceSegmentsTotal: { inc: jest.fn() },
+            sttSessionDurationSeconds: { observe: jest.fn() },
+            sttSegmentsFinalizedTotal: { inc: jest.fn() },
+            sttSegmentsDroppedTotal: { inc: jest.fn() },
+            factcheckRequestsTotal: { inc: jest.fn() },
+            factcheckRequestDurationSeconds: { observe: jest.fn() },
+            factcheckVerdictsTotal: { inc: jest.fn() },
+            claimResultSentTotal: { inc: jest.fn() },
+            sessionsPersistedTotal: { inc: jest.fn() },
+            httpRequestsTotal: { inc: jest.fn() },
+            httpRequestDurationSeconds: { observe: jest.fn() },
+          },
+        },
       ],
     }).compile();
 
@@ -87,6 +119,8 @@ describe('AudioGateway', () => {
     expect(speechService.getAdapter('deepgram').startStream).toHaveBeenCalledWith({
       language: 'ro-RO',
       sampleRate: 16000,
+      sessionId: 'mock-session-id',
+      keyterms: expect.any(Array),
     });
   });
 
@@ -201,7 +235,7 @@ describe('AudioGateway', () => {
 
   it('reconnects and emits transcript_sync immediately', async () => {
     const client1 = makeMockWs();
-    await gateway.handleConnection(client1, makeMockRequest('/audio?sessionId=test-session-123'));
+    await gateway.handleConnection(client1, makeMockRequest('/audio'));
 
     sttSession.subject$.next({
       text: 'Test',
@@ -211,7 +245,7 @@ describe('AudioGateway', () => {
     });
 
     const client2 = makeMockWs();
-    await gateway.handleConnection(client2, makeMockRequest('/audio?sessionId=test-session-123'));
+    await gateway.handleConnection(client2, makeMockRequest('/audio?sessionId=mock-session-id'));
 
     const calls = (client2.send as jest.Mock).mock.calls.map((c) =>
       JSON.parse(c[0] as string),
@@ -220,6 +254,6 @@ describe('AudioGateway', () => {
     expect(syncMsg).toBeDefined();
     expect(syncMsg.fullText).toBe('Test');
     expect(syncMsg.transcriptVersion).toBe(1);
-    expect(syncMsg.sessionId).toBe('test-session-123');
+    expect(syncMsg.sessionId).toBe('mock-session-id');
   });
 });

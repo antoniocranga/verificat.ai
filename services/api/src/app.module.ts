@@ -14,10 +14,12 @@ import { FactChecksModule } from './fact-checks/fact-checks.module';
 import { SourcesModule } from './sources/sources.module';
 import { AdminModule } from './admin/admin.module';
 import { JobsModule } from './jobs/jobs.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { SearchModule } from './search/search.module';
 import { SpeechModule } from './speech/speech.module';
 import { AudioModule } from './audio/audio.module';
+import { SessionsModule } from './sessions/sessions.module';
 import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
 
 @Module({
@@ -66,8 +68,10 @@ import { SafeFetcherModule } from './common/safe-fetcher/safe-fetcher.module';
     SourcesModule,
     AdminModule,
     JobsModule,
+    MetricsModule,
     SupabaseModule,
     SearchModule,
+    SessionsModule,
   ],
   controllers: [AppController],
   providers: [
