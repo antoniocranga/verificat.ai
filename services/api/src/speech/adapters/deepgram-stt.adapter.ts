@@ -43,7 +43,7 @@ class DeepgramSession implements SttSession {
       this._rejectConnected = reject;
     });
 
-    let url = `wss://api.deepgram.com/v1/listen?model=nova-3&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&interim_results=true&endpointing=300&smart_format=true`;
+    let url = `wss://api.deepgram.com/v1/listen?model=nova-3&language=${langParam}&numerals=true&encoding=linear16&sample_rate=${sampleRate}&interim_results=true&endpointing=800&smart_format=true`;
     
     if (config?.keyterms && config.keyterms.length > 0) {
       for (const term of config.keyterms) {

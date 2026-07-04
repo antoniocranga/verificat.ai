@@ -20,7 +20,7 @@ enum StreamingVerdict {
 }
 
 /// Parses a server-side verdict string to the local enum.
-StreamingVerdict? streamingVerdictFromString(String? s) => switch (s) {
+StreamingVerdict? streamingVerdictFromString(String? s) => switch (s?.toUpperCase()) {
   'TRUE'       => StreamingVerdict.verdadero,
   'FALSE'      => StreamingVerdict.falso,
   'UNCERTAIN'  => StreamingVerdict.uncertain,

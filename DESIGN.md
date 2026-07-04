@@ -86,9 +86,8 @@ Rules:
 ## 3. Typography
 
 | Role                        | Web (CSS variable) | Mobile (Flutter TextTheme)      | Fallback stack                                  |
-| --------------------------- | ------------------ | ------------------------------- | ----------------------------------------------- |
-| Display / headline          | `--font-display`   | `displayLarge`                  | Poppins, serif                 |
-| Body                        | `--font-body`      | `bodyMedium`                    | Lora, system-ui, sans-serif           |
+| --------------------------- | ------------------ | ------------------------------- | ----------------------------------------------- | --- |
+| Display / headline          | `--font-display`   | `displayLarge`                  | Poppins, serif                                  |     |
 | Code / transcript           | `--font-mono`      | `bodySmall` (monospace variant) | JetBrains Mono, Fira Code, monospace            |
 | Romanian diacritics testing | All of the above   | All of the above                | Font must render ă â î ș ț without substitution |
 

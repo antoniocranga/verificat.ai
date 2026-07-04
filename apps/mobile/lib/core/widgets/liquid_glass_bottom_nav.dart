@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/app_colors.dart';
 
 class NavTab {
   final String label;
@@ -39,7 +38,7 @@ class LiquidGlassBottomNav extends StatelessWidget {
       return CupertinoTabBar(
         currentIndex: index,
         onTap: (i) => context.go(navTabs[i].route),
-        activeColor: AppColors.accent,
+        activeColor: cs.primary,
         inactiveColor: cs.onSurfaceVariant,
         backgroundColor: cs.surfaceContainerHighest,
         items: navTabs.map((tab) => BottomNavigationBarItem(
@@ -54,7 +53,7 @@ class LiquidGlassBottomNav extends StatelessWidget {
       selectedIndex: index,
       onDestinationSelected: (i) => context.go(navTabs[i].route),
       backgroundColor: cs.surfaceContainerHighest,
-      indicatorColor: AppColors.accent.withValues(alpha: 0.3),
+      indicatorColor: cs.primary.withValues(alpha: 0.3),
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       animationDuration: const Duration(milliseconds: 100),

@@ -1,6 +1,5 @@
 // New unified components
 export 'app_button.dart';
-export 'app_button_compat.dart';
 export 'app_empty_state.dart';
 export 'app_surface.dart';
 

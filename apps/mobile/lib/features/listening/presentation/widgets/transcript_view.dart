@@ -81,7 +81,7 @@ class _TranscriptViewState extends State<TranscriptView> {
                     child: Text(
                       service.interimText,
                       style: AppTextStyles.bodyMd.copyWith(
-                        color: AppColors.mid,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
                         fontSize: 16,
                         height: 1.6,
@@ -101,11 +101,11 @@ class _TranscriptViewState extends State<TranscriptView> {
               height: _fadeHeight,
               child: IgnorePointer(
                 child: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [AppColors.canvas, Color(0x00FAF9F5)],
+                      colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withValues(alpha: 0)],
                     ),
                   ),
                 ),
@@ -119,7 +119,7 @@ class _TranscriptViewState extends State<TranscriptView> {
                 right: 20,
                 child: FloatingActionButton.small(
                   heroTag: 'transcript-scroll-fab',
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   onPressed: () {
                     setState(() => _userScrolling = false);
                     _scrollToBottom();
@@ -155,6 +155,8 @@ class _SegmentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlighted = segment.hasDisplayVerdict;
+    final baseFgColor = AppColors.streamingVerdictFg(segment.verdict);
+    final fgColor = baseFgColor ?? Theme.of(context).colorScheme.onSurface;
 
     return GestureDetector(
       onTap: highlighted ? () => _showExplanation(context) : null,
@@ -169,7 +171,7 @@ class _SegmentTile extends StatelessWidget {
           border: highlighted
               ? Border(
                   left: BorderSide(
-                    color: AppColors.streamingVerdictFg(segment.verdict),
+                    color: fgColor,
                     width: 3,
                   ),
                 )
@@ -192,7 +194,7 @@ class _SegmentTile extends StatelessWidget {
                     Icon(
                       Icons.info_outline,
                       size: 14,
-                      color: AppColors.streamingVerdictFg(segment.verdict),
+                      color: fgColor,
                     ),
                   ],
                 ),

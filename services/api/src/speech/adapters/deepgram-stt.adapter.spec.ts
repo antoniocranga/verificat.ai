@@ -81,7 +81,7 @@ describe('DeepgramSttAdapter', () => {
     const session = await sessionPromise;
     expect(session.constructor.name).toBe('DeepgramSession');
     expect(wsMock.WebSocket).toHaveBeenCalledWith(
-      expect.stringContaining('api.deepgram.com/v1/listen?model=nova-3&language=ro&numerals=true&encoding=linear16&sample_rate=8000&interim_results=true&endpointing=300'),
+      expect.stringContaining('api.deepgram.com/v1/listen?model=nova-3&language=ro&numerals=true&encoding=linear16&sample_rate=8000&interim_results=true&endpointing=800'),
       expect.objectContaining({ headers: { Authorization: 'Token test-dg-key' } })
     );
   });

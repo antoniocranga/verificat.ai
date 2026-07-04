@@ -12,7 +12,8 @@ class FactCheckBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final seg = segment;
-    final fgColor = AppColors.streamingVerdictFg(seg.verdict);
+    final baseFgColor = AppColors.streamingVerdictFg(seg.verdict);
+    final fgColor = baseFgColor ?? Theme.of(context).colorScheme.onSurface;
     final bgColor = AppColors.streamingVerdictBg(seg.verdict);
     final confidence = seg.confidence ?? 0;
 
@@ -27,7 +28,7 @@ class FactCheckBottomSheet extends StatelessWidget {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   icon: const Icon(Icons.close_rounded, size: 20),
-                  color: AppColors.mid,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -96,7 +97,7 @@ class FactCheckBottomSheet extends StatelessWidget {
                 '"${seg.text}"',
                 style: AppTextStyles.bodyMd.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: AppColors.mid,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.6,
                 ),
               ),
@@ -125,7 +126,7 @@ class FactCheckBottomSheet extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.subtle,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -160,10 +161,10 @@ class FactCheckBottomSheet extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             s,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'JetBrains Mono',
                               fontSize: 12,
-                              color: AppColors.blue,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -238,7 +239,7 @@ class _ConfidenceBarState extends State<_ConfidenceBar>
               child: Container(
                 height: 8,
                 decoration: BoxDecoration(
-                  color: AppColors.subtle,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: FractionallySizedBox(
@@ -262,7 +263,7 @@ class _ConfidenceBarState extends State<_ConfidenceBar>
             return Text(
               '${(_animation.value * percent).round()}%',
               style: AppTextStyles.labelMd.copyWith(
-                color: AppColors.ink,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             );

@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/verdict_utils.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../data/repositories/verdict_repository_impl.dart';
 import '../../domain/entities/verdict.dart';
 import '../../domain/repositories/verdict_repository.dart';
-
-const _verdictColors = <String, Color>{
-  'True': Color(0xFF22C55E),
-  'Mostly True': Color(0xFF84CC16),
-  'Partially True': Color(0xFFD97706),
-  'Misleading': Color(0xFFEA580C),
-  'False': Color(0xFFEF4444),
-  'Unverified': Color(0xFF6B7280),
-};
 
 class CheckScreen extends StatefulWidget {
   final String verdictId;
@@ -82,29 +74,22 @@ class _CheckScreenState extends State<CheckScreen> {
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
-                ?.copyWith(color: const Color(0xFF4D4D4D)),
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       );
     }
 
     final verdict = _verdict!;
-    final labelColor = _verdictColors[verdict.label] ?? const Color(0xFF171717);
-    const unverifiedColor = Color(0xFF6B7280);
-    final accentColor =
-        verdict.label == 'Unverified' ? unverifiedColor : labelColor;
+    final accentColor = VerdictUtils.getColor(verdict.label);
+    final translatedLabel = VerdictUtils.translate(verdict.label);
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Sesiune: ${verdict.sessionId}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: const Color(0xFF8F8F8F)),
-          ),
+          Text('Sesiune: ${verdict.sessionId}',
+              style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
           AppFeatureCard(
             child: Column(
@@ -112,12 +97,14 @@ class _CheckScreenState extends State<CheckScreen> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: accentColor.withValues(alpha: 0.25)),
+                    border:
+                        Border.all(color: accentColor.withValues(alpha: 0.25)),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   child: Text(
-                    verdict.label,
+                    translatedLabel,
                     style: Theme.of(context)
                         .textTheme
                         .headlineMedium
@@ -125,27 +112,16 @@ class _CheckScreenState extends State<CheckScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Nivel de încredere: ${verdict.confidence} / 100',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: const Color(0xFF4D4D4D)),
-                ),
+                Text('Nivel de încredere: ${verdict.confidence} / 100',
+                    style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 8),
-                Text(
-                  verdict.explanation,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: const Color(0xFF4D4D4D), height: 1.6),
-                ),
+                Text(verdict.explanation,
+                    style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: verdict.confidence / 100,
-                    backgroundColor: const Color(0xFFEBEBEB),
                     valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                     minHeight: 4,
                   ),
@@ -167,29 +143,17 @@ class _CheckScreenState extends State<CheckScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        source.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(color: const Color(0xFF171717)),
-                      ),
+                      Text(source.title,
+                          style: Theme.of(context).textTheme.labelLarge),
                       const SizedBox(height: 4),
                       Text(
                         source.url,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: const Color(0xFF0070F3)),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Scor de încredere: ${source.trustScore} / 100',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: const Color(0xFF8F8F8F)),
-                      ),
+                      Text('Scor de încredere: ${source.trustScore} / 100',
+                          style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),
                 ),

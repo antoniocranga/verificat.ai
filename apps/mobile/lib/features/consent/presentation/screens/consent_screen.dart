@@ -39,7 +39,7 @@ class ConsentScreen extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: const Color(0xFF4D4D4D)),
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 8),
                     _bullet(
@@ -64,7 +64,7 @@ class ConsentScreen extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: const Color(0xFF4D4D4D)),
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -82,7 +82,7 @@ class ConsentScreen extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: const Color(0xFF4D4D4D)),
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -100,7 +100,7 @@ class ConsentScreen extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: const Color(0xFF4D4D4D)),
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -114,14 +114,13 @@ class ConsentScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Politica completă de confidențialitate',
-                    style: TextStyle(color: Color(0xFF0070F3)),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: AppPrimaryButton(
+                child: AppButton.primary(
                     label: 'Am înțeles. Continuați', onPressed: onAccept),
               ),
               const SizedBox(height: 16),
@@ -131,7 +130,7 @@ class ConsentScreen extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
-                      ?.copyWith(color: const Color(0xFF8F8F8F)),
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ],
@@ -149,10 +148,14 @@ class ConsentScreen extends StatelessWidget {
         children: [
           const Text('• ', style: TextStyle(fontSize: 14)),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                  fontSize: 14, color: Color(0xFF4D4D4D), height: 1.5),
+            child: Builder(
+              builder: (context) => Text(
+                text,
+                style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.5),
+              ),
             ),
           ),
         ],

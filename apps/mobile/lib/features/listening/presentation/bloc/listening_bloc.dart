@@ -427,17 +427,15 @@ class ListeningBloc extends Bloc<ListeningEvent, ListeningState> {
     await _repository.stopStreaming();
     _streamingService = null;
 
-    var transcript = state.segments.map((s) => s.text).join(' ').trim();
-    if (transcript.isEmpty) {
-      transcript = state.interimText.trim();
-    }
-    
-    if (transcript.isEmpty) {
+    // Real-time STT: fact-checking already happened inline during the session.
+    // Go straight to verdictReady to show the session summary — no text-review
+    // prompt (that step is only for the recording/batch flow).
+    if (state.segments.isEmpty && state.interimText.trim().isEmpty) {
       emit(const ListeningState());
       return;
     }
 
-    add(TranscriptionReady(transcript));
+    emit(state.copyWith(status: ListeningStatus.verdictReady));
   }
 
   void _onTranscriptionReady(
