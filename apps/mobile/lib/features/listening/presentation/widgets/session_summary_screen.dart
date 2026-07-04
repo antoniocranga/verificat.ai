@@ -24,13 +24,12 @@ class SessionSummaryScreen extends StatelessWidget {
     final claims = segments.where((s) => s.hasDisplayVerdict).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         title: const Text('Rezumat sesiune'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,32 +50,29 @@ class SessionSummaryScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Actions
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    label: 'Verifică din nou',
-                    onPressed: onVerifyAgain,
-                  ),
-                ),
                 if (claims.isNotEmpty) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppButton.accent(
-                      label: 'Trimite',
-                      onPressed: () => _share(context, claims),
-                    ),
+                  AppButton.accent(
+                    label: 'Copiază rezumatul',
+                    onPressed: () => _share(context, claims),
                   ),
+                  const SizedBox(height: 12),
                 ],
+                AppButton.secondary(
+                  label: 'Verifică din nou',
+                  onPressed: onVerifyAgain,
+                ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            Center(
+            const Center(
               child: Text(
                 'Salvat automat în Istoric',
-                style: AppTextStyles.labelMd.copyWith(color: AppColors.mid),
+                style: AppTextStyles.labelMd,
               ),
             ),
           ],
@@ -89,9 +85,7 @@ class SessionSummaryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.subtle),
       ),
       child: Row(
         children: [
@@ -101,13 +95,15 @@ class SessionSummaryScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: claimsCount > 0
                   ? AppColors.verdictTrue.withValues(alpha: 0.1)
-                  : AppColors.subtle,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               claimsCount > 0 ? Icons.check_rounded : Icons.search_rounded,
               size: 24,
-              color: claimsCount > 0 ? AppColors.verdictTrue : AppColors.mid,
+              color: claimsCount > 0
+                  ? AppColors.verdictTrue
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(width: 16),
@@ -119,12 +115,13 @@ class SessionSummaryScreen extends StatelessWidget {
                   claimsCount > 0
                       ? '$claimsCount ${claimsCount == 1 ? 'afirmație verificată' : 'afirmații verificate'}'
                       : 'Nicio afirmație găsită',
-                  style: AppTextStyles.labelLg.copyWith(fontWeight: FontWeight.w600),
+                  style: AppTextStyles.labelLg
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Mod: $modeLabel',
-                  style: AppTextStyles.bodySm.copyWith(color: AppColors.mid),
+                  style: AppTextStyles.bodySm,
                 ),
               ],
             ),
@@ -135,12 +132,12 @@ class SessionSummaryScreen extends StatelessWidget {
   }
 
   Widget _buildNoClaims(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 32),
       child: Center(
         child: Text(
           'Nu am identificat nicio afirmație care să poată fi verificată.',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.mid),
+          style: AppTextStyles.bodyMd,
           textAlign: TextAlign.center,
         ),
       ),
@@ -164,7 +161,9 @@ class SessionSummaryScreen extends StatelessWidget {
     HapticFeedback.lightImpact();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rezumat copiat în clipboard'), duration: Duration(seconds: 2)),
+        const SnackBar(
+            content: Text('Rezumat copiat în clipboard'),
+            duration: Duration(seconds: 2)),
       );
     }
   }
@@ -189,7 +188,9 @@ class _ClaimCardState extends State<_ClaimCard>
   @override
   void initState() {
     super.initState();
-    final dur = widget.disableAnimations ? Duration.zero : const Duration(milliseconds: 300);
+    final dur = widget.disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: 300);
     _controller = AnimationController(vsync: this, duration: dur);
     _opacity = CurvedAnimation(
       parent: _controller,
@@ -211,7 +212,8 @@ class _ClaimCardState extends State<_ClaimCard>
   @override
   Widget build(BuildContext context) {
     final seg = widget.segment;
-    final fgColor = AppColors.streamingVerdictFg(seg.verdict);
+    final baseFgColor = AppColors.streamingVerdictFg(seg.verdict);
+    final fgColor = baseFgColor ?? Theme.of(context).colorScheme.onSurface;
 
     return FadeTransition(
       opacity: _opacity,
@@ -246,7 +248,9 @@ class _ClaimCardState extends State<_ClaimCard>
                       const SizedBox(width: 8),
                       Text(
                         '${(seg.confidence! * 100).round()}%',
-                        style: AppTextStyles.labelSm.copyWith(color: AppColors.mid),
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ],
@@ -254,13 +258,17 @@ class _ClaimCardState extends State<_ClaimCard>
                 const SizedBox(height: 10),
                 Text(
                   seg.text,
-                  style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
+                  style: AppTextStyles.bodyMd
+                      .copyWith(fontWeight: FontWeight.w500),
                 ),
                 if (seg.explanation != null && seg.explanation!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
                     seg.explanation!,
-                    style: AppTextStyles.bodySm.copyWith(color: AppColors.inkSub, height: 1.6),
+                    style: AppTextStyles.bodySm.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.6,
+                    ),
                   ),
                 ],
               ],

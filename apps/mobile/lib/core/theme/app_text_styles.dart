@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 /// Full typography scale for verificat.xyz.
 /// Poppins = display / UI / labels
-/// Lora    = body copy (needs room — use height ≥ 1.6)
 /// JetBrains Mono = code / eyebrow
 abstract final class AppTextStyles {
   AppTextStyles._();
@@ -50,7 +49,7 @@ abstract final class AppTextStyles {
   );
 
   static const bodySm = TextStyle(
-    fontFamily: 'Lora',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
     fontSize: 12,
     height: 1.5,

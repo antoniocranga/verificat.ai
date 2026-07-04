@@ -51,12 +51,13 @@ abstract final class AppColors {
 
   // ── Helpers ───────────────────────────────────────────────────
   /// Returns the canonical colour for a given verdict label string.
-  static Color forVerdict(String label) => switch (label) {
-    'True'          => verdictTrue,
-    'Mostly True'   => verdictMostlyTrue,
-    'Partially True' => verdictPartial,
-    'Misleading'    => verdictMisleading,
-    'False'         => verdictFalse,
+  static Color forVerdict(String label) => switch (label.toLowerCase()) {
+    'true'          => verdictTrue,
+    'mostly true'   => verdictMostlyTrue,
+    'partially true' => verdictPartial,
+    'uncertain'     => verdictPartial,
+    'misleading'    => verdictMisleading,
+    'false'         => verdictFalse,
     _               => verdictUnverified,
   };
 
@@ -70,11 +71,13 @@ abstract final class AppColors {
   };
 
   /// Foreground / border colour for a streaming verdict chip.
-  static Color streamingVerdictFg(StreamingVerdict? v) => switch (v) {
+  /// Returns [null] when there is no verdict — callers should fall back to
+  /// [ColorScheme.onSurface] in that case.
+  static Color? streamingVerdictFg(StreamingVerdict? v) => switch (v) {
     StreamingVerdict.verdadero  => verdictTrue,
     StreamingVerdict.falso      => verdictFalse,
     StreamingVerdict.uncertain  => verdictPartial,
-    _                           => ink,
+    _                           => null,
   };
 
   /// Romanian display label for a streaming verdict.

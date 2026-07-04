@@ -125,11 +125,16 @@ class SettingsScreen extends StatelessWidget {
       Theme.of(context).colorScheme.onSurfaceVariant;
 
   Widget _defaultModeTile(BuildContext context) {
-    return StatefulBuilder(
-      builder: (context, setLocalState) {
+    return FutureBuilder<String?>(
+      future: SharedPreferences.getInstance()
+          .then((p) => p.getString('default-listen-mode')),
+      builder: (context, snapshot) {
+        final savedMode = snapshot.data == 'recording'
+            ? ListenMode.recording
+            : ListenMode.streaming;
         return SelectorTrigger<ListenMode>(
           title: 'Mod implicit',
-          currentValue: ListenMode.streaming,
+          currentValue: savedMode,
           options: const [
             SelectorOption(
               value: ListenMode.streaming,
@@ -148,7 +153,6 @@ class SettingsScreen extends StatelessWidget {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('default-listen-mode',
                 mode == ListenMode.streaming ? 'streaming' : 'recording');
-            setLocalState(() {});
           },
         );
       },
@@ -211,8 +215,9 @@ class SettingsScreen extends StatelessWidget {
                     }
                   } catch (_) {}
                 },
-                child: const Text('Șterge',
-                    style: TextStyle(color: AppColors.error)),
+                child: Text('Șterge',
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error)),
               ),
             ],
           ),
@@ -223,15 +228,15 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
-            const Icon(Icons.delete_outline_rounded,
-                size: 20, color: AppColors.error),
+            Icon(Icons.delete_outline_rounded,
+                size: 20, color: Theme.of(context).colorScheme.error),
             const SizedBox(width: 12),
             Text(
               'Șterge istoricul',
               style: AppTextStyles.labelLg.copyWith(
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
-                color: AppColors.error,
+                color: Theme.of(context).colorScheme.error,
               ),
             ),
             const Spacer(),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 class SkeletonText extends StatefulWidget {
   final int lines;
@@ -53,7 +52,7 @@ class _SkeletonTextState extends State<SkeletonText>
                     height: 16,
                     width: isLast ? 140 : double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.subtle,
+                      color: Theme.of(context).colorScheme.outline,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

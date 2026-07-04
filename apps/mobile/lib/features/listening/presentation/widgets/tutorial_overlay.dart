@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 class TutorialOverlay extends StatefulWidget {
@@ -99,7 +98,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.accent.withValues(alpha: 0.3 * _pulseController.value),
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3 * _pulseController.value),
                                     blurRadius: 20,
                                     spreadRadius: 4,
                                   ),
@@ -130,7 +129,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
-                                fontFamily: 'Lora',
                                 height: 1.6,
                               ),
                               textAlign: TextAlign.center,

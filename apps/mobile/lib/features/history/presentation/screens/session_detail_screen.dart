@@ -4,6 +4,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/api/sessions_api_service.dart';
+import '../../../../core/utils/verdict_utils.dart';
 import '../../domain/models/saved_check.dart';
 
 
@@ -46,17 +47,6 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         });
       }
     }
-  }
-
-  Color _verdictColor(String label) {
-    return switch (label) {
-      'True' => AppColors.verdictTrue,
-      'Mostly True' => AppColors.verdictMostlyTrue,
-      'Partially True' => AppColors.verdictPartial,
-      'Misleading' => AppColors.verdictMisleading,
-      'False' => AppColors.verdictFalse,
-      _ => AppColors.mid,
-    };
   }
 
   @override
@@ -115,12 +105,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                   spacing: 6,
                   runSpacing: 4,
                   children: s.verdictSummary.entries.map((e) {
-                    final color = switch (e.key) {
-                      'true' => AppColors.verdictTrue,
-                      'false' => AppColors.verdictFalse,
-                      'uncertain' => AppColors.verdictPartial,
-                      _ => AppColors.mid,
-                    };
+                    final color = VerdictUtils.getColor(e.key);
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
@@ -128,7 +113,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '${e.value} ${e.key}',
+                        '${e.value} ${VerdictUtils.translate(e.key)}',
                         style: AppTextStyles.labelSm.copyWith(
                           color: color,
                           fontWeight: FontWeight.w700,
@@ -169,7 +154,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                       height: 8,
                       margin: const EdgeInsets.only(top: 6),
                       decoration: BoxDecoration(
-                        color: _verdictColor(claim.verdict?.label ?? 'Unverified')
+                        color: VerdictUtils.getColor(claim.verdict?.label ?? 'Unverified')
                             .withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
@@ -178,7 +163,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: _verdictColor(claim.verdict?.label ?? 'Unverified'),
+                            color: VerdictUtils.getColor(claim.verdict?.label ?? 'Unverified'),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -202,13 +187,13 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: _verdictColor(claim.verdict!.label).withValues(alpha: 0.12),
+                                    color: VerdictUtils.getColor(claim.verdict!.label).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    claim.verdict!.label,
+                                    VerdictUtils.translate(claim.verdict!.label),
                                     style: AppTextStyles.labelSm.copyWith(
-                                      color: _verdictColor(claim.verdict!.label),
+                                      color: VerdictUtils.getColor(claim.verdict!.label),
                                       fontWeight: FontWeight.w600,
                                       fontSize: 9,
                                     ),

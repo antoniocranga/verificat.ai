@@ -10,7 +10,9 @@ class MonoEyebrow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label.toUpperCase(),
-      style: AppTextStyles.monoEyebrow.copyWith(color: const Color(0xFF8F8F8F)),
+      style: AppTextStyles.monoEyebrow.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

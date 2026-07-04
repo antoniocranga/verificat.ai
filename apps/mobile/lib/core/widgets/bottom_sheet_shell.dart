@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
 
 class BottomSheetShell extends StatelessWidget {
   final Widget child;
@@ -30,7 +29,7 @@ class BottomSheetShell extends StatelessWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.mid.withValues(alpha: 0.4),
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
