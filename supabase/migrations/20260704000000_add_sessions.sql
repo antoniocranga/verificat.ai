@@ -12,6 +12,8 @@ create table public.sessions (
   verdict_summary jsonb default '{}'::jsonb not null
 );
 
+-- Grant access to standard roles (required since this is created via SQL)
+grant select, insert, update, delete on public.sessions to anon, authenticated, service_role;
 -- 2. Add session_id to existing claims table
 alter table public.claims
   add column session_id uuid references public.sessions on delete set null;
